@@ -14,7 +14,4 @@ bool AddressIsROMSpace(unsigned short address);
 unsigned char ROMOnlyReadByte(unsigned short address, MemoryController* memoryController);
 void ROMOnlyWriteByte(unsigned short address, unsigned char value, MemoryController* memoryController);
 
-unsigned char MBC1ReadByte(unsigned short address, MemoryController* memoryController);
-void MBC1WriteByte(unsigned short address, unsigned char value, MemoryController* memoryController);
-
 MemoryController InitROMOnlyMemoryController(unsigned char* memory, unsigned char* cartridge);
