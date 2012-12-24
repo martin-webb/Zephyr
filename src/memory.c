@@ -1,15 +1,35 @@
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "memory.h"
 
 #define CARTRIDGE_SIZE 0x8000
 
-bool AddressIsROMSpace(unsigned short address)
+bool addressIsROMSpace(unsigned short address)
 {
   return ((address & 0xFF00) >= 0x0000) && ((address & 0xFF00) < CARTRIDGE_SIZE);
 }
 
+unsigned char readByte(unsigned short address, MemoryController* memoryController)
+{
+  return memoryController->readByteImpl(address, memoryController);
+}
+
+unsigned short readWord(unsigned short address, MemoryController* memoryController)
+{
+  unsigned char lsByte = memoryController->readByteImpl(address, memoryController);
+  unsigned char msByte = memoryController->readByteImpl(address + 1, memoryController);
+  return (msByte << 8) | lsByte;
+}
+
+void writeByte(unsigned short address, unsigned char value, MemoryController* memoryController)
+{
+  memoryController->writeByteImpl(address, value, memoryController);
+}
+
 unsigned char ROMOnlyReadByte(unsigned short address, MemoryController* memoryController)
 {
-  if (AddressIsROMSpace(address)) {
+  if (addressIsROMSpace(address)) {
     return memoryController->cartridge[address];
   } else {
     return memoryController->memory[address - CARTRIDGE_SIZE];
@@ -18,7 +38,7 @@ unsigned char ROMOnlyReadByte(unsigned short address, MemoryController* memoryCo
 
 void ROMOnlyWriteByte(unsigned short address, unsigned char value, MemoryController* memoryController)
 {
-  if (AddressIsROMSpace(address)) {
+  if (addressIsROMSpace(address)) {
     printf("[FATAL]: Attempt to write to ROM space on ROM Only cartridge");
     exit(1);
   } else {

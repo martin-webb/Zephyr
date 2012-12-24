@@ -304,49 +304,47 @@ void InitForExecution(CPURegisters* registers, MemoryController* memoryControlle
   registers->sp = 0xFFFE;
   registers->pc = 0x100;
   
-  memoryController->writeByte(0xFF05, 0x00, memoryController);
-  /*
-  memory[0xFF06] = 0x00;
-  memory[0xFF07] = 0x00;
-  memory[0xFF10] = 0x80;
-  memory[0xFF11] = 0xBF;
-  memory[0xFF12] = 0xF3;
-  memory[0xFF14] = 0xBF;
-  memory[0xFF16] = 0x3F;
-  memory[0xFF17] = 0x00;
-  memory[0xFF19] = 0xBF;
-  memory[0xFF1A] = 0x7F;
-  memory[0xFF1B] = 0xFF;
-  memory[0xFF1C] = 0x9F;
-  memory[0xFF1E] = 0xBF;
-  memory[0xFF20] = 0xFF;
-  memory[0xFF21] = 0x00;
-  memory[0xFF22] = 0x00;
-  memory[0xFF23] = 0xBF;
-  memory[0xFF24] = 0x77;
-  memory[0xFF25] = 0xF3;
+  writeByte(0xFF05, 0x00, memoryController);
+  writeByte(0xFF06, 0x00, memoryController);
+  writeByte(0xFF07, 0x00, memoryController);
+  writeByte(0xFF10, 0x80, memoryController);
+  writeByte(0xFF11, 0xBF, memoryController);
+  writeByte(0xFF12, 0xF3, memoryController);
+  writeByte(0xFF14, 0xBF, memoryController);
+  writeByte(0xFF16, 0x3F, memoryController);
+  writeByte(0xFF17, 0x00, memoryController);
+  writeByte(0xFF19, 0xBF, memoryController);
+  writeByte(0xFF1A, 0x7F, memoryController);
+  writeByte(0xFF1B, 0xFF, memoryController);
+  writeByte(0xFF1C, 0x9F, memoryController);
+  writeByte(0xFF1E, 0xBF, memoryController);
+  writeByte(0xFF20, 0xFF, memoryController);
+  writeByte(0xFF21, 0x00, memoryController);
+  writeByte(0xFF22, 0x00, memoryController);
+  writeByte(0xFF23, 0xBF, memoryController);
+  writeByte(0xFF24, 0x77, memoryController);
+  writeByte(0xFF25, 0xF3, memoryController);
   switch (gbType) {
     case GB:
-      memory[0xFF26] = 0xF1;
+      writeByte(0xFF26, 0xF1, memoryController);
       break;
     case SGB:
-      memory[0xFF26] = 0xF0;
+      writeByte(0xFF26, 0xF0, memoryController);
       break;
     default:
       // TODO: Are there values for the GBP and GBC here?
       break;
   }
-  memory[0xFF40] = 0x91;
-  memory[0xFF42] = 0x00;
-  memory[0xFF43] = 0x00;
-  memory[0xFF45] = 0x00;
-  memory[0xFF47] = 0xFC;
-  memory[0xFF48] = 0xFF;
-  memory[0xFF49] = 0xFF;
-  memory[0xFF4A] = 0x00;
-  memory[0xFF4B] = 0x00;
-  memory[0xFFFF] = 0x00;
-  */
+  writeByte(0xFF40, 0x91, memoryController);
+  writeByte(0xFF42, 0x00, memoryController);
+  writeByte(0xFF43, 0x00, memoryController);
+  writeByte(0xFF45, 0x00, memoryController);
+  writeByte(0xFF47, 0xFC, memoryController);
+  writeByte(0xFF48, 0xFF, memoryController);
+  writeByte(0xFF49, 0xFF, memoryController);
+  writeByte(0xFF4A, 0x00, memoryController);
+  writeByte(0xFF4B, 0x00, memoryController);
+  writeByte(0xFFFF, 0x00, memoryController);
 }
 
 void PrintRegisters(CPURegisters* registers) {
@@ -420,26 +418,26 @@ int main(int argc, char* argv[]) {
   
   printf("Title: ");
   for (int i = GAME_TITLE_START_ADDRESS; i < GAME_TITLE_END_ADDRESS; i++) {
-    printf("%c", memoryController.readByte(i, &memoryController));
+    printf("%c", readByte(i, &memoryController));
   }
   printf("\n");
   
-  unsigned char cartridgeType = memoryController.readByte(CARTRIDGE_TYPE_ADDRESS, &memoryController);
+  unsigned char cartridgeType = readByte(CARTRIDGE_TYPE_ADDRESS, &memoryController);
   printf("Cartridge Type: 0x%02X - %s\n", cartridgeType, CartridgeTypeToString(cartridgeType));
   
-  unsigned char colorGB = memory[COLOR_GB_FLAG_ADDRESS];
+  unsigned char colorGB = readByte(COLOR_GB_FLAG_ADDRESS, &memoryController);
   printf("Color GB: 0x%02X - %s\n", colorGB, ColorGBIdentifierToString(colorGB));
   
-  unsigned char gbOrSGB = memory[GB_OR_SGB_FLAG_ADDRESS];
+  unsigned char gbOrSGB = readByte(GB_OR_SGB_FLAG_ADDRESS, &memoryController);
   printf("GB/SGB: 0x%02X - %s\n", gbOrSGB, (gbOrSGB == 0x0) ? "GB" : (gbOrSGB == 0x3) ? "SGB" : "Unknown");
   
-  unsigned char romSize = memory[ROM_SIZE_ADDRESS];
+  unsigned char romSize = readByte(ROM_SIZE_ADDRESS, &memoryController);
   printf("ROM size: 0x%02X - %s\n", romSize, ROMSizeToString(romSize));
   
-  unsigned char ramSize = memory[RAM_SIZE_ADDRESS];
+  unsigned char ramSize = readByte(RAM_SIZE_ADDRESS, &memoryController);
   printf("RAM size: 0x%02X - %s\n", ramSize, RAMSizeToString(ramSize));
   
-  unsigned char destinationCode = memory[DESTINATION_CODE_ADDRESS];
+  unsigned char destinationCode = readByte(DESTINATION_CODE_ADDRESS, &memoryController);
   printf("Destination Code: 0x%02X - %s\n", destinationCode, DestinationCodeToString(destinationCode));
   
   CPURegisters registers;
@@ -448,23 +446,19 @@ int main(int argc, char* argv[]) {
   PrintRegisters(&registers);
   
   while (1) {
-    break;
-    unsigned char opcode = memory[registers.pc++];
+    unsigned char opcode = readByte(registers.pc++, &memoryController);
     printf("PC: 0x%02X Opcode: 0x%02X\n", registers.pc - 1, opcode);
     
     switch (opcode) {
-      case 0x00: {// NOP
+      case 0x00: { // NOP
         // TODO: Cycles + 4
         // TODO: PC++?
         break;
       }
       case 0xC3: { // JP nn
-        unsigned char lsb = memory[registers.pc++];
-        unsigned char msb = memory[registers.pc++];
-        
-        registers.pc = (msb << 8) | lsb;
+        registers.pc = readWord(registers.pc, &memoryController);
+        // registers.pc += 2; WHY WOULD WE DO THIS?????
         // TODO: Cycles + 12
-        // TODO: PC++?
         break;
       }
       default:
