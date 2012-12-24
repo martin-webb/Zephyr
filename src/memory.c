@@ -8,7 +8,8 @@
 
 bool addressIsROMSpace(uint16_t address)
 {
-  return (address >= 0x0000) && (address < CARTRIDGE_SIZE);
+  // NOTE: Comparison of "address > 0x0000" is always true with an unsigned type
+  return address < CARTRIDGE_SIZE;
 }
 
 uint8_t readByte(uint16_t address, MemoryController* memoryController)
