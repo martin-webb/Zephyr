@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
+#include "cartridge.h"
 #include "memory.h"
 
 #define CLOCK_CYCLE_FREQUENCY (1024 * 1024 * 4)
@@ -46,36 +47,6 @@
 
 /****************************************************************************/
 
-#define CARTRIDGE_TYPE_ROM_ONLY 0x0
-#define CARTRIDGE_TYPE_MBC1 0x1
-#define CARTRIDGE_TYPE_MBC1_PLUS_RAM 0x2
-#define CARTRIDGE_TYPE_MBC1_PLUS_RAM_PLUS_BATTERY 0x3
-#define CARTRIDGE_TYPE_MBC2 0x5
-#define CARTRIDGE_TYPE_MBC2_PLUS_BATTERY 0x6
-#define CARTRIDGE_TYPE_ROM_PLUS_RAM 0x8
-#define CARTRIDGE_TYPE_ROM_PLUS_RAM_PLUS_BATTERY 0x9
-#define CARTRIDGE_TYPE_MMM01 0xB
-#define CARTRIDGE_TYPE_MMM01_PLUS_RAM 0xC
-#define CARTRIDGE_TYPE_MMM01_PLUS_RAM_PLUS_BATTERY 0xD
-#define CARTRIDGE_TYPE_MBC3_PLUS_TIMER_PLUS_BATTERY 0xF
-#define CARTRIDGE_TYPE_MBC3_PLUS_TIMER_PLUS_RAM_PLUS_BATTERY 0x10
-#define CARTRIDGE_TYPE_MBC3 0x11
-#define CARTRIDGE_TYPE_MBC3_PLUS_RAM 0x12
-#define CARTRIDGE_TYPE_MBC3_PLUS_RAM_PLUS_BATTERY 0x13
-#define CARTRIDGE_TYPE_MBC4 0x15
-#define CARTRIDGE_TYPE_MBC4_PLUS_RAM 0x16
-#define CARTRIDGE_TYPE_MBC4_PLUS_RAM_PLUS_BATTERY 0x17
-#define CARTRIDGE_TYPE_MBC5 0x19
-#define CARTRIDGE_TYPE_MBC5_PLUS_RAM 0x1A
-#define CARTRIDGE_TYPE_MBC5_PLUS_RAM_PLUS_BATTERY 0x1B
-#define CARTRIDGE_TYPE_MBC5_PLUS_RUMBLE 0x1C
-#define CARTRIDGE_TYPE_MBC5_PLUS_RUMBLE_PLUS_RAM 0x1D
-#define CARTRIDGE_TYPE_MBC5_PLUS_RUMBLE_PLUS_RAM_PLUS_BATTERY 0x1E
-#define CARTRIDGE_TYPE_POCKET_CAMERA 0xFC
-#define CARTRIDGE_TYPE_BANDAI_TAMA5 0xFD
-#define CARTRIDGE_TYPE_HuC3 0xFE
-#define CARTRIDGE_TYPE_HuC1_PLUS_RAM_PLUS_BATTERY 0xFF
-
 typedef struct {
   unsigned char a;
   unsigned char b;
@@ -106,101 +77,6 @@ char* ColorGBIdentifierToString(unsigned char destinationCode) {
       break;
     default:
       return "No";
-      break;
-  }
-}
-
-char* CartridgeTypeToString(unsigned char cartridgeType) {
-  switch (cartridgeType) {
-    case CARTRIDGE_TYPE_ROM_ONLY:
-      return "ROM ONLY";
-      break;
-    case CARTRIDGE_TYPE_MBC1:
-      return "MBC1";
-      break;
-    case CARTRIDGE_TYPE_MBC1_PLUS_RAM:
-      return "MBC1+RAM";
-      break;
-    case CARTRIDGE_TYPE_MBC1_PLUS_RAM_PLUS_BATTERY:
-      return "MBC1+RAM+BATTERY";
-      break;
-    case CARTRIDGE_TYPE_MBC2:
-      return "MBC2";
-      break;
-    case CARTRIDGE_TYPE_MBC2_PLUS_BATTERY:
-      return "MBC2+BATTERY";
-      break;
-    case CARTRIDGE_TYPE_ROM_PLUS_RAM:
-      return "ROM+RAM";
-      break;
-    case CARTRIDGE_TYPE_ROM_PLUS_RAM_PLUS_BATTERY:
-      return "ROM+RAM+BATTERY";
-      break;
-    case CARTRIDGE_TYPE_MMM01:
-      return "MMM01";
-      break;
-    case CARTRIDGE_TYPE_MMM01_PLUS_RAM:
-      return "MMM01+RAM";
-      break;
-    case CARTRIDGE_TYPE_MMM01_PLUS_RAM_PLUS_BATTERY:
-      return "MMM01+RAM+BATTERY";
-      break;
-    case CARTRIDGE_TYPE_MBC3_PLUS_TIMER_PLUS_BATTERY:
-      return "MBC3+TIMER+BATTERY";
-      break;
-    case CARTRIDGE_TYPE_MBC3_PLUS_TIMER_PLUS_RAM_PLUS_BATTERY:
-      return "MBC3+TIMER+RAM+BATTERY";
-      break;
-    case CARTRIDGE_TYPE_MBC3:
-      return "MBC3";
-      break;
-    case CARTRIDGE_TYPE_MBC3_PLUS_RAM:
-      return "MBC3+RAM";
-      break;
-    case CARTRIDGE_TYPE_MBC3_PLUS_RAM_PLUS_BATTERY:
-      return "MBC3+RAM+BATTERY";
-      break;
-    case CARTRIDGE_TYPE_MBC4:
-      return "MBC4";
-      break;
-    case CARTRIDGE_TYPE_MBC4_PLUS_RAM:
-      return "MBC4+RAM";
-      break;
-    case CARTRIDGE_TYPE_MBC4_PLUS_RAM_PLUS_BATTERY:
-      return "MBC4+RAM+BATTERY";
-      break;
-    case CARTRIDGE_TYPE_MBC5:
-      return "MBC5";
-      break;
-    case CARTRIDGE_TYPE_MBC5_PLUS_RAM:
-      return "MBC5+RAM";
-      break;
-    case CARTRIDGE_TYPE_MBC5_PLUS_RAM_PLUS_BATTERY:
-      return "MBC5+RAM+BATTERY";
-      break;
-    case CARTRIDGE_TYPE_MBC5_PLUS_RUMBLE:
-      return "MBC5+RUMBLE";
-      break;
-    case CARTRIDGE_TYPE_MBC5_PLUS_RUMBLE_PLUS_RAM:
-      return "MBC5+RUMBLE+RAM";
-      break;
-    case CARTRIDGE_TYPE_MBC5_PLUS_RUMBLE_PLUS_RAM_PLUS_BATTERY:
-      return "MBC5+RUMBLE+RAM+BATTERY";
-      break;
-    case CARTRIDGE_TYPE_POCKET_CAMERA:
-      return "POCKET CAMERA";
-      break;
-    case CARTRIDGE_TYPE_BANDAI_TAMA5:
-      return "BANDAI TAMA5";
-      break;
-    case CARTRIDGE_TYPE_HuC3:
-      return "HuC3";
-      break;
-    case CARTRIDGE_TYPE_HuC1_PLUS_RAM_PLUS_BATTERY:
-      return "HuC1+RAM+BATTERY";
-      break;
-    default:
-      return "UNKNOWN";
       break;
   }
 }
@@ -413,17 +289,17 @@ int main(int argc, char* argv[]) {
   
   unsigned char memory[1024 * 32]; // 32KB
   
-  MemoryController memoryController = InitROMOnlyMemoryController(memory, cartridgeData);
+  // unsigned char cartridgeType = readByte(CARTRIDGE_TYPE_ADDRESS, &memoryController);
+  unsigned char cartridgeType = cartridgeData[CARTRIDGE_TYPE_ADDRESS];
+  printf("Cartridge Type: 0x%02X - %s\n", cartridgeType, CartridgeTypeToString(cartridgeType));
   
+  MemoryController memoryController = InitMemoryController(cartridgeType, memory, cartridgeData);
   
   printf("Title: ");
   for (int i = GAME_TITLE_START_ADDRESS; i < GAME_TITLE_END_ADDRESS; i++) {
     printf("%c", readByte(i, &memoryController));
   }
   printf("\n");
-  
-  unsigned char cartridgeType = readByte(CARTRIDGE_TYPE_ADDRESS, &memoryController);
-  printf("Cartridge Type: 0x%02X - %s\n", cartridgeType, CartridgeTypeToString(cartridgeType));
   
   unsigned char colorGB = readByte(COLOR_GB_FLAG_ADDRESS, &memoryController);
   printf("Color GB: 0x%02X - %s\n", colorGB, ColorGBIdentifierToString(colorGB));
