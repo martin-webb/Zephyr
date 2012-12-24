@@ -8,7 +8,7 @@
 
 bool addressIsROMSpace(uint16_t address)
 {
-  return ((address & 0xFF00) >= 0x0000) && ((address & 0xFF00) < CARTRIDGE_SIZE);
+  return (address >= 0x0000) && (address < CARTRIDGE_SIZE);
 }
 
 uint8_t readByte(uint16_t address, MemoryController* memoryController)
@@ -94,9 +94,9 @@ void ROMOnlyWriteByte(uint16_t address, uint8_t value, MemoryController* memoryC
     memoryController->memory[address - CARTRIDGE_SIZE] = value;
     
     // Additional write to support the echo of 7.5KB of internal RAM
-    if (((address & 0xFF00) >= 0xC000) && ((address & 0xFF00) < 0xDE00)) {
+    if ((address >= 0xC000) && (address < 0xDE00)) {
       memoryController->memory[address - CARTRIDGE_SIZE + 0x2000];
-    } else if (((address & 0xFF00) >= 0xE000) && ((address & 0xFF00) < 0xFE00)) {
+    } else if ((address >= 0xE000) && (address < 0xFE00)) {
       memoryController->memory[address - CARTRIDGE_SIZE - 0x2000];
     }
   }
@@ -134,9 +134,9 @@ void MBC1WriteByte(uint16_t address, uint8_t value, MemoryController* memoryCont
     memoryController->memory[address - CARTRIDGE_SIZE] = value;
     
     // Additional write to support the echo of 7.5KB of internal RAM
-    if (((address & 0xFF00) >= 0xC000) && ((address & 0xFF00) < 0xDE00)) {
+    if ((address >= 0xC000) && (address < 0xDE00)) {
       memoryController->memory[address - CARTRIDGE_SIZE + 0x2000];
-    } else if (((address & 0xFF00) >= 0xE000) && ((address & 0xFF00) < 0xFE00)) {
+    } else if ((address >= 0xE000) && (address < 0xFE00)) {
       memoryController->memory[address - CARTRIDGE_SIZE - 0x2000];
     }
   }
