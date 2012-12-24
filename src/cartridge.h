@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 #define CARTRIDGE_TYPE_ROM_ONLY 0x0
 #define CARTRIDGE_TYPE_MBC1 0x1
 #define CARTRIDGE_TYPE_MBC1_PLUS_RAM 0x2
@@ -28,4 +30,4 @@
 #define CARTRIDGE_TYPE_HuC3 0xFE
 #define CARTRIDGE_TYPE_HuC1_PLUS_RAM_PLUS_BATTERY 0xFF
 
-char* CartridgeTypeToString(unsigned char cartridgeType);
+char* CartridgeTypeToString(uint8_t cartridgeType);

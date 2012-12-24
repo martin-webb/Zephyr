@@ -6,29 +6,29 @@
 
 #define CARTRIDGE_SIZE 0x8000
 
-bool addressIsROMSpace(unsigned short address)
+bool addressIsROMSpace(uint16_t address)
 {
   return ((address & 0xFF00) >= 0x0000) && ((address & 0xFF00) < CARTRIDGE_SIZE);
 }
 
-unsigned char readByte(unsigned short address, MemoryController* memoryController)
+uint8_t readByte(uint16_t address, MemoryController* memoryController)
 {
   return memoryController->readByteImpl(address, memoryController);
 }
 
-unsigned short readWord(unsigned short address, MemoryController* memoryController)
+uint16_t readWord(uint16_t address, MemoryController* memoryController)
 {
-  unsigned char lsByte = memoryController->readByteImpl(address, memoryController);
-  unsigned char msByte = memoryController->readByteImpl(address + 1, memoryController);
+  uint8_t lsByte = memoryController->readByteImpl(address, memoryController);
+  uint8_t msByte = memoryController->readByteImpl(address + 1, memoryController);
   return (msByte << 8) | lsByte;
 }
 
-void writeByte(unsigned short address, unsigned char value, MemoryController* memoryController)
+void writeByte(uint16_t address, uint8_t value, MemoryController* memoryController)
 {
   memoryController->writeByteImpl(address, value, memoryController);
 }
 
-MemoryController InitMemoryController(unsigned char cartridgeType, unsigned char* memory, unsigned char* cartridge)
+MemoryController InitMemoryController(uint8_t cartridgeType, uint8_t* memory, uint8_t* cartridge)
 {
   switch (cartridgeType) {
     case CARTRIDGE_TYPE_ROM_ONLY:
@@ -76,7 +76,7 @@ MemoryController InitMemoryController(unsigned char cartridgeType, unsigned char
 
 /****************************************************************************/
 
-unsigned char ROMOnlyReadByte(unsigned short address, MemoryController* memoryController)
+uint8_t ROMOnlyReadByte(uint16_t address, MemoryController* memoryController)
 {
   if (addressIsROMSpace(address)) {
     return memoryController->cartridge[address];
@@ -85,7 +85,7 @@ unsigned char ROMOnlyReadByte(unsigned short address, MemoryController* memoryCo
   }
 }
 
-void ROMOnlyWriteByte(unsigned short address, unsigned char value, MemoryController* memoryController)
+void ROMOnlyWriteByte(uint16_t address, uint8_t value, MemoryController* memoryController)
 {
   if (addressIsROMSpace(address)) {
     printf("[FATAL]: Attempt to write to ROM space on ROM Only cartridge");
@@ -102,7 +102,7 @@ void ROMOnlyWriteByte(unsigned short address, unsigned char value, MemoryControl
   }
 }
 
-MemoryController InitROMOnlyMemoryController(unsigned char* memory, unsigned char* cartridge)
+MemoryController InitROMOnlyMemoryController(uint8_t* memory, uint8_t* cartridge)
 {
   MemoryController memoryController = {
     memory,
@@ -116,7 +116,7 @@ MemoryController InitROMOnlyMemoryController(unsigned char* memory, unsigned cha
 
 /****************************************************************************/
 
-unsigned char MBC1ReadByte(unsigned short address, MemoryController* memoryController)
+uint8_t MBC1ReadByte(uint16_t address, MemoryController* memoryController)
 {
   if (addressIsROMSpace(address)) {
     return memoryController->cartridge[address];
@@ -125,7 +125,7 @@ unsigned char MBC1ReadByte(unsigned short address, MemoryController* memoryContr
   }
 }
 
-void MBC1WriteByte(unsigned short address, unsigned char value, MemoryController* memoryController)
+void MBC1WriteByte(uint16_t address, uint8_t value, MemoryController* memoryController)
 {
   if (addressIsROMSpace(address)) {
     printf("[FATAL]: Attempt to write to ROM space on ROM Only cartridge");
@@ -142,7 +142,7 @@ void MBC1WriteByte(unsigned short address, unsigned char value, MemoryController
   }
 }
 
-MemoryController InitMBC1MemoryController(unsigned char* memory, unsigned char* cartridge)
+MemoryController InitMBC1MemoryController(uint8_t* memory, uint8_t* cartridge)
 {
   MemoryController memoryController = {
     memory,

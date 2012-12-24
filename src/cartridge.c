@@ -1,6 +1,6 @@
 #include "cartridge.h"
 
-char* CartridgeTypeToString(unsigned char cartridgeType) {
+char* CartridgeTypeToString(uint8_t cartridgeType) {
   switch (cartridgeType) {
     case CARTRIDGE_TYPE_ROM_ONLY:
       return "ROM ONLY";

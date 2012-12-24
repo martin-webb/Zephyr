@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
@@ -48,19 +49,19 @@
 /****************************************************************************/
 
 typedef struct {
-  unsigned char a;
-  unsigned char b;
-  unsigned char c;
-  unsigned char d;
-  unsigned char e;
-  unsigned char f;
-  unsigned char h;
-  unsigned char l;
+  uint8_t a;
+  uint8_t b;
+  uint8_t c;
+  uint8_t d;
+  uint8_t e;
+  uint8_t f;
+  uint8_t h;
+  uint8_t l;
   
-  unsigned short sp;
-  unsigned short pc;
+  uint16_t sp;
+  uint16_t pc;
   
-  unsigned char flag;
+  uint8_t flag;
 } CPURegisters;
 
 typedef enum {
@@ -70,7 +71,7 @@ typedef enum {
   SGB
 } GBType;
 
-char* ColorGBIdentifierToString(unsigned char destinationCode) {
+char* ColorGBIdentifierToString(uint8_t destinationCode) {
   switch (destinationCode) {
     case 0x80:
       return "Yes";
@@ -81,7 +82,7 @@ char* ColorGBIdentifierToString(unsigned char destinationCode) {
   }
 }
 
-char* ROMSizeToString(unsigned char romSize) {
+char* ROMSizeToString(uint8_t romSize) {
   switch (romSize) {
     case 0x0:
       return "32KB (2 banks)";
@@ -119,7 +120,7 @@ char* ROMSizeToString(unsigned char romSize) {
   }
 }
 
-char* RAMSizeToString(unsigned char ramSize) {
+char* RAMSizeToString(uint8_t ramSize) {
   switch (ramSize) {
     case 0x0:
       return "None";
@@ -142,7 +143,7 @@ char* RAMSizeToString(unsigned char ramSize) {
   }
 }
 
-char* DestinationCodeToString(unsigned char destinationCode) {
+char* DestinationCodeToString(uint8_t destinationCode) {
   switch (destinationCode) {
     case 0x0:
       return "Japanese";
@@ -254,8 +255,8 @@ int GetCartridgeSize(FILE* cartridgeFile) {
   return size;
 }
 
-unsigned char* LoadCartridge(char* pathToROM) {
-  unsigned char* cartridgeData = NULL;
+uint8_t* LoadCartridge(char* pathToROM) {
+  uint8_t* cartridgeData = NULL;
   
   FILE* cartridgeFile = fopen(pathToROM, "rb");
   if (cartridgeFile == NULL) {
@@ -265,7 +266,7 @@ unsigned char* LoadCartridge(char* pathToROM) {
   long int cartridgeSize = GetCartridgeSize(cartridgeFile);
   printf("Cartridge Size: %li\n", cartridgeSize);
   
-  cartridgeData = (unsigned char*)malloc(cartridgeSize * sizeof(unsigned char));
+  cartridgeData = (uint8_t*)malloc(cartridgeSize * sizeof(uint8_t));
   
   fseek(cartridgeFile, 0, SEEK_SET);
   fread(cartridgeData, 1, cartridgeSize, cartridgeFile);
@@ -274,23 +275,22 @@ unsigned char* LoadCartridge(char* pathToROM) {
   return cartridgeData;
 }
 
-
 int main(int argc, char* argv[]) {
   if (argc != 2) {
     printf("Usage: %s PATH_TO_ROM\n", argv[0]);
     return 1;
   }
   
-  unsigned char* cartridgeData = LoadCartridge(argv[1]);
+  uint8_t* cartridgeData = LoadCartridge(argv[1]);
   if (cartridgeData == NULL) {
     printf("Failed to read cartridge from '%s'", argv[1]);
     exit(1);
   }
   
-  unsigned char memory[1024 * 32]; // 32KB
+  uint8_t memory[1024 * 32]; // 32KB
   
-  // unsigned char cartridgeType = readByte(CARTRIDGE_TYPE_ADDRESS, &memoryController);
-  unsigned char cartridgeType = cartridgeData[CARTRIDGE_TYPE_ADDRESS];
+  // uint8_t cartridgeType = readByte(CARTRIDGE_TYPE_ADDRESS, &memoryController);
+  uint8_t cartridgeType = cartridgeData[CARTRIDGE_TYPE_ADDRESS];
   printf("Cartridge Type: 0x%02X - %s\n", cartridgeType, CartridgeTypeToString(cartridgeType));
   
   MemoryController memoryController = InitMemoryController(cartridgeType, memory, cartridgeData);
@@ -301,19 +301,19 @@ int main(int argc, char* argv[]) {
   }
   printf("\n");
   
-  unsigned char colorGB = readByte(COLOR_GB_FLAG_ADDRESS, &memoryController);
+  uint8_t colorGB = readByte(COLOR_GB_FLAG_ADDRESS, &memoryController);
   printf("Color GB: 0x%02X - %s\n", colorGB, ColorGBIdentifierToString(colorGB));
   
-  unsigned char gbOrSGB = readByte(GB_OR_SGB_FLAG_ADDRESS, &memoryController);
+  uint8_t gbOrSGB = readByte(GB_OR_SGB_FLAG_ADDRESS, &memoryController);
   printf("GB/SGB: 0x%02X - %s\n", gbOrSGB, (gbOrSGB == 0x0) ? "GB" : (gbOrSGB == 0x3) ? "SGB" : "Unknown");
   
-  unsigned char romSize = readByte(ROM_SIZE_ADDRESS, &memoryController);
+  uint8_t romSize = readByte(ROM_SIZE_ADDRESS, &memoryController);
   printf("ROM size: 0x%02X - %s\n", romSize, ROMSizeToString(romSize));
   
-  unsigned char ramSize = readByte(RAM_SIZE_ADDRESS, &memoryController);
+  uint8_t ramSize = readByte(RAM_SIZE_ADDRESS, &memoryController);
   printf("RAM size: 0x%02X - %s\n", ramSize, RAMSizeToString(ramSize));
   
-  unsigned char destinationCode = readByte(DESTINATION_CODE_ADDRESS, &memoryController);
+  uint8_t destinationCode = readByte(DESTINATION_CODE_ADDRESS, &memoryController);
   printf("Destination Code: 0x%02X - %s\n", destinationCode, DestinationCodeToString(destinationCode));
   
   CPURegisters registers;
@@ -322,7 +322,7 @@ int main(int argc, char* argv[]) {
   PrintRegisters(&registers);
   
   while (1) {
-    unsigned char opcode = readByte(registers.pc++, &memoryController);
+    uint8_t opcode = readByte(registers.pc++, &memoryController);
     printf("PC: 0x%02X Opcode: 0x%02X\n", registers.pc - 1, opcode);
     
     switch (opcode) {

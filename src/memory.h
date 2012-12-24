@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stdint.h>
 
 typedef struct MemoryController MemoryController;
 
@@ -9,31 +10,31 @@ typedef enum {
 } MBCMemoryModel;
 
 struct MemoryController {
-  unsigned char* memory;
-  unsigned char* cartridge;
+  uint8_t* memory;
+  uint8_t* cartridge;
   MBCMemoryModel memoryModel;
-  unsigned char (*readByteImpl)(unsigned short address, MemoryController* memoryController);
-  void (*writeByteImpl)(unsigned short address, unsigned char value, MemoryController* memoryController);
+  uint8_t (*readByteImpl)(uint16_t address, MemoryController* memoryController);
+  void (*writeByteImpl)(uint16_t address, uint8_t value, MemoryController* memoryController);
 };
 
-bool addressIsROMSpace(unsigned short address);
+bool addressIsROMSpace(uint16_t address);
 
-unsigned char readByte(unsigned short address, MemoryController* memoryController);
-unsigned short readWord(unsigned short address, MemoryController* memoryController);
-void writeByte(unsigned short address, unsigned char value, MemoryController* memoryController);
+uint8_t readByte(uint16_t address, MemoryController* memoryController);
+uint16_t readWord(uint16_t address, MemoryController* memoryController);
+void writeByte(uint16_t address, uint8_t value, MemoryController* memoryController);
 
-MemoryController InitMemoryController(unsigned char cartridgeType, unsigned char* memory, unsigned char* cartridge);
-
-/****************************************************************************/
-
-unsigned char ROMOnlyReadByte(unsigned short address, MemoryController* memoryController);
-void ROMOnlyWriteByte(unsigned short address, unsigned char value, MemoryController* memoryController);
-
-MemoryController InitROMOnlyMemoryController(unsigned char* memory, unsigned char* cartridge);
+MemoryController InitMemoryController(uint8_t cartridgeType, uint8_t* memory, uint8_t* cartridge);
 
 /****************************************************************************/
 
-unsigned char ROMOnlyReadByte(unsigned short address, MemoryController* memoryController);
-void ROMOnlyWriteByte(unsigned short address, unsigned char value, MemoryController* memoryController);
+uint8_t ROMOnlyReadByte(uint16_t address, MemoryController* memoryController);
+void ROMOnlyWriteByte(uint16_t address, uint8_t value, MemoryController* memoryController);
 
-MemoryController InitMBC1MemoryController(unsigned char* memory, unsigned char* cartridge);
+MemoryController InitROMOnlyMemoryController(uint8_t* memory, uint8_t* cartridge);
+
+/****************************************************************************/
+
+uint8_t ROMOnlyReadByte(uint16_t address, MemoryController* memoryController);
+void ROMOnlyWriteByte(uint16_t address, uint8_t value, MemoryController* memoryController);
+
+MemoryController InitMBC1MemoryController(uint8_t* memory, uint8_t* cartridge);
