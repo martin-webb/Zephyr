@@ -1,4 +1,5 @@
 env = Environment()
+env.AppendUnique(CFLAGS="-std=c99")
 
 buildDir = Dir("build")
 
