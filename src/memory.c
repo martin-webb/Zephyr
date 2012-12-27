@@ -123,7 +123,13 @@ uint8_t MBC1ReadByte(uint16_t address, MemoryController* memoryController)
   if (address <= 0x3FFF) { // Read from ROM Bank 0
     return memoryController->cartridge[address];
   } else if (address >= 0x4000 && address <= 0x7FFF) { // Read from ROM Banks 01-7F
-    // TODO: DO THIS
+    uint8_t bankNumHigh = 0x00;
+    if (memoryController->modeSelect == 0x00) {
+      bankNumHigh = memoryController->bankSelect << 2;
+    }
+    uint8_t bankNum = bankNumHigh | memoryController->romBank;
+    uint16_t offsetInBank = address - 0x4000;
+    uint32_t romAddress = (bankNum * 1024 * 16) + offsetInBank;
   } else if (address >= 0xA000 && address <= 0xBFFF) { // External RAM Read
     // TODO: DO THIS
     printf("[WARNING]: MBC1ReadByte() - read from external RAM (0xA000-0xBFFF) at 0x%02X", address);
