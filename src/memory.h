@@ -3,21 +3,16 @@
 
 typedef struct MemoryController MemoryController;
 
-typedef enum {
-  None,
-  ROM16RAM8,
-  ROM4RAM32
-} MBCMemoryModel;
-
 struct MemoryController {
   uint8_t* memory;
   uint8_t* cartridge;
-  MBCMemoryModel memoryModel;
+  uint8_t bankSelect; // 2-bit register to select EITHER RAM Bank 00-03h or to specify the upper two bits (5 and 6, 0-based) of the ROM bank mapped to 0x4000-0x7FFF
+  uint8_t modeSelect; // 1-bit register to select whether the above 2-bit applies to ROM/RAM bank selection
+  uint8_t romBank;
+  bool ramEnabled; // TODO: Store a bool value or the actual value written to 0x0000-0x1FFFF?
   uint8_t (*readByteImpl)(uint16_t address, MemoryController* memoryController);
   void (*writeByteImpl)(uint16_t address, uint8_t value, MemoryController* memoryController);
 };
-
-bool addressIsROMSpace(uint16_t address);
 
 uint8_t readByte(uint16_t address, MemoryController* memoryController);
 uint16_t readWord(uint16_t address, MemoryController* memoryController);

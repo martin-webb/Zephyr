@@ -6,12 +6,6 @@
 
 #define CARTRIDGE_SIZE 0x8000
 
-bool addressIsROMSpace(uint16_t address)
-{
-  // NOTE: Comparison of "address > 0x0000" is always true with an unsigned type
-  return address < CARTRIDGE_SIZE;
-}
-
 uint8_t readByte(uint16_t address, MemoryController* memoryController)
 {
   return memoryController->readByteImpl(address, memoryController);
@@ -52,6 +46,10 @@ MemoryController InitMemoryController(uint8_t cartridgeType, uint8_t* memory, ui
     case CARTRIDGE_TYPE_MBC3:
     case CARTRIDGE_TYPE_MBC3_PLUS_RAM:
     case CARTRIDGE_TYPE_MBC3_PLUS_RAM_PLUS_BATTERY:
+      // return InitMBC3MemoryController(memory, cartridge);
+      // TODO: REMOVE THIS HACK WHEN MBC3 IS IMPLEMENTED
+      return InitROMOnlyMemoryController(memory, cartridge);
+      break;
     case CARTRIDGE_TYPE_MBC4:
     case CARTRIDGE_TYPE_MBC4_PLUS_RAM:
     case CARTRIDGE_TYPE_MBC4_PLUS_RAM_PLUS_BATTERY:
@@ -79,7 +77,7 @@ MemoryController InitMemoryController(uint8_t cartridgeType, uint8_t* memory, ui
 
 uint8_t ROMOnlyReadByte(uint16_t address, MemoryController* memoryController)
 {
-  if (addressIsROMSpace(address)) {
+  if (address < CARTRIDGE_SIZE) {
     return memoryController->cartridge[address];
   } else {
     return memoryController->memory[address - CARTRIDGE_SIZE];
@@ -88,16 +86,16 @@ uint8_t ROMOnlyReadByte(uint16_t address, MemoryController* memoryController)
 
 void ROMOnlyWriteByte(uint16_t address, uint8_t value, MemoryController* memoryController)
 {
-  if (addressIsROMSpace(address)) {
+  if (address < CARTRIDGE_SIZE) {
     printf("[FATAL]: Attempt to write to ROM space on ROM Only cartridge");
     exit(1);
   } else {
     memoryController->memory[address - CARTRIDGE_SIZE] = value;
     
     // Additional write to support the echo of 7.5KB of internal RAM
-    if ((address >= 0xC000) && (address < 0xDE00)) {
+    if (address >= 0xC000 && address < 0xDE00) {
       memoryController->memory[address - CARTRIDGE_SIZE + 0x2000];
-    } else if ((address >= 0xE000) && (address < 0xFE00)) {
+    } else if (address >= 0xE000 && address < 0xFE00) {
       memoryController->memory[address - CARTRIDGE_SIZE - 0x2000];
     }
   }
@@ -108,7 +106,10 @@ MemoryController InitROMOnlyMemoryController(uint8_t* memory, uint8_t* cartridge
   MemoryController memoryController = {
     memory,
     cartridge,
-    None,
+    0x00, // NOTE: Unused in ROM Only cartridges
+    0x00, // NOTE: Unused in ROM Only cartridges
+    0x01, // NOTE: Unused in ROM Only cartridges
+    false, // NOTE: Unused in ROM Only cartridges
     &ROMOnlyReadByte,
     &ROMOnlyWriteByte
   };
@@ -119,25 +120,47 @@ MemoryController InitROMOnlyMemoryController(uint8_t* memory, uint8_t* cartridge
 
 uint8_t MBC1ReadByte(uint16_t address, MemoryController* memoryController)
 {
-  if (addressIsROMSpace(address)) {
+  if (address <= 0x3FFF) { // Read from ROM Bank 0
     return memoryController->cartridge[address];
-  } else {
+  } else if (address >= 0x4000 && address <= 0x7FFF) { // Read from ROM Banks 01-7F
+    // TODO: DO THIS
+  } else if (address >= 0xA000 && address <= 0xBFFF) { // External RAM Read
+    // TODO: DO THIS
+    printf("[WARNING]: MBC1ReadByte() - read from external RAM (0xA000-0xBFFF) at 0x%02X", address);
+  } else { // Reads from remaining addresses are standard
     return memoryController->memory[address - CARTRIDGE_SIZE];
   }
 }
 
 void MBC1WriteByte(uint16_t address, uint8_t value, MemoryController* memoryController)
 {
-  if (addressIsROMSpace(address)) {
-    printf("[FATAL]: Attempt to write to ROM space on ROM Only cartridge");
-    exit(1);
+  if (address <= 0x1FFF) { // External RAM Enable/Disable    
+    if (value & 0xF == 0xA) {
+      printf("[INFO]: External RAM was ENABLED by value 0x%02X", value);
+    } else {
+      printf("[INFO]: External RAM was DISABLED by value 0x%02X", value);
+    }
+  } else if (address >= 0x2000 && address <= 0x3FFF) { // ROM Bank Number
+    if (value == 0x00) {
+      value = 0x01;
+    }
+    memoryController->romBank = value & 0x1F; // Select the lower 5 bits of the value
+    // TODO: Add cycle cost here??
+  } else if (address >= 0x4000 && address <= 0x5FFF) { // RAM Bank Number or Upper Bits of ROM Bank Number
+    memoryController->bankSelect = value & 0x02;
+  } else if (address >= 0x6000 && address <= 0x7FFF) { // ROM/RAM Mode Select
+    memoryController->modeSelect = (address & 0x1);
+    // TODO: Add cycle cost here??
+  } else if (address >= 0xA000 && address <= 0xBFFF) { // External RAM Write
+    // TODO: DO THIS
+    printf("[WARNING]: MBC1WriteByte() - write to external RAM (0xA000-0xBFFF) at 0x%02X (RAM Status: %s)", address, (memoryController->ramEnabled) ? "ENABLED" : "DISABLED");
   } else {
     memoryController->memory[address - CARTRIDGE_SIZE] = value;
     
     // Additional write to support the echo of 7.5KB of internal RAM
-    if ((address >= 0xC000) && (address < 0xDE00)) {
+    if (address >= 0xC000 && address < 0xDE00) {
       memoryController->memory[address - CARTRIDGE_SIZE + 0x2000];
-    } else if ((address >= 0xE000) && (address < 0xFE00)) {
+    } else if (address >= 0xE000 && address < 0xFE00) {
       memoryController->memory[address - CARTRIDGE_SIZE - 0x2000];
     }
   }
@@ -148,7 +171,10 @@ MemoryController InitMBC1MemoryController(uint8_t* memory, uint8_t* cartridge)
   MemoryController memoryController = {
     memory,
     cartridge,
-    ROM16RAM8,
+    0x00, // TODO: Correct default?
+    0x00, // TODO: Correct default?
+    0x01,
+    false,
     &MBC1ReadByte,
     &MBC1WriteByte
   };
