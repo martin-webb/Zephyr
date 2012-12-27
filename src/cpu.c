@@ -325,16 +325,19 @@ int main(int argc, char* argv[]) {
     uint8_t opcode = readByte(registers.pc++, &memoryController);
     printf("PC: 0x%02X Opcode: 0x%02X\n", registers.pc - 1, opcode);
     
+    // TODO: Check for overflow of opcode here?
+    
+    uint32_t cycles = 0;
     switch (opcode) {
       case 0x00: { // NOP
-        // TODO: Cycles + 4
         // TODO: PC++?
+        cycles += 4;
         break;
       }
       case 0xC3: { // JP nn
         registers.pc = readWord(registers.pc, &memoryController);
         // registers.pc += 2; WHY WOULD WE DO THIS?????
-        // TODO: Cycles + 12
+        cycles += 12;
         break;
       }
       default:
@@ -342,6 +345,10 @@ int main(int argc, char* argv[]) {
         exit(1);
         break;
     }
+    
+    struct timespec sleepRequested = {0, cycles * CLOCK_CYCLE_TIME_SECS * 1000000000};
+    struct timespec sleepRemaining;
+    nanosleep(&sleepRequested, &sleepRemaining);
   }
   
   free(cartridgeData);
