@@ -23,7 +23,7 @@
 #define SERIAL_TRANSFER_COMPLETION_INTERRUPT_START_ADDRESS 0x58
 #define HIGH_TO_LOW_P10_TO_P13_INTERRUPT_START_ADDRESS 0x60
 
-/********************** CARTRIDGE INTERNAL INFORMATION **********************/
+/* Cartridge Internal Information ***************************************************************/
 
 #define NINTENDO_GRAPHIC_START_ADDRESS 0x104
 #define NINTENDO_GRAPHIC_END_ADDRESS 0x133
@@ -46,7 +46,7 @@
 #define CHECKSUM_START_ADDRESS 0x14E
 #define CHECKSUM_END_ADDRESS 0x14F
 
-/****************************************************************************/
+/************************************************************************************************/
 
 typedef struct {
   uint8_t a;
