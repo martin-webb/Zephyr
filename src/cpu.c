@@ -359,7 +359,309 @@ int main(int argc, char* argv[]) {
         cycles += 8;
         break;
       }
+      
       /* LD r1, r2 -----------------------------------------------------------------------------*/
+      case 0x7F: {
+        registers.a = registers.a;
+        cycles += 4;
+        break;
+      }
+      case 0x78: {
+        registers.a = registers.b;
+        cycles += 4;
+        break;
+      }
+      case 0x79: {
+        registers.a = registers.c;
+        cycles += 4;
+        break;
+      }
+      case 0x7A: {
+        registers.a = registers.d;
+        cycles += 4;
+        break;
+      }
+      case 0x7B: {
+        registers.a = registers.e;
+        cycles += 4;
+        break;
+      }
+      case 0x7C: {
+        registers.a = registers.h;
+        cycles += 4;
+        break;
+      }
+      case 0x7D: {
+        registers.a = registers.l;
+        cycles += 4;
+        break;
+      }
+      case 0x7E: {
+        registers.a = readByte((registers.h << 8) | registers.l, &memoryController);
+        cycles += 8;
+        break;
+      }
+      
+      
+      case 0x40: {
+        registers.b = registers.b;
+        cycles += 4;
+        break;
+      }
+      case 0x41: {
+        registers.b = registers.c;
+        cycles += 4;
+        break;
+      }
+      case 0x42: {
+        registers.b = registers.d;
+        cycles += 4;
+        break;
+      }
+      case 0x43: {
+        registers.b = registers.e;
+        cycles += 4;
+        break;
+      }
+      case 0x44: {
+        registers.b = registers.h;
+        cycles += 4;
+        break;
+      }
+      case 0x45: {
+        registers.b = registers.l;
+        cycles += 4;
+        break;
+      }
+      case 0x46: {
+        registers.b = readByte((registers.h << 8) | registers.l, &memoryController);
+        cycles += 8;
+        break;
+      }
+      
+      
+      case 0x48: {
+        registers.c = registers.b;
+        cycles += 4;
+        break;
+      }
+      case 0x49: {
+        registers.c = registers.c;
+        cycles += 4;
+        break;
+      }
+      case 0x4A: {
+        registers.c = registers.d;
+        cycles += 4;
+        break;
+      }
+      case 0x4B: {
+        registers.c = registers.e;
+        cycles += 4;
+        break;
+      }
+      case 0x4C: {
+        registers.c = registers.h;
+        cycles += 4;
+        break;
+      }
+      case 0x4D: {
+        registers.c = registers.l;
+        cycles += 4;
+        break;
+      }
+      case 0x4E: {
+        registers.c = readByte((registers.h << 8) | registers.l, &memoryController);
+        cycles += 8;
+        break;
+      }
+      
+      
+      case 0x50: {
+        registers.d = registers.b;
+        cycles += 4;
+        break;
+      }
+      case 0x51: {
+        registers.d = registers.c;
+        cycles += 4;
+        break;
+      }
+      case 0x52: {
+        registers.d = registers.d;
+        cycles += 4;
+        break;
+      }
+      case 0x53: {
+        registers.d = registers.e;
+        cycles += 4;
+        break;
+      }
+      case 0x54: {
+        registers.d = registers.h;
+        cycles += 4;
+        break;
+      }
+      case 0x55: {
+        registers.d = registers.l;
+        cycles += 4;
+        break;
+      }
+      case 0x56: {
+        registers.d = readByte((registers.h << 8) | registers.l, &memoryController);
+        cycles += 8;
+        break;
+      }
+      
+      
+      case 0x58: {
+        registers.e = registers.b;
+        cycles += 4;
+        break;
+      }
+      case 0x59: {
+        registers.e = registers.c;
+        cycles += 4;
+        break;
+      }
+      case 0x5A: {
+        registers.e = registers.d;
+        cycles += 4;
+        break;
+      }
+      case 0x5B: {
+        registers.e = registers.e;
+        cycles += 4;
+        break;
+      }
+      case 0x5C: {
+        registers.e = registers.h;
+        cycles += 4;
+        break;
+      }
+      case 0x5D: {
+        registers.e = registers.l;
+        cycles += 4;
+        break;
+      }
+      case 0x5E: {
+        registers.e = readByte((registers.h << 8) | registers.l, &memoryController);
+        cycles += 8;
+        break;
+      }
+      
+      
+      case 0x60: {
+        registers.h = registers.b;
+        cycles += 4;
+        break;
+      }
+      case 0x61: {
+        registers.h = registers.c;
+        cycles += 4;
+        break;
+      }
+      case 0x62: {
+        registers.h = registers.d;
+        cycles += 4;
+        break;
+      }
+      case 0x63: {
+        registers.h = registers.e;
+        cycles += 4;
+        break;
+      }
+      case 0x64: {
+        registers.h = registers.h;
+        cycles += 4;
+        break;
+      }
+      case 0x65: {
+        registers.h = registers.l;
+        cycles += 4;
+        break;
+      }
+      case 0x66: {
+        registers.h = readByte((registers.h << 8) | registers.l, &memoryController);
+        cycles += 8;
+        break;
+      }
+      
+      
+      case 0x68: {
+        registers.l = registers.b;
+        cycles += 4;
+        break;
+      }
+      case 0x69: {
+        registers.l = registers.c;
+        cycles += 4;
+        break;
+      }
+      case 0x6A: {
+        registers.l = registers.d;
+        cycles += 4;
+        break;
+      }
+      case 0x6B: {
+        registers.l = registers.e;
+        cycles += 4;
+        break;
+      }
+      case 0x6C: {
+        registers.l = registers.h;
+        cycles += 4;
+        break;
+      }
+      case 0x6D: {
+        registers.l = registers.l;
+        cycles += 4;
+        break;
+      }
+      case 0x6E: {
+        registers.l = readByte((registers.h << 8) | registers.l, &memoryController);
+        cycles += 8;
+        break;
+      }
+      
+      // TODO: Especially these
+      case 0x70: {
+        writeByte((registers.h << 8) | registers.l, registers.b, &memoryController);
+        cycles += 8;
+        break;
+      }
+      case 0x71: {
+        writeByte((registers.h << 8) | registers.l, registers.c, &memoryController);
+        cycles += 8;
+        break;
+      }
+      case 0x72: {
+        writeByte((registers.h << 8) | registers.l, registers.d, &memoryController);
+        cycles += 8;
+        break;
+      }
+      case 0x73: {
+        writeByte((registers.h << 8) | registers.l, registers.e, &memoryController);
+        cycles += 8;
+        break;
+      }
+      case 0x74: {
+        writeByte((registers.h << 8) | registers.l, registers.h, &memoryController);
+        cycles += 8;
+        break;
+      }
+      case 0x75: {
+        writeByte((registers.h << 8) | registers.l, registers.l, &memoryController);
+        cycles += 8;
+        break;
+      }
+      case 0x36: {
+        // TODO: Check this line?
+        writeByte((registers.h << 8) | registers.l, readByte(registers.pc++, &memoryController), &memoryController);
+        cycles += 12;
+        break;
+      }
+      
       /* LD A, n -------------------------------------------------------------------------------*/
       /* LD n, A -------------------------------------------------------------------------------*/
       /* LD A, (C) -----------------------------------------------------------------------------*/
