@@ -328,6 +328,37 @@ int main(int argc, char* argv[]) {
     switch (opcode) {
       /* 8-Bit Loads ****************************************************************************/
       /* LD nn, n ------------------------------------------------------------------------------*/
+      // TODO: Check if all of these are correct
+      case 0x06: {
+        registers.b = readByte(registers.pc++, &memoryController);
+        cycles += 8;
+        break;
+      }
+      case 0x0E: {
+        registers.c = readByte(registers.pc++, &memoryController);
+        cycles += 8;
+        break;
+      }
+      case 0x16: {
+        registers.d = readByte(registers.pc++, &memoryController);
+        cycles += 8;
+        break;
+      }
+      case 0x1E: {
+        registers.e = readByte(registers.pc++, &memoryController);
+        cycles += 8;
+        break;
+      }
+      case 0x26: {
+        registers.h = readByte(registers.pc++, &memoryController);
+        cycles += 8;
+        break;
+      }
+      case 0x2E: {
+        registers.l = readByte(registers.pc++, &memoryController);
+        cycles += 8;
+        break;
+      }
       /* LD r1, r2 -----------------------------------------------------------------------------*/
       /* LD A, n -------------------------------------------------------------------------------*/
       /* LD n, A -------------------------------------------------------------------------------*/
