@@ -174,7 +174,7 @@ void InitForExecution(CPURegisters* registers, MemoryController* memoryControlle
       exit(1);
       break;
   }
-  registers->flag = 0xB0;
+  registers->f = 0xB0;
   registers->sp = 0xFFFE;
   registers->pc = 0x100;
   
@@ -237,10 +237,10 @@ void PrintRegisters(CPURegisters* registers) {
     registers->pc
   );
   printf("FLAG: Z: %i N: %i H: %i C: %i\n",
-    (registers->flag & FLAG_REGISTER_Z_BIT) >> 7,
-    (registers->flag & FLAG_REGISTER_N_BIT) >> 6,
-    (registers->flag & FLAG_REGISTER_H_BIT) >> 5,
-    (registers->flag & FLAG_REGISTER_C_BIT) >> 4
+    (registers->f & FLAG_REGISTER_Z_BIT) >> 7,
+    (registers->f & FLAG_REGISTER_N_BIT) >> 6,
+    (registers->f & FLAG_REGISTER_H_BIT) >> 5,
+    (registers->f & FLAG_REGISTER_C_BIT) >> 4
   );
 }
 
