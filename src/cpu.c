@@ -687,6 +687,59 @@ int main(int argc, char* argv[]) {
       }
       
       /* LD n, A -------------------------------------------------------------------------------*/
+      // NOTE: The GB CPU Manual contained duplicates of the following opcodes here: 7F
+      case 0x47: { // LD B, A
+        registers.b = registers.a;
+        cycles += 4;
+        break;
+      }
+      case 0x4F: { // LD C, A
+        registers.c = registers.a;
+        cycles += 4;
+        break;
+      }
+      case 0x57: { // LD D, A
+        registers.d = registers.a;
+        cycles += 4;
+        break;
+      }
+      case 0x5F: { // LD E, A
+        registers.e = registers.a;
+        cycles += 4;
+        break;
+      }
+      case 0x67: { // LD H, A
+        registers.h = registers.a;
+        cycles += 4;
+        break;
+      }
+      case 0x6F: { // LD L, A
+        registers.l = registers.a;
+        cycles += 4;
+        break;
+      }
+      case 0x02: { // LD (BC), A
+        writeByte((registers.b << 8) | registers.c, registers.a, &memoryController);
+        cycles += 8;
+        break;
+      }
+      case 0x12: { // LD (DE), A
+        writeByte((registers.d << 8) | registers.e, registers.a, &memoryController);
+        cycles += 8;
+        break;
+      }
+      case 0x77: { // LD (HL), A
+        writeByte((registers.h << 8) | registers.l, registers.a, &memoryController);
+        cycles += 8;
+        break;
+      }
+      case 0xEA: { // LD (HL), A
+        writeByte(readWord(registers.pc, &memoryController), registers.a, &memoryController);
+        registers.pc += 2;
+        cycles += 16;
+        break;
+      }
+      
       /* LD A, (C) -----------------------------------------------------------------------------*/
       /* LD (C), A -----------------------------------------------------------------------------*/
       /* LD A, (HLD) ---------------------------------------------------------------------------*/
