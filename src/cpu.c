@@ -329,333 +329,333 @@ int main(int argc, char* argv[]) {
       /* 8-Bit Loads ****************************************************************************/
       /* LD nn, n ------------------------------------------------------------------------------*/
       // TODO: Check if all of these are correct
-      case 0x06: {
+      case 0x06: { // LD B, n
         registers.b = readByte(registers.pc++, &memoryController);
         cycles += 8;
         break;
       }
-      case 0x0E: {
+      case 0x0E: { // LD C, n
         registers.c = readByte(registers.pc++, &memoryController);
         cycles += 8;
         break;
       }
-      case 0x16: {
+      case 0x16: { // LD D, n
         registers.d = readByte(registers.pc++, &memoryController);
         cycles += 8;
         break;
       }
-      case 0x1E: {
+      case 0x1E: { // LD E, n
         registers.e = readByte(registers.pc++, &memoryController);
         cycles += 8;
         break;
       }
-      case 0x26: {
+      case 0x26: { // LD H, n
         registers.h = readByte(registers.pc++, &memoryController);
         cycles += 8;
         break;
       }
-      case 0x2E: {
+      case 0x2E: { // LD L, n
         registers.l = readByte(registers.pc++, &memoryController);
         cycles += 8;
         break;
       }
       
       /* LD r1, r2 -----------------------------------------------------------------------------*/
-      case 0x7F: {
+      case 0x7F: { // LD A, A
         registers.a = registers.a;
         cycles += 4;
         break;
       }
-      case 0x78: {
+      case 0x78: { // LD A, B
         registers.a = registers.b;
         cycles += 4;
         break;
       }
-      case 0x79: {
+      case 0x79: { // LD A, C
         registers.a = registers.c;
         cycles += 4;
         break;
       }
-      case 0x7A: {
+      case 0x7A: { // LD A, D
         registers.a = registers.d;
         cycles += 4;
         break;
       }
-      case 0x7B: {
+      case 0x7B: { // LD A, E
         registers.a = registers.e;
         cycles += 4;
         break;
       }
-      case 0x7C: {
+      case 0x7C: { // LD A, H
         registers.a = registers.h;
         cycles += 4;
         break;
       }
-      case 0x7D: {
+      case 0x7D: { // LD A, L
         registers.a = registers.l;
         cycles += 4;
         break;
       }
-      case 0x7E: {
+      case 0x7E: { // LD A, (HL)
         registers.a = readByte((registers.h << 8) | registers.l, &memoryController);
         cycles += 8;
         break;
       }
       
       
-      case 0x40: {
+      case 0x40: { // LD B, B
         registers.b = registers.b;
         cycles += 4;
         break;
       }
-      case 0x41: {
+      case 0x41: { // LD B, C
         registers.b = registers.c;
         cycles += 4;
         break;
       }
-      case 0x42: {
+      case 0x42: { // LD B, D
         registers.b = registers.d;
         cycles += 4;
         break;
       }
-      case 0x43: {
+      case 0x43: { // LD B, E
         registers.b = registers.e;
         cycles += 4;
         break;
       }
-      case 0x44: {
+      case 0x44: { // LD B, H
         registers.b = registers.h;
         cycles += 4;
         break;
       }
-      case 0x45: {
+      case 0x45: { // LD B, L
         registers.b = registers.l;
         cycles += 4;
         break;
       }
-      case 0x46: {
+      case 0x46: { // LD B, (HL)
         registers.b = readByte((registers.h << 8) | registers.l, &memoryController);
         cycles += 8;
         break;
       }
       
       
-      case 0x48: {
+      case 0x48: { // LD C, B
         registers.c = registers.b;
         cycles += 4;
         break;
       }
-      case 0x49: {
+      case 0x49: { // LD C, C
         registers.c = registers.c;
         cycles += 4;
         break;
       }
-      case 0x4A: {
+      case 0x4A: { // LD C, D
         registers.c = registers.d;
         cycles += 4;
         break;
       }
-      case 0x4B: {
+      case 0x4B: { // LD C, E
         registers.c = registers.e;
         cycles += 4;
         break;
       }
-      case 0x4C: {
+      case 0x4C: { // LD C, H
         registers.c = registers.h;
         cycles += 4;
         break;
       }
-      case 0x4D: {
+      case 0x4D: { // LD C, L
         registers.c = registers.l;
         cycles += 4;
         break;
       }
-      case 0x4E: {
+      case 0x4E: { // LD C, (HL)
         registers.c = readByte((registers.h << 8) | registers.l, &memoryController);
         cycles += 8;
         break;
       }
       
       
-      case 0x50: {
+      case 0x50: { // LD D, B
         registers.d = registers.b;
         cycles += 4;
         break;
       }
-      case 0x51: {
+      case 0x51: { // LD D, C
         registers.d = registers.c;
         cycles += 4;
         break;
       }
-      case 0x52: {
+      case 0x52: { // LD D, D
         registers.d = registers.d;
         cycles += 4;
         break;
       }
-      case 0x53: {
+      case 0x53: { // LD D, E
         registers.d = registers.e;
         cycles += 4;
         break;
       }
-      case 0x54: {
+      case 0x54: { // LD D, H
         registers.d = registers.h;
         cycles += 4;
         break;
       }
-      case 0x55: {
+      case 0x55: { // LD D, L
         registers.d = registers.l;
         cycles += 4;
         break;
       }
-      case 0x56: {
+      case 0x56: { // LD D, (HL)
         registers.d = readByte((registers.h << 8) | registers.l, &memoryController);
         cycles += 8;
         break;
       }
       
       
-      case 0x58: {
+      case 0x58: { // LD E, B
         registers.e = registers.b;
         cycles += 4;
         break;
       }
-      case 0x59: {
+      case 0x59: { // LD E, C
         registers.e = registers.c;
         cycles += 4;
         break;
       }
-      case 0x5A: {
+      case 0x5A: { // LD E, D
         registers.e = registers.d;
         cycles += 4;
         break;
       }
-      case 0x5B: {
+      case 0x5B: { // LD E, E
         registers.e = registers.e;
         cycles += 4;
         break;
       }
-      case 0x5C: {
+      case 0x5C: { // LD E, H
         registers.e = registers.h;
         cycles += 4;
         break;
       }
-      case 0x5D: {
+      case 0x5D: { // LD E, L
         registers.e = registers.l;
         cycles += 4;
         break;
       }
-      case 0x5E: {
+      case 0x5E: { // LD E, (HL)
         registers.e = readByte((registers.h << 8) | registers.l, &memoryController);
         cycles += 8;
         break;
       }
       
       
-      case 0x60: {
+      case 0x60: { // LD H, B
         registers.h = registers.b;
         cycles += 4;
         break;
       }
-      case 0x61: {
+      case 0x61: { // LD H, C
         registers.h = registers.c;
         cycles += 4;
         break;
       }
-      case 0x62: {
+      case 0x62: { // LD H, D
         registers.h = registers.d;
         cycles += 4;
         break;
       }
-      case 0x63: {
+      case 0x63: { // LD H, E
         registers.h = registers.e;
         cycles += 4;
         break;
       }
-      case 0x64: {
+      case 0x64: { // LD H, H
         registers.h = registers.h;
         cycles += 4;
         break;
       }
-      case 0x65: {
+      case 0x65: { // LD H, L
         registers.h = registers.l;
         cycles += 4;
         break;
       }
-      case 0x66: {
+      case 0x66: { // LD H, (HL)
         registers.h = readByte((registers.h << 8) | registers.l, &memoryController);
         cycles += 8;
         break;
       }
       
       
-      case 0x68: {
+      case 0x68: { // LD L, B
         registers.l = registers.b;
         cycles += 4;
         break;
       }
-      case 0x69: {
+      case 0x69: { // LD L, C
         registers.l = registers.c;
         cycles += 4;
         break;
       }
-      case 0x6A: {
+      case 0x6A: { // LD L, D
         registers.l = registers.d;
         cycles += 4;
         break;
       }
-      case 0x6B: {
+      case 0x6B: { // LD L, E
         registers.l = registers.e;
         cycles += 4;
         break;
       }
-      case 0x6C: {
+      case 0x6C: { // LD L, H
         registers.l = registers.h;
         cycles += 4;
         break;
       }
-      case 0x6D: {
+      case 0x6D: { // LD L, L
         registers.l = registers.l;
         cycles += 4;
         break;
       }
-      case 0x6E: {
+      case 0x6E: { // LD L, (HL)
         registers.l = readByte((registers.h << 8) | registers.l, &memoryController);
         cycles += 8;
         break;
       }
       
       // TODO: Especially these
-      case 0x70: {
+      case 0x70: { // LD (HL), B
         writeByte((registers.h << 8) | registers.l, registers.b, &memoryController);
         cycles += 8;
         break;
       }
-      case 0x71: {
+      case 0x71: { // LD (HL), C
         writeByte((registers.h << 8) | registers.l, registers.c, &memoryController);
         cycles += 8;
         break;
       }
-      case 0x72: {
+      case 0x72: { // LD (HL), D
         writeByte((registers.h << 8) | registers.l, registers.d, &memoryController);
         cycles += 8;
         break;
       }
-      case 0x73: {
+      case 0x73: { // LD (HL), E
         writeByte((registers.h << 8) | registers.l, registers.e, &memoryController);
         cycles += 8;
         break;
       }
-      case 0x74: {
+      case 0x74: { // LD (HL), H
         writeByte((registers.h << 8) | registers.l, registers.h, &memoryController);
         cycles += 8;
         break;
       }
-      case 0x75: {
+      case 0x75: { // LD (HL), L
         writeByte((registers.h << 8) | registers.l, registers.l, &memoryController);
         cycles += 8;
         break;
       }
-      case 0x36: {
+      case 0x36: { // LD (HL), n
         // TODO: Check this line?
         writeByte((registers.h << 8) | registers.l, readByte(registers.pc++, &memoryController), &memoryController);
         cycles += 12;
@@ -663,6 +663,29 @@ int main(int argc, char* argv[]) {
       }
       
       /* LD A, n -------------------------------------------------------------------------------*/
+      // NOTE: The GB CPU Manual contained duplicates of the following opcodes here: 7F, 78, 79, 7A, 7B, 7C, 7D, 0A, 1A, 7E, FA and 3E
+      case 0x0A: { // LD A, (BC)
+        registers.a = readByte((registers.b << 8) | registers.c, &memoryController);
+        cycles += 8;
+        break;
+      }
+      case 0x1A: { // LD A, (DE)
+        registers.a = readByte((registers.d << 8) | registers.e, &memoryController);
+        cycles += 8;
+        break;
+      }
+      case 0xFA: { // LD A, (nn)
+        registers.a = readByte(readWord(registers.pc, &memoryController), &memoryController);
+        registers.pc += 2;
+        cycles += 16;
+        break;
+      }
+      case 0x3E: { // LD A, #
+        registers.a = readByte(registers.pc++, &memoryController); // TODO Check this
+        cycles += 8;
+        break;
+      }
+      
       /* LD n, A -------------------------------------------------------------------------------*/
       /* LD A, (C) -----------------------------------------------------------------------------*/
       /* LD (C), A -----------------------------------------------------------------------------*/
