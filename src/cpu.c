@@ -741,7 +741,7 @@ int main(int argc, char* argv[]) {
       }
       
       /* LD A, (C) -----------------------------------------------------------------------------*/
-      case 0xF2: {
+      case 0xF2: { // LD A, (C)
         registers.a = readByte(0xFF00 + registers.c, &memoryController);
         cycles += 8;
         break;
