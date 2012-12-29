@@ -814,6 +814,11 @@ int main(int argc, char* argv[]) {
       }
       
       /* LDH A, (n) ----------------------------------------------------------------------------*/
+      case 0xF0: { // LDH A, (n)
+        registers.a = readByte(0xFF00 + readByte(registers.pc++, &memoryController), &memoryController);
+        cycles += 12;
+        break;
+      }
       
       /* 16-Bit Loads ***************************************************************************/
       /* LD n, nn ------------------------------------------------------------------------------*/
