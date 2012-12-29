@@ -793,9 +793,19 @@ int main(int argc, char* argv[]) {
         break;
       }
       
-      /* LD (HLI), A ---------------------------------------------------------------------------*/
-      /* LD (HL+), A ---------------------------------------------------------------------------*/
+      /* LD (HLI), A - Same as LDI (HL), A -----------------------------------------------------*/
+      /* LD (HL+), A - Same as LDI (HL), A -----------------------------------------------------*/
       /* LDI (HL), A ---------------------------------------------------------------------------*/
+      case 0x22: { // LD (HLI), A, LD (HL+), A and LDI (HL), A
+        writeByte((registers.h) << 8 | registers.l, registers.a, &memoryController);
+        registers.l++;
+        if (registers.l == 0x00) { // If the resulting value is 0 then the previous value must have been 255 so also increment H
+          registers.h++;
+        }
+        cycles += 8;
+        break;
+      }
+      
       /* LDH (n), A ----------------------------------------------------------------------------*/
       /* LDH A, (n) ----------------------------------------------------------------------------*/
       
