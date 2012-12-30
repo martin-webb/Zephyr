@@ -154,7 +154,7 @@ char* DestinationCodeToString(uint8_t destinationCode) {
   }
 }
 
-void InitForExecution(CPURegisters* registers, MemoryController* memoryController, GBType gbType) {
+void InitForExecution(CPURegisters* registers, MemoryController* m, GBType gbType) {
   switch (gbType) {
     case GB:
     case SGB:
@@ -178,47 +178,47 @@ void InitForExecution(CPURegisters* registers, MemoryController* memoryControlle
   registers->sp = 0xFFFE;
   registers->pc = 0x100;
   
-  writeByte(0xFF05, 0x00, memoryController);
-  writeByte(0xFF06, 0x00, memoryController);
-  writeByte(0xFF07, 0x00, memoryController);
-  writeByte(0xFF10, 0x80, memoryController);
-  writeByte(0xFF11, 0xBF, memoryController);
-  writeByte(0xFF12, 0xF3, memoryController);
-  writeByte(0xFF14, 0xBF, memoryController);
-  writeByte(0xFF16, 0x3F, memoryController);
-  writeByte(0xFF17, 0x00, memoryController);
-  writeByte(0xFF19, 0xBF, memoryController);
-  writeByte(0xFF1A, 0x7F, memoryController);
-  writeByte(0xFF1B, 0xFF, memoryController);
-  writeByte(0xFF1C, 0x9F, memoryController);
-  writeByte(0xFF1E, 0xBF, memoryController);
-  writeByte(0xFF20, 0xFF, memoryController);
-  writeByte(0xFF21, 0x00, memoryController);
-  writeByte(0xFF22, 0x00, memoryController);
-  writeByte(0xFF23, 0xBF, memoryController);
-  writeByte(0xFF24, 0x77, memoryController);
-  writeByte(0xFF25, 0xF3, memoryController);
+  writeByte(m, 0xFF05, 0x00);
+  writeByte(m, 0xFF06, 0x00);
+  writeByte(m, 0xFF07, 0x00);
+  writeByte(m, 0xFF10, 0x80);
+  writeByte(m, 0xFF11, 0xBF);
+  writeByte(m, 0xFF12, 0xF3);
+  writeByte(m, 0xFF14, 0xBF);
+  writeByte(m, 0xFF16, 0x3F);
+  writeByte(m, 0xFF17, 0x00);
+  writeByte(m, 0xFF19, 0xBF);
+  writeByte(m, 0xFF1A, 0x7F);
+  writeByte(m, 0xFF1B, 0xFF);
+  writeByte(m, 0xFF1C, 0x9F);
+  writeByte(m, 0xFF1E, 0xBF);
+  writeByte(m, 0xFF20, 0xFF);
+  writeByte(m, 0xFF21, 0x00);
+  writeByte(m, 0xFF22, 0x00);
+  writeByte(m, 0xFF23, 0xBF);
+  writeByte(m, 0xFF24, 0x77);
+  writeByte(m, 0xFF25, 0xF3);
   switch (gbType) {
     case GB:
-      writeByte(0xFF26, 0xF1, memoryController);
+      writeByte(m, 0xFF26, 0xF1);
       break;
     case SGB:
-      writeByte(0xFF26, 0xF0, memoryController);
+      writeByte(m, 0xFF26, 0xF0);
       break;
     default:
       // TODO: Are there values for the GBP and GBC here?
       break;
   }
-  writeByte(0xFF40, 0x91, memoryController);
-  writeByte(0xFF42, 0x00, memoryController);
-  writeByte(0xFF43, 0x00, memoryController);
-  writeByte(0xFF45, 0x00, memoryController);
-  writeByte(0xFF47, 0xFC, memoryController);
-  writeByte(0xFF48, 0xFF, memoryController);
-  writeByte(0xFF49, 0xFF, memoryController);
-  writeByte(0xFF4A, 0x00, memoryController);
-  writeByte(0xFF4B, 0x00, memoryController);
-  writeByte(0xFFFF, 0x00, memoryController);
+  writeByte(m, 0xFF40, 0x91);
+  writeByte(m, 0xFF42, 0x00);
+  writeByte(m, 0xFF43, 0x00);
+  writeByte(m, 0xFF45, 0x00);
+  writeByte(m, 0xFF47, 0xFC);
+  writeByte(m, 0xFF48, 0xFF);
+  writeByte(m, 0xFF49, 0xFF);
+  writeByte(m, 0xFF4A, 0x00);
+  writeByte(m, 0xFF4B, 0x00);
+  writeByte(m, 0xFFFF, 0x00);
 }
 
 void PrintRegisters(CPURegisters* registers) {
@@ -286,40 +286,39 @@ int main(int argc, char* argv[]) {
   
   uint8_t memory[1024 * 32]; // 32KB
   
-  // uint8_t cartridgeType = readByte(CARTRIDGE_TYPE_ADDRESS, &memoryController);
   uint8_t cartridgeType = cartridgeData[CARTRIDGE_TYPE_ADDRESS];
   printf("Cartridge Type: 0x%02X - %s\n", cartridgeType, CartridgeTypeToString(cartridgeType));
   
-  MemoryController memoryController = InitMemoryController(cartridgeType, memory, cartridgeData);
+  MemoryController m = InitMemoryController(cartridgeType, memory, cartridgeData);
   
   printf("Title: ");
   for (int i = GAME_TITLE_START_ADDRESS; i < GAME_TITLE_END_ADDRESS; i++) {
-    printf("%c", readByte(i, &memoryController));
+    printf("%c", readByte(&m, i));
   }
   printf("\n");
   
-  uint8_t colorGB = readByte(COLOR_GB_FLAG_ADDRESS, &memoryController);
+  uint8_t colorGB = readByte(&m, COLOR_GB_FLAG_ADDRESS);
   printf("Color GB: 0x%02X - %s\n", colorGB, ColorGBIdentifierToString(colorGB));
   
-  uint8_t gbOrSGB = readByte(GB_OR_SGB_FLAG_ADDRESS, &memoryController);
+  uint8_t gbOrSGB = readByte(&m, GB_OR_SGB_FLAG_ADDRESS);
   printf("GB/SGB: 0x%02X - %s\n", gbOrSGB, (gbOrSGB == 0x0) ? "GB" : (gbOrSGB == 0x3) ? "SGB" : "Unknown");
   
-  uint8_t romSize = readByte(ROM_SIZE_ADDRESS, &memoryController);
+  uint8_t romSize = readByte(&m, ROM_SIZE_ADDRESS);
   printf("ROM size: 0x%02X - %s\n", romSize, ROMSizeToString(romSize));
   
-  uint8_t ramSize = readByte(RAM_SIZE_ADDRESS, &memoryController);
+  uint8_t ramSize = readByte(&m, RAM_SIZE_ADDRESS);
   printf("RAM size: 0x%02X - %s\n", ramSize, RAMSizeToString(ramSize));
   
-  uint8_t destinationCode = readByte(DESTINATION_CODE_ADDRESS, &memoryController);
+  uint8_t destinationCode = readByte(&m, DESTINATION_CODE_ADDRESS);
   printf("Destination Code: 0x%02X - %s\n", destinationCode, DestinationCodeToString(destinationCode));
   
   CPURegisters registers;
   
-  InitForExecution(&registers, &memoryController, GB);
+  InitForExecution(&registers, &m, GB);
   PrintRegisters(&registers);
   
   while (1) {
-    uint8_t opcode = readByte(registers.pc++, &memoryController);
+    uint8_t opcode = readByte(&m, registers.pc++);
     // printf("PC: 0x%02X Opcode: 0x%02X\n", registers.pc - 1, opcode);
     
     // TODO: Check for overflow of opcode here?
@@ -330,32 +329,32 @@ int main(int argc, char* argv[]) {
       /* LD nn, n ------------------------------------------------------------------------------*/
       // TODO: Check if all of these are correct
       case 0x06: { // LD B, n
-        registers.b = readByte(registers.pc++, &memoryController);
+        registers.b = readByte(&m, registers.pc++);
         cycles += 8;
         break;
       }
       case 0x0E: { // LD C, n
-        registers.c = readByte(registers.pc++, &memoryController);
+        registers.c = readByte(&m, registers.pc++);
         cycles += 8;
         break;
       }
       case 0x16: { // LD D, n
-        registers.d = readByte(registers.pc++, &memoryController);
+        registers.d = readByte(&m, registers.pc++);
         cycles += 8;
         break;
       }
       case 0x1E: { // LD E, n
-        registers.e = readByte(registers.pc++, &memoryController);
+        registers.e = readByte(&m, registers.pc++);
         cycles += 8;
         break;
       }
       case 0x26: { // LD H, n
-        registers.h = readByte(registers.pc++, &memoryController);
+        registers.h = readByte(&m, registers.pc++);
         cycles += 8;
         break;
       }
       case 0x2E: { // LD L, n
-        registers.l = readByte(registers.pc++, &memoryController);
+        registers.l = readByte(&m, registers.pc++);
         cycles += 8;
         break;
       }
@@ -397,7 +396,7 @@ int main(int argc, char* argv[]) {
         break;
       }
       case 0x7E: { // LD A, (HL)
-        registers.a = readByte((registers.h << 8) | registers.l, &memoryController);
+        registers.a = readByte(&m, (registers.h << 8) | registers.l);
         cycles += 8;
         break;
       }
@@ -434,7 +433,7 @@ int main(int argc, char* argv[]) {
         break;
       }
       case 0x46: { // LD B, (HL)
-        registers.b = readByte((registers.h << 8) | registers.l, &memoryController);
+        registers.b = readByte(&m, (registers.h << 8) | registers.l);
         cycles += 8;
         break;
       }
@@ -471,7 +470,7 @@ int main(int argc, char* argv[]) {
         break;
       }
       case 0x4E: { // LD C, (HL)
-        registers.c = readByte((registers.h << 8) | registers.l, &memoryController);
+        registers.c = readByte(&m, (registers.h << 8) | registers.l);
         cycles += 8;
         break;
       }
@@ -508,7 +507,7 @@ int main(int argc, char* argv[]) {
         break;
       }
       case 0x56: { // LD D, (HL)
-        registers.d = readByte((registers.h << 8) | registers.l, &memoryController);
+        registers.d = readByte(&m, (registers.h << 8) | registers.l);
         cycles += 8;
         break;
       }
@@ -545,7 +544,7 @@ int main(int argc, char* argv[]) {
         break;
       }
       case 0x5E: { // LD E, (HL)
-        registers.e = readByte((registers.h << 8) | registers.l, &memoryController);
+        registers.e = readByte(&m, (registers.h << 8) | registers.l);
         cycles += 8;
         break;
       }
@@ -582,7 +581,7 @@ int main(int argc, char* argv[]) {
         break;
       }
       case 0x66: { // LD H, (HL)
-        registers.h = readByte((registers.h << 8) | registers.l, &memoryController);
+        registers.h = readByte(&m, (registers.h << 8) | registers.l);
         cycles += 8;
         break;
       }
@@ -619,45 +618,45 @@ int main(int argc, char* argv[]) {
         break;
       }
       case 0x6E: { // LD L, (HL)
-        registers.l = readByte((registers.h << 8) | registers.l, &memoryController);
+        registers.l = readByte(&m, (registers.h << 8) | registers.l);
         cycles += 8;
         break;
       }
       
       // TODO: Especially these
       case 0x70: { // LD (HL), B
-        writeByte((registers.h << 8) | registers.l, registers.b, &memoryController);
+        writeByte(&m, (registers.h << 8) | registers.l, registers.b);
         cycles += 8;
         break;
       }
       case 0x71: { // LD (HL), C
-        writeByte((registers.h << 8) | registers.l, registers.c, &memoryController);
+        writeByte(&m, (registers.h << 8) | registers.l, registers.c);
         cycles += 8;
         break;
       }
       case 0x72: { // LD (HL), D
-        writeByte((registers.h << 8) | registers.l, registers.d, &memoryController);
+        writeByte(&m, (registers.h << 8) | registers.l, registers.d);
         cycles += 8;
         break;
       }
       case 0x73: { // LD (HL), E
-        writeByte((registers.h << 8) | registers.l, registers.e, &memoryController);
+        writeByte(&m, (registers.h << 8) | registers.l, registers.e);
         cycles += 8;
         break;
       }
       case 0x74: { // LD (HL), H
-        writeByte((registers.h << 8) | registers.l, registers.h, &memoryController);
+        writeByte(&m, (registers.h << 8) | registers.l, registers.h);
         cycles += 8;
         break;
       }
       case 0x75: { // LD (HL), L
-        writeByte((registers.h << 8) | registers.l, registers.l, &memoryController);
+        writeByte(&m, (registers.h << 8) | registers.l, registers.l);
         cycles += 8;
         break;
       }
       case 0x36: { // LD (HL), n
         // TODO: Check this line?
-        writeByte((registers.h << 8) | registers.l, readByte(registers.pc++, &memoryController), &memoryController);
+        writeByte(&m, (registers.h << 8) | registers.l, readByte(&m, registers.pc++));
         cycles += 12;
         break;
       }
@@ -665,23 +664,23 @@ int main(int argc, char* argv[]) {
       /* LD A, n -------------------------------------------------------------------------------*/
       // NOTE: The GB CPU Manual contained duplicates of the following opcodes here: 7F, 78, 79, 7A, 7B, 7C, 7D, 0A, 1A, 7E, FA and 3E
       case 0x0A: { // LD A, (BC)
-        registers.a = readByte((registers.b << 8) | registers.c, &memoryController);
+        registers.a = readByte(&m, (registers.b << 8) | registers.c);
         cycles += 8;
         break;
       }
       case 0x1A: { // LD A, (DE)
-        registers.a = readByte((registers.d << 8) | registers.e, &memoryController);
+        registers.a = readByte(&m, (registers.d << 8) | registers.e);
         cycles += 8;
         break;
       }
       case 0xFA: { // LD A, (nn)
-        registers.a = readByte(readWord(registers.pc, &memoryController), &memoryController);
+        registers.a = readByte(&m, readWord(&m, registers.pc));
         registers.pc += 2;
         cycles += 16;
         break;
       }
       case 0x3E: { // LD A, #
-        registers.a = readByte(registers.pc++, &memoryController); // TODO Check this
+        registers.a = readByte(&m, registers.pc++); // TODO Check this
         cycles += 8;
         break;
       }
@@ -719,22 +718,22 @@ int main(int argc, char* argv[]) {
         break;
       }
       case 0x02: { // LD (BC), A
-        writeByte((registers.b << 8) | registers.c, registers.a, &memoryController);
+        writeByte(&m, (registers.b << 8) | registers.c, registers.a);
         cycles += 8;
         break;
       }
       case 0x12: { // LD (DE), A
-        writeByte((registers.d << 8) | registers.e, registers.a, &memoryController);
+        writeByte(&m, (registers.d << 8) | registers.e, registers.a);
         cycles += 8;
         break;
       }
       case 0x77: { // LD (HL), A
-        writeByte((registers.h << 8) | registers.l, registers.a, &memoryController);
+        writeByte(&m, (registers.h << 8) | registers.l, registers.a);
         cycles += 8;
         break;
       }
       case 0xEA: { // LD (HL), A
-        writeByte(readWord(registers.pc, &memoryController), registers.a, &memoryController);
+        writeByte(&m, readWord(&m, registers.pc), registers.a);
         registers.pc += 2;
         cycles += 16;
         break;
@@ -742,14 +741,14 @@ int main(int argc, char* argv[]) {
       
       /* LD A, (C) -----------------------------------------------------------------------------*/
       case 0xF2: { // LD A, (C)
-        registers.a = readByte(0xFF00 + registers.c, &memoryController);
+        registers.a = readByte(&m, 0xFF00 + registers.c);
         cycles += 8;
         break;
       }
       
       /* LD (C), A -----------------------------------------------------------------------------*/
       case 0xE2: { // LD (C), A
-        writeByte(0xFF00 + registers.c, registers.a, &memoryController);
+        writeByte(&m, 0xFF00 + registers.c, registers.a);
         cycles += 8;
         break;
       }
@@ -758,7 +757,7 @@ int main(int argc, char* argv[]) {
       /* LD A, (HL-) - Same as LDD A, (HL) -----------------------------------------------------*/
       /* LDD A, (HL) ---------------------------------------------------------------------------*/
       case 0x3A: { // LD A, (HLD), LD A, (HL-) and LDD A, (HL)
-        registers.a = readByte((registers.h << 8) | registers.l, &memoryController);
+        registers.a = readByte(&m, (registers.h << 8) | registers.l);
         registers.l--;
         if (registers.l == 0xFF) { // If the resulting value is 255 then the previous value must have been 0 so also decrement H
           registers.h--;
@@ -771,7 +770,7 @@ int main(int argc, char* argv[]) {
       /* LD (HL-), A - Same as LDD (HL), A -----------------------------------------------------*/
       /* LDD (HL), A ---------------------------------------------------------------------------*/
       case 0x32: { // LD (HLD), A, LD (HL-), A and LDD (HL), A
-        writeByte((registers.h) << 8 | registers.l, registers.a, &memoryController);
+        writeByte(&m, (registers.h) << 8 | registers.l, registers.a);
         registers.l--;
         if (registers.l == 0xFF) { // If the resulting value is 255 then the previous value must have been 0 so also decrement H
           registers.h--;
@@ -784,7 +783,7 @@ int main(int argc, char* argv[]) {
       /* LD A, (HL+) - Same as LDI A, (HL) -----------------------------------------------------*/
       /* LDI A, (HL) ---------------------------------------------------------------------------*/
       case 0x2A: { // LD A, (HLI), LD A, (HL+) and LDI A, (HL)
-        registers.a = readByte((registers.h << 8) | registers.l, &memoryController);
+        registers.a = readByte(&m, (registers.h << 8) | registers.l);
         registers.l++;
         if (registers.l == 0x00) { // If the resulting value is 0 then the previous value must have been 255 so also increment H
           registers.h++;
@@ -797,7 +796,7 @@ int main(int argc, char* argv[]) {
       /* LD (HL+), A - Same as LDI (HL), A -----------------------------------------------------*/
       /* LDI (HL), A ---------------------------------------------------------------------------*/
       case 0x22: { // LD (HLI), A, LD (HL+), A and LDI (HL), A
-        writeByte((registers.h) << 8 | registers.l, registers.a, &memoryController);
+        writeByte(&m, (registers.h) << 8 | registers.l, registers.a);
         registers.l++;
         if (registers.l == 0x00) { // If the resulting value is 0 then the previous value must have been 255 so also increment H
           registers.h++;
@@ -808,14 +807,14 @@ int main(int argc, char* argv[]) {
       
       /* LDH (n), A ----------------------------------------------------------------------------*/
       case 0xE0: { // LDH (n), A
-        writeByte(0xFF00 + readByte(registers.pc++, &memoryController), registers.a, &memoryController);
+        writeByte(&m, 0xFF00 + readByte(&m, registers.pc++), registers.a);
         cycles += 12;
         break;
       }
       
       /* LDH A, (n) ----------------------------------------------------------------------------*/
       case 0xF0: { // LDH A, (n)
-        registers.a = readByte(0xFF00 + readByte(registers.pc++, &memoryController), &memoryController);
+        registers.a = readByte(&m, 0xFF00 + readByte(&m, registers.pc++));
         cycles += 12;
         break;
       }
@@ -884,7 +883,7 @@ int main(int argc, char* argv[]) {
       /* Jumps **********************************************************************************/
       /* JP nn ---------------------------------------------------------------------------------*/
       case 0xC3: {
-        registers.pc = readWord(registers.pc, &memoryController);
+        registers.pc = readWord(&m, registers.pc);
         // registers.pc += 2; WHY WOULD WE DO THIS?????
         cycles += 12;
         break;

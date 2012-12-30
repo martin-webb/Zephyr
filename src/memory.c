@@ -6,21 +6,21 @@
 
 #define CARTRIDGE_SIZE 0x8000
 
-uint8_t readByte(uint16_t address, MemoryController* memoryController)
+uint8_t readByte(MemoryController* memoryController, uint16_t address)
 {
-  return memoryController->readByteImpl(address, memoryController);
+  return memoryController->readByteImpl(memoryController, address);
 }
 
-uint16_t readWord(uint16_t address, MemoryController* memoryController)
+uint16_t readWord(MemoryController* memoryController, uint16_t address)
 {
-  uint8_t lsByte = memoryController->readByteImpl(address, memoryController);
-  uint8_t msByte = memoryController->readByteImpl(address + 1, memoryController);
+  uint8_t lsByte = memoryController->readByteImpl(memoryController, address);
+  uint8_t msByte = memoryController->readByteImpl(memoryController, address + 1);
   return (msByte << 8) | lsByte;
 }
 
-void writeByte(uint16_t address, uint8_t value, MemoryController* memoryController)
+void writeByte(MemoryController* memoryController, uint16_t address, uint8_t value)
 {
-  memoryController->writeByteImpl(address, value, memoryController);
+  memoryController->writeByteImpl(memoryController, address, value);
 }
 
 MemoryController InitMemoryController(uint8_t cartridgeType, uint8_t* memory, uint8_t* cartridge)
@@ -75,7 +75,7 @@ MemoryController InitMemoryController(uint8_t cartridgeType, uint8_t* memory, ui
 
 /****************************************************************************/
 
-uint8_t ROMOnlyReadByte(uint16_t address, MemoryController* memoryController)
+uint8_t ROMOnlyReadByte(MemoryController* memoryController, uint16_t address)
 {
   if (address < CARTRIDGE_SIZE) {
     return memoryController->cartridge[address];
@@ -84,7 +84,7 @@ uint8_t ROMOnlyReadByte(uint16_t address, MemoryController* memoryController)
   }
 }
 
-void ROMOnlyWriteByte(uint16_t address, uint8_t value, MemoryController* memoryController)
+void ROMOnlyWriteByte(MemoryController* memoryController, uint16_t address, uint8_t value)
 {
   if (address < CARTRIDGE_SIZE) {
     printf("[FATAL]: Attempt to write to ROM space on ROM Only cartridge");
@@ -118,7 +118,7 @@ MemoryController InitROMOnlyMemoryController(uint8_t* memory, uint8_t* cartridge
 
 /****************************************************************************/
 
-uint8_t MBC1ReadByte(uint16_t address, MemoryController* memoryController)
+uint8_t MBC1ReadByte(MemoryController* memoryController, uint16_t address)
 {
   if (address <= 0x3FFF) { // Read from ROM Bank 0
     return memoryController->cartridge[address];
@@ -138,7 +138,7 @@ uint8_t MBC1ReadByte(uint16_t address, MemoryController* memoryController)
   }
 }
 
-void MBC1WriteByte(uint16_t address, uint8_t value, MemoryController* memoryController)
+void MBC1WriteByte(MemoryController* memoryController, uint16_t address, uint8_t value)
 {
   if (address <= 0x1FFF) { // External RAM Enable/Disable    
     if (value & 0xF == 0xA) {
