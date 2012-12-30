@@ -821,6 +821,31 @@ int main(int argc, char* argv[]) {
       
       /* 16-Bit Loads ***************************************************************************/
       /* LD n, nn ------------------------------------------------------------------------------*/
+      case 0x01: { // LD BC, nn
+        registers.b = readByte(&m, registers.pc++);
+        registers.c = readByte(&m, registers.pc++);
+        cycles += 12;
+        break;
+      }
+      case 0x11: { // LD DE, nn
+        registers.d = readByte(&m, registers.pc++);
+        registers.e = readByte(&m, registers.pc++);
+        cycles += 12;
+        break;
+      }
+      case 0x21: { // LD HL, nn
+        registers.h = readByte(&m, registers.pc++);
+        registers.l = readByte(&m, registers.pc++);
+        cycles += 12;
+        break;
+      }
+      case 0x31: { // LD SP, nn
+        registers.sp = readWord(&m, registers.pc);
+        registers.pc += 2;
+        cycles += 12;
+        break;
+      }
+      
       /* LD SP, HL -----------------------------------------------------------------------------*/
       /* LD HL, SP + n -------------------------------------------------------------------------*/
       /* LDHL SP, n ----------------------------------------------------------------------------*/
