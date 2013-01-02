@@ -51,6 +51,19 @@
 #define CHECKSUM_START_ADDRESS 0x14E
 #define CHECKSUM_END_ADDRESS 0x14F
 
+/* Opcode Generation Macros *********************************************************************/
+
+#define MAKE_ADD_A_N_OPCODE_IMPL(SOURCE_REGISTER) \
+  uint8_t old = registers.a; \
+  uint32_t new = old + registers.SOURCE_REGISTER; \
+  registers.a = new; \
+  registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
+  registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
+  registers.f |= (((old & 0xF) + (new & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT; \
+  registers.f |= (((old & 0xFF) + (new & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT; \
+  cycles += 4; \
+  break;
+
 /************************************************************************************************/
 
 typedef struct {
@@ -957,87 +970,31 @@ int main(int argc, char* argv[]) {
       /* ADD A, n ------------------------------------------------------------------------------*/
       case 0x87: { // ADD A, A
         // TODO: Check the setting of F register bits H and C
-        uint8_t old = registers.a;
-        uint32_t new = old + registers.a;
-        registers.a = new;
-        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-        registers.f |= (((old & 0xF) + (new & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
-        registers.f |= (((old & 0xFF) + (new & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
-        cycles += 4;
-        break;
+        MAKE_ADD_A_N_OPCODE_IMPL(a)
       }
       case 0x80: { // ADD A, B
         // TODO: Check the setting of F register bits H and C
-        uint8_t old = registers.a;
-        uint32_t new = old + registers.b;
-        registers.a = new;
-        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-        registers.f |= (((old & 0xF) + (new & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
-        registers.f |= (((old & 0xFF) + (new & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
-        cycles += 4;
-        break;
+        MAKE_ADD_A_N_OPCODE_IMPL(b)
       }
       case 0x81: { // ADD A, C
         // TODO: Check the setting of F register bits H and C
-        uint8_t old = registers.a;
-        uint32_t new = old + registers.c;
-        registers.a = new;
-        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-        registers.f |= (((old & 0xF) + (new & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
-        registers.f |= (((old & 0xFF) + (new & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
-        cycles += 4;
-        break;
+        MAKE_ADD_A_N_OPCODE_IMPL(c)
       }
       case 0x82: { // ADD A, D
         // TODO: Check the setting of F register bits H and C
-        uint8_t old = registers.a;
-        uint32_t new = old + registers.d;
-        registers.a = new;
-        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-        registers.f |= (((old & 0xF) + (new & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
-        registers.f |= (((old & 0xFF) + (new & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
-        cycles += 4;
-        break;
+        MAKE_ADD_A_N_OPCODE_IMPL(d)
       }
       case 0x83: { // ADD A, E
         // TODO: Check the setting of F register bits H and C
-        uint8_t old = registers.a;
-        uint32_t new = old + registers.e;
-        registers.a = new;
-        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-        registers.f |= (((old & 0xF) + (new & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
-        registers.f |= (((old & 0xFF) + (new & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
-        cycles += 4;
-        break;
+        MAKE_ADD_A_N_OPCODE_IMPL(e)
       }
       case 0x84: { // ADD A, H
         // TODO: Check the setting of F register bits H and C
-        uint8_t old = registers.a;
-        uint32_t new = old + registers.h;
-        registers.a = new;
-        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-        registers.f |= (((old & 0xF) + (new & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
-        registers.f |= (((old & 0xFF) + (new & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
-        cycles += 4;
-        break;
+        MAKE_ADD_A_N_OPCODE_IMPL(h)
       }
       case 0x85: { // ADD A, L
         // TODO: Check the setting of F register bits H and C
-        uint8_t old = registers.a;
-        uint32_t new = old + registers.l;
-        registers.a = new;
-        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-        registers.f |= (((old & 0xF) + (new & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
-        registers.f |= (((old & 0xFF) + (new & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
-        cycles += 4;
-        break;
+        MAKE_ADD_A_N_OPCODE_IMPL(l)
       }
       case 0x86: { // ADD A, (HL)
         // TODO: Check the setting of F register bits H and C
@@ -1064,7 +1021,7 @@ int main(int argc, char* argv[]) {
         break;
       }
       
-      /* ADC A, n ------------------------------------------------------------------------------*/
+      /* ADC A, n ------------------------------------------------------------------------------*/      
       /* SUB n ---------------------------------------------------------------------------------*/
       /* SBC A, n ------------------------------------------------------------------------------*/
       /* AND n ---------------------------------------------------------------------------------*/
