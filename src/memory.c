@@ -23,6 +23,12 @@ void writeByte(MemoryController* memoryController, uint16_t address, uint8_t val
   memoryController->writeByteImpl(memoryController, address, value);
 }
 
+void writeWord(MemoryController* memoryController, uint16_t address, uint16_t value)
+{
+  memoryController->writeByteImpl(memoryController, address, value & 0x00FF);
+  memoryController->writeByteImpl(memoryController, address + 1, (value & 0xFF00) >> 8);
+}
+
 MemoryController InitMemoryController(uint8_t cartridgeType, uint8_t* memory, uint8_t* cartridge)
 {
   switch (cartridgeType) {
