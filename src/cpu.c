@@ -64,6 +64,17 @@
   cycles += 4; \
   break;
 
+#define MAKE_ADC_A_N_OPCODE_IMPL(SOURCE_REGISTER) \
+  uint8_t old = registers.a; \
+  uint32_t new = old + registers.SOURCE_REGISTER + ((registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT); \
+  registers.a = new; \
+  registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
+  registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
+  registers.f |= (((old & 0xF) + (new & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT; \
+  registers.f |= (((old & 0xFF) + (new & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT; \
+  cycles += 4; \
+  break;
+
 /************************************************************************************************/
 
 typedef struct {
@@ -1021,7 +1032,60 @@ int main(int argc, char* argv[]) {
         break;
       }
       
-      /* ADC A, n ------------------------------------------------------------------------------*/      
+      /* ADC A, n ------------------------------------------------------------------------------*/
+      case 0x8F: { // ADC A, A
+        // TODO: Check the setting of F register bits H and C
+        MAKE_ADC_A_N_OPCODE_IMPL(a)
+      }
+      case 0x88: { // ADC A, B
+        // TODO: Check the setting of F register bits H and C
+        MAKE_ADC_A_N_OPCODE_IMPL(b)
+      }
+      case 0x89: { // ADC A, C
+        // TODO: Check the setting of F register bits H and C
+        MAKE_ADC_A_N_OPCODE_IMPL(c)
+      }
+      case 0x8A: { // ADC A, D
+        // TODO: Check the setting of F register bits H and C
+        MAKE_ADC_A_N_OPCODE_IMPL(d)
+      }
+      case 0x8B: { // ADC A, E
+        // TODO: Check the setting of F register bits H and C
+        MAKE_ADC_A_N_OPCODE_IMPL(e)
+      }
+      case 0x8C: { // ADC A, H
+        // TODO: Check the setting of F register bits H and C
+        MAKE_ADC_A_N_OPCODE_IMPL(h)
+      }
+      case 0x8D: { // ADC A, L
+        // TODO: Check the setting of F register bits H and C
+        MAKE_ADC_A_N_OPCODE_IMPL(l)
+      }
+      case 0x8E: { // ADC A, (HL)
+        // TODO: Check the setting of F register bits H and C
+        uint8_t old = registers.a;
+        uint32_t new = old + readByte(&m, (registers.h << 8) | registers.l) + ((registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT);
+        registers.a = new;
+        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= (((old & 0xF) + (new & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
+        registers.f |= (((old & 0xFF) + (new & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
+        cycles += 8;
+        break;
+      }
+      case 0xCE: { // ADC A, #
+        // TODO: Check the setting of F register bits H and C
+        uint8_t old = registers.a;
+        uint32_t new = old + readByte(&m, registers.pc++) + ((registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT);
+        registers.a = new;
+        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= (((old & 0xF) + (new & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
+        registers.f |= (((old & 0xFF) + (new & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
+        cycles += 8;
+        break;
+      }
+         
       /* SUB n ---------------------------------------------------------------------------------*/
       /* SBC A, n ------------------------------------------------------------------------------*/
       /* AND n ---------------------------------------------------------------------------------*/
