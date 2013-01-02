@@ -12,10 +12,15 @@
 #define MACHINE_CYCLE_FREQUENCY (CLOCK_CYCLE_FREQUENCY / 4)
 #define MACHINE_CYCLE_TIME_SECS (1.0 / MACHINE_CYCLE_FREQUENCY)
 
-#define FLAG_REGISTER_C_BIT (0x1 << 4)
-#define FLAG_REGISTER_H_BIT (0x1 << 5)
-#define FLAG_REGISTER_N_BIT (0x1 << 6)
-#define FLAG_REGISTER_Z_BIT (0x1 << 7)
+#define FLAG_REGISTER_C_BIT_SHIFT 4
+#define FLAG_REGISTER_H_BIT_SHIFT 5
+#define FLAG_REGISTER_N_BIT_SHIFT 6
+#define FLAG_REGISTER_Z_BIT_SHIFT 7
+
+#define FLAG_REGISTER_C_BIT (0x1 << FLAG_REGISTER_C_BIT_SHIFT)
+#define FLAG_REGISTER_H_BIT (0x1 << FLAG_REGISTER_H_BIT_SHIFT)
+#define FLAG_REGISTER_N_BIT (0x1 << FLAG_REGISTER_N_BIT_SHIFT)
+#define FLAG_REGISTER_Z_BIT (0x1 << FLAG_REGISTER_Z_BIT_SHIFT)
 
 #define VBLANK_INTERRUPT_START_ADDRESS 0x40
 #define LCDC_STATUS_INTERRUPT_START_ADDRESS 0x48
@@ -853,8 +858,27 @@ int main(int argc, char* argv[]) {
         break;
       }
       
-      /* LD HL, SP + n -------------------------------------------------------------------------*/
+      /* LD HL, SP + n - Same as LDHL SP, n ----------------------------------------------------*/
       /* LDHL SP, n ----------------------------------------------------------------------------*/
+      case 0xF8: { // LD HL, SP + n and LDHL SP, n
+        // TODO: Check this - particularly the setting of register F for the H and C bits
+        int8_t signedValue = (int8_t)readByte(&m, registers.pc++);
+        uint16_t oldAddress = (registers.h) | registers.l;
+        uint16_t newAddress = registers.sp + signedValue;
+        registers.h = (newAddress & 0xFF00) >> 8;
+        registers.l = newAddress & 0x00FF;
+        registers.f = 0x00;
+        if (signedValue >= 0) {
+          registers.f |= (((oldAddress & 0xFF) + signedValue) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
+          registers.f |= (((oldAddress & 0xF) + (signedValue & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
+        } else {
+          registers.f |= ((newAddress & 0xFF) <= (oldAddress & 0xFF)) << FLAG_REGISTER_C_BIT_SHIFT;
+          registers.f |= ((newAddress & 0xF) <= (oldAddress & 0xF)) << FLAG_REGISTER_H_BIT_SHIFT;
+        }
+        cycles += 12;
+        break;
+      }
+      
       /* LD (nn), SP ---------------------------------------------------------------------------*/
       /* PUSH nn -------------------------------------------------------------------------------*/
       /* POP, nn -------------------------------------------------------------------------------*/
