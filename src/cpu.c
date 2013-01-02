@@ -890,6 +890,35 @@ int main(int argc, char* argv[]) {
       }
       
       /* PUSH nn -------------------------------------------------------------------------------*/
+      case 0xF5: { // PUSH AF
+        // TODO: Check the order of registers - here we are keeping the higher-order byte of the register pair at the higher address in memory
+        writeByte(&m, --registers.sp, registers.a);
+        writeByte(&m, --registers.sp, registers.f);
+        cycles += 16;
+        break;
+      }
+      case 0xC5: { // PUSH BC
+        // TODO: Check the order of registers - here we are keeping the higher-order byte of the register pair at the higher address in memory
+        writeByte(&m, --registers.sp, registers.b);
+        writeByte(&m, --registers.sp, registers.c);
+        cycles += 16;
+        break;
+      }
+      case 0xD5: { // PUSH DE
+        // TODO: Check the order of registers - here we are keeping the higher-order byte of the register pair at the higher address in memory
+        writeByte(&m, --registers.sp, registers.d);
+        writeByte(&m, --registers.sp, registers.e);
+        cycles += 16;
+        break;
+      }
+      case 0xE5: { // PUSH HL
+        // TODO: Check the order of registers - here we are keeping the higher-order byte of the register pair at the higher address in memory
+        writeByte(&m, --registers.sp, registers.h);
+        writeByte(&m, --registers.sp, registers.l);
+        cycles += 16;
+        break;
+      }
+      
       /* POP, nn -------------------------------------------------------------------------------*/
       
       /* 8-Bit ALU ******************************************************************************/
