@@ -955,6 +955,115 @@ int main(int argc, char* argv[]) {
       
       /* 8-Bit ALU ******************************************************************************/
       /* ADD A, n ------------------------------------------------------------------------------*/
+      case 0x87: { // ADD A, A
+        // TODO: Check the setting of F register bits H and C
+        uint8_t old = registers.a;
+        uint32_t new = old + registers.a;
+        registers.a = new & 0xFF; // Or "% 256"/"% 0x100"
+        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= (((old & 0xF) + (new & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
+        registers.f |= (((old & 0xFF) + (new & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
+        cycles += 4;
+        break;
+      }
+      case 0x80: { // ADD A, B
+        // TODO: Check the setting of F register bits H and C
+        uint8_t old = registers.a;
+        uint32_t new = old + registers.b;
+        registers.a = new & 0xFF; // Or "% 256"/"% 0x100"
+        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= (((old & 0xF) + (new & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
+        registers.f |= (((old & 0xFF) + (new & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
+        cycles += 4;
+        break;
+      }
+      case 0x81: { // ADD A, C
+        // TODO: Check the setting of F register bits H and C
+        uint8_t old = registers.a;
+        uint32_t new = old + registers.c;
+        registers.a = new & 0xFF; // Or "% 256"/"% 0x100"
+        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= (((old & 0xF) + (new & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
+        registers.f |= (((old & 0xFF) + (new & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
+        cycles += 4;
+        break;
+      }
+      case 0x82: { // ADD A, D
+        // TODO: Check the setting of F register bits H and C
+        uint8_t old = registers.a;
+        uint32_t new = old + registers.d;
+        registers.a = new & 0xFF; // Or "% 256"/"% 0x100"
+        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= (((old & 0xF) + (new & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
+        registers.f |= (((old & 0xFF) + (new & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
+        cycles += 4;
+        break;
+      }
+      case 0x83: { // ADD A, E
+        // TODO: Check the setting of F register bits H and C
+        uint8_t old = registers.a;
+        uint32_t new = old + registers.e;
+        registers.a = new & 0xFF; // Or "% 256"/"% 0x100"
+        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= (((old & 0xF) + (new & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
+        registers.f |= (((old & 0xFF) + (new & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
+        cycles += 4;
+        break;
+      }
+      case 0x84: { // ADD A, H
+        // TODO: Check the setting of F register bits H and C
+        uint8_t old = registers.a;
+        uint32_t new = old + registers.h;
+        registers.a = new & 0xFF; // Or "% 256"/"% 0x100"
+        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= (((old & 0xF) + (new & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
+        registers.f |= (((old & 0xFF) + (new & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
+        cycles += 4;
+        break;
+      }
+      case 0x85: { // ADD A, L
+        // TODO: Check the setting of F register bits H and C
+        uint8_t old = registers.a;
+        uint32_t new = old + registers.l;
+        registers.a = new & 0xFF; // Or "% 256"/"% 0x100"
+        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= (((old & 0xF) + (new & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
+        registers.f |= (((old & 0xFF) + (new & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
+        cycles += 4;
+        break;
+      }
+      case 0x86: { // ADD A, (HL)
+        // TODO: Check the setting of F register bits H and C
+        uint8_t old = registers.a;
+        uint32_t new = old + readByte(&m, (registers.h << 8) | registers.l);
+        registers.a = new & 0xFF; // Or "% 256"/"% 0x100"
+        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= (((old & 0xF) + (new & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
+        registers.f |= (((old & 0xFF) + (new & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
+        cycles += 8;
+        break;
+      }
+      case 0xC6: { // ADD A, #
+        // TODO: Check the setting of F register bits H and C
+        uint8_t old = registers.a;
+        uint32_t new = old + readByte(&m, registers.pc++);
+        registers.a = new & 0xFF; // Or "% 256"/"% 0x100"
+        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= (((old & 0xF) + (new & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
+        registers.f |= (((old & 0xFF) + (new & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
+        cycles += 8;
+        break;
+      }
+      
       /* ADC A, n ------------------------------------------------------------------------------*/
       /* SUB n ---------------------------------------------------------------------------------*/
       /* SBC A, n ------------------------------------------------------------------------------*/
