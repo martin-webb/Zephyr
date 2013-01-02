@@ -880,6 +880,15 @@ int main(int argc, char* argv[]) {
       }
       
       /* LD (nn), SP ---------------------------------------------------------------------------*/
+      case 0x08: { // LD (nn), SP
+        // TODO: Check this
+        uint16_t address = readWord(&m, registers.pc);
+        registers.pc += 2;
+        writeWord(&m, address, registers.sp);
+        cycles += 20;
+        break;
+      }
+      
       /* PUSH nn -------------------------------------------------------------------------------*/
       /* POP, nn -------------------------------------------------------------------------------*/
       
