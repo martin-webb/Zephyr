@@ -920,6 +920,38 @@ int main(int argc, char* argv[]) {
       }
       
       /* POP, nn -------------------------------------------------------------------------------*/
+      case 0xF1: { // POP AF
+        // TODO: Check the order of registers - here we are keeping the higher-order byte of the register pair at the higher address in memory
+        // TODO: Check clock cycles compared to PUSH nn
+        registers.f = readByte(&m, registers.sp++);
+        registers.a = readByte(&m, registers.sp++);
+        cycles += 12;
+        break;
+      }
+      case 0xC1: { // POP BC
+        // TODO: Check the order of registers - here we are keeping the higher-order byte of the register pair at the higher address in memory
+        // TODO: Check clock cycles compared to PUSH nn
+        registers.c = readByte(&m, registers.sp++);
+        registers.b = readByte(&m, registers.sp++);
+        cycles += 12;
+        break;
+      }
+      case 0xD1: { // POP DE
+        // TODO: Check the order of registers - here we are keeping the higher-order byte of the register pair at the higher address in memory
+        // TODO: Check clock cycles compared to PUSH nn
+        registers.e = readByte(&m, registers.sp++);
+        registers.d = readByte(&m, registers.sp++);
+        cycles += 12;
+        break;
+      }
+      case 0xE1: { // POP HL
+        // TODO: Check the order of registers - here we are keeping the higher-order byte of the register pair at the higher address in memory
+        // TODO: Check clock cycles compared to PUSH nn
+        registers.l = readByte(&m, registers.sp++);
+        registers.h = readByte(&m, registers.sp++);
+        cycles += 12;
+        break;
+      }
       
       /* 8-Bit ALU ******************************************************************************/
       /* ADD A, n ------------------------------------------------------------------------------*/
