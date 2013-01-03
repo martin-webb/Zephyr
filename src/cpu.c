@@ -1139,6 +1139,7 @@ int main(int argc, char* argv[]) {
         MAKE_SUB_N_OPCODE_IMPL(l)
       }
       case 0x96: { // SUB (HL)
+        // TODO: Check the setting of F register bits H and C
         uint8_t old = registers.a;
         int32_t new = old - readByte(&m, (registers.h << 8) | registers.l);
         registers.a = new;
@@ -1150,6 +1151,7 @@ int main(int argc, char* argv[]) {
         break;
       }
       case 0xD6: { // SUB #
+        // TODO: Check the setting of F register bits H and C
         uint8_t old = registers.a;
         int32_t new = old - readByte(&m, registers.pc++);
         registers.a = new;
