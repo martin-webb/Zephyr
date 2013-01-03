@@ -1473,7 +1473,7 @@ int main(int argc, char* argv[]) {
         uint8_t old = readByte(&m, (registers.h << 8) | registers.l);
         uint16_t new = old + 1;
         writeByte(&m, (registers.h << 8) | registers.l, (uint8_t)new);
-        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= ((uint8_t)new == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
         registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
         registers.f |= (((old & 0xF) + (1 & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
         cycles += 12;
