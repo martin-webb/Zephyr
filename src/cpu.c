@@ -175,6 +175,14 @@
   cycles += 8; \
   break;
 
+#define MAKE_DEC_NN_OPCODE_IMPL(REGISTER_HIGH, REGISTER_LOW) \
+  registers.REGISTER_LOW--; \
+  if (registers.REGISTER_LOW == 0xFF) { \
+    registers.REGISTER_HIGH--; \
+  } \
+  cycles += 8; \
+  break;
+
 /************************************************************************************************/
 
 typedef struct {
@@ -1619,6 +1627,20 @@ int main(int argc, char* argv[]) {
       }
       
       /* DEC nn --------------------------------------------------------------------------------*/
+      case 0x0B: { // DEC BC
+        MAKE_DEC_NN_OPCODE_IMPL(b, c)
+      }
+      case 0x1B: { // DEC DE
+        MAKE_DEC_NN_OPCODE_IMPL(d, e)
+      }
+      case 0x2B: { // DEC HL
+        MAKE_DEC_NN_OPCODE_IMPL(h, l)
+      }
+      case 0x3B: { // DEC SP
+        registers.sp--;
+        cycles += 8;
+        break;
+      }
       
       /* Miscellaneous **************************************************************************/
       /* SWAP n --------------------------------------------------------------------------------*/
