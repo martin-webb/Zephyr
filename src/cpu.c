@@ -115,6 +115,15 @@
   cycles += 4; \
   break;
 
+#define MAKE_XOR_N_OPCODE_IMPL(SOURCE_REGISTER) \
+  registers.a ^= registers.SOURCE_REGISTER; \
+  registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
+  registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
+  registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT; \
+  registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT; \
+  cycles += 4; \
+  break;
+
 /************************************************************************************************/
 
 typedef struct {
@@ -1321,6 +1330,46 @@ int main(int argc, char* argv[]) {
       }
       
       /* XOR n ---------------------------------------------------------------------------------*/
+      case 0xAF: { // XOR A
+        MAKE_XOR_N_OPCODE_IMPL(a)
+      }
+      case 0xA8: { // XOR B
+        MAKE_XOR_N_OPCODE_IMPL(b)
+      }
+      case 0xA9: { // XOR C
+        MAKE_XOR_N_OPCODE_IMPL(c)
+      }
+      case 0xAA: { // XOR D
+        MAKE_XOR_N_OPCODE_IMPL(d)
+      }
+      case 0xAB: { // XOR E
+        MAKE_XOR_N_OPCODE_IMPL(e)
+      }
+      case 0xAC: { // XOR H
+        MAKE_XOR_N_OPCODE_IMPL(h)
+      }
+      case 0xAD: { // XOR L
+        MAKE_XOR_N_OPCODE_IMPL(l)
+      }
+      case 0xAE: { // XOR (HL)
+        registers.a ^= readByte(&m, (registers.h << 8) | registers.l);
+        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT;
+        cycles += 8;
+        break;
+      }
+      case 0xEE: { // XOR *
+        registers.a ^= readByte(&m, registers.pc++);
+        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT;
+        cycles += 8;
+        break;
+      }
+      
       /* CP n ----------------------------------------------------------------------------------*/
       /* INC n ---------------------------------------------------------------------------------*/
       /* DEC n ---------------------------------------------------------------------------------*/
