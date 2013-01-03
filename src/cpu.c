@@ -153,6 +153,18 @@
   cycles += 4; \
   break;
 
+#define MAKE_ADD_HL_N_OPCODE_IMPL(REGISTER_HIGH, REGISTER_LOW) \
+  uint16_t old = (registers.h << 8) | registers.l; \
+  uint16_t value = (registers.REGISTER_HIGH << 8) | registers.REGISTER_LOW; \
+  uint16_t result = old + value; \
+  registers.h = (result & 0xFF00) >> 8; \
+  registers.l = (result & 0x00FF); \
+  registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
+  registers.f |= (((old & 0xFFF) + (value & 0xFFF)) > 0xFFF) << FLAG_REGISTER_H_BIT_SHIFT; \
+  registers.f |= (((old & 0xFFFF) + (value & 0xFFFF)) > 0xFFFF) << FLAG_REGISTER_C_BIT_SHIFT; \
+  cycles += 8; \
+  break;
+
 /************************************************************************************************/
 
 typedef struct {
@@ -1533,6 +1545,28 @@ int main(int argc, char* argv[]) {
       
       /* 16-Bit Arithmetic **********************************************************************/
       /* ADD HL, n -----------------------------------------------------------------------------*/
+      case 0x09: { // ADD HL, BC
+        MAKE_ADD_HL_N_OPCODE_IMPL(b, c)
+      }
+      case 0x19: { // ADD HL, DE
+        MAKE_ADD_HL_N_OPCODE_IMPL(d, e)
+      }
+      case 0x29: { // ADD HL, HL
+        MAKE_ADD_HL_N_OPCODE_IMPL(h, l)
+      }
+      case 0x39: { // ADD HL, SP
+        uint16_t old = (registers.h << 8) | registers.l;
+        uint16_t value = registers.sp;
+        uint16_t result = old + value;
+        registers.h = (result & 0xFF00) >> 8;
+        registers.l = (result & 0x00FF);
+        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= (((old & 0xFFF) + (value & 0xFFF)) > 0xFFF) << FLAG_REGISTER_H_BIT_SHIFT;
+        registers.f |= (((old & 0xFFFF) + (value & 0xFFFF)) > 0xFFFF) << FLAG_REGISTER_C_BIT_SHIFT;
+        cycles += 8;
+        break;
+      }
+      
       /* ADD SP, n -----------------------------------------------------------------------------*/
       /* INC nn --------------------------------------------------------------------------------*/
       /* DEC nn --------------------------------------------------------------------------------*/
