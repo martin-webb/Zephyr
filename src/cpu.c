@@ -913,7 +913,8 @@ int main(int argc, char* argv[]) {
         uint16_t newAddress = registers.sp + signedValue;
         registers.h = (newAddress & 0xFF00) >> 8;
         registers.l = newAddress & 0x00FF;
-        registers.f = 0x00;
+        registers.f |= 0 << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
         if (signedValue >= 0) {
           registers.f |= (((oldAddress & 0xFF) + signedValue) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
           registers.f |= (((oldAddress & 0xF) + (signedValue & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
