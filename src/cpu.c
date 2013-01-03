@@ -105,6 +105,15 @@
   registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT; \
   cycles += 4; \
   break;
+  
+#define MAKE_OR_N_OPCODE_IMPL(SOURCE_REGISTER) \
+  registers.a |= registers.SOURCE_REGISTER; \
+  registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
+  registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
+  registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT; \
+  registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT; \
+  cycles += 4; \
+  break;
 
 /************************************************************************************************/
 
@@ -1271,6 +1280,46 @@ int main(int argc, char* argv[]) {
       }
       
       /* OR n ----------------------------------------------------------------------------------*/
+      case 0xB7: { // OR A
+        MAKE_OR_N_OPCODE_IMPL(a)
+      }
+      case 0xB0: { // OR B
+        MAKE_OR_N_OPCODE_IMPL(b)
+      }
+      case 0xB1: { // OR C
+        MAKE_OR_N_OPCODE_IMPL(c)
+      }
+      case 0xB2: { // OR D
+        MAKE_OR_N_OPCODE_IMPL(d)
+      }
+      case 0xB3: { // OR E
+        MAKE_OR_N_OPCODE_IMPL(e)
+      }
+      case 0xB4: { // OR H
+        MAKE_OR_N_OPCODE_IMPL(h)
+      }
+      case 0xB5: { // OR L
+        MAKE_OR_N_OPCODE_IMPL(l)
+      }
+      case 0xB6: { // OR (HL)
+        registers.a |= readByte(&m, (registers.h << 8) | registers.l);
+        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT;
+        cycles += 8;
+        break;
+      }
+      case 0xF6: { // OR #
+        registers.a |= readByte(&m, registers.pc++);
+        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT;
+        cycles += 8;
+        break;
+      }
+      
       /* XOR n ---------------------------------------------------------------------------------*/
       /* CP n ----------------------------------------------------------------------------------*/
       /* INC n ---------------------------------------------------------------------------------*/
