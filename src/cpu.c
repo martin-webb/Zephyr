@@ -133,6 +133,16 @@
   cycles += 4; \
   break;
 
+#define MAKE_INC_N_OPCODE_IMPL(REGISTER) \
+  uint8_t old = registers.REGISTER; \
+  uint16_t new = old + 1; \
+  registers.REGISTER = new; \
+  registers.f |= (registers.REGISTER == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
+  registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
+  registers.f |= (((old & 0xF) + (1 & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT; \
+  cycles += 4; \
+  break;
+
 /************************************************************************************************/
 
 typedef struct {
@@ -1430,6 +1440,46 @@ int main(int argc, char* argv[]) {
       }
       
       /* INC n ---------------------------------------------------------------------------------*/
+      case 0x3C: { // INC A
+        // TODO: Seriously check that C bit of register F is set correctly
+        MAKE_INC_N_OPCODE_IMPL(a)
+      }
+      case 0x04: { // INC B
+        // TODO: Seriously check that C bit of register F is set correctly
+        MAKE_INC_N_OPCODE_IMPL(b)
+      }
+      case 0x0C: { // INC C
+        // TODO: Seriously check that C bit of register F is set correctly
+        MAKE_INC_N_OPCODE_IMPL(c)
+      }
+      case 0x14: { // INC D
+        // TODO: Seriously check that C bit of register F is set correctly
+        MAKE_INC_N_OPCODE_IMPL(d)
+      }
+      case 0x1C: { // INC E
+        // TODO: Seriously check that C bit of register F is set correctly
+        MAKE_INC_N_OPCODE_IMPL(e)
+      }
+      case 0x24: { // INC H
+        // TODO: Seriously check that C bit of register F is set correctly
+        MAKE_INC_N_OPCODE_IMPL(h)
+      }
+      case 0x2C: { // INC L
+        // TODO: Seriously check that C bit of register F is set correctly
+        MAKE_INC_N_OPCODE_IMPL(l)
+      }
+      case 0x34: { // INC (HL)
+        // TODO: Seriously check that C bit of register F is set correctly
+        uint8_t old = readByte(&m, (registers.h << 8) | registers.l);
+        uint16_t new = old + 1;
+        writeByte(&m, (registers.h << 8) | registers.l, (uint8_t)new);
+        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= (((old & 0xF) + (1 & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
+        cycles += 12;
+        break;
+      }
+      
       /* DEC n ---------------------------------------------------------------------------------*/
       
       /* 16-Bit Arithmetic **********************************************************************/
