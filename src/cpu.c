@@ -85,6 +85,17 @@
   registers.f |= ((new & 0xFF) >= 0x00) << FLAG_REGISTER_C_BIT_SHIFT; \
   cycles += 4; \
   break;
+  
+#define MAKE_SBC_A_N_OPCODE_IMPL(SOURCE_REGISTER) \
+  uint8_t old = registers.a; \
+  int32_t new = old - (registers.SOURCE_REGISTER + ((registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT)); \
+  registers.a = new; \
+  registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
+  registers.f |= 1 << FLAG_REGISTER_N_BIT_SHIFT; \
+  registers.f |= ((new & 0xF) >= 0x0) << FLAG_REGISTER_H_BIT_SHIFT; \
+  registers.f |= ((new & 0xFF) >= 0x00) << FLAG_REGISTER_C_BIT_SHIFT; \
+  cycles += 4; \
+  break;
 
 /************************************************************************************************/
 
@@ -1150,7 +1161,62 @@ int main(int argc, char* argv[]) {
         break;
       }
       
-      /* SBC A, n ------------------------------------------------------------------------------*/      
+      /* SBC A, n ------------------------------------------------------------------------------*/
+      // TODO: Check all of these
+      case 0x9F: { // SBC A, A
+        // TODO: Check the setting of F register bits H and C
+        MAKE_SBC_A_N_OPCODE_IMPL(a)
+      }
+      case 0x98: { // SBC A, B
+        // TODO: Check the setting of F register bits H and C
+        MAKE_SBC_A_N_OPCODE_IMPL(b)
+      }
+      case 0x99: { // SBC A, C
+        // TODO: Check the setting of F register bits H and C
+        MAKE_SBC_A_N_OPCODE_IMPL(c)
+      }
+      case 0x9A: { // SBC A, D
+        // TODO: Check the setting of F register bits H and C
+        MAKE_SBC_A_N_OPCODE_IMPL(d)
+      }
+      case 0x9B: { // SBC A, E
+        // TODO: Check the setting of F register bits H and C
+        MAKE_SBC_A_N_OPCODE_IMPL(e)
+      }
+      case 0x9C: { // SBC A, H
+        // TODO: Check the setting of F register bits H and C
+        MAKE_SBC_A_N_OPCODE_IMPL(h)
+      }
+      case 0x9D: { // SBC A, L
+        // TODO: Check the setting of F register bits H and C
+        MAKE_SBC_A_N_OPCODE_IMPL(l)
+      }
+      case 0x9E: { // SBC A, (HL)
+        // TODO: Check the setting of F register bits H and C
+        uint8_t old = registers.a;
+        int32_t new = old - (readByte(&m, (registers.h << 8) | registers.l) + ((registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT));
+        registers.a = new;
+        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 1 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= ((new & 0xF) >= 0x0) << FLAG_REGISTER_H_BIT_SHIFT;
+        registers.f |= ((new & 0xFF) >= 0x00) << FLAG_REGISTER_C_BIT_SHIFT;
+        cycles += 8;
+        break;
+      }
+      case 0xDE: { // SBC A, #
+        // TODO: Check the setting of F register bits H and C
+        // TODO: It this definitely the right opcode? Was listed as ?? in the GB CPU Manual PDF
+        uint8_t old = registers.a;
+        int32_t new = old - (readByte(&m, registers.pc++) + ((registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT));
+        registers.a = new;
+        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 1 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= ((new & 0xF) >= 0x0) << FLAG_REGISTER_H_BIT_SHIFT;
+        registers.f |= ((new & 0xFF) >= 0x00) << FLAG_REGISTER_C_BIT_SHIFT;
+        cycles += 8;
+        break;
+      }
+            
       /* AND n ---------------------------------------------------------------------------------*/
       /* OR n ----------------------------------------------------------------------------------*/
       /* XOR n ---------------------------------------------------------------------------------*/
