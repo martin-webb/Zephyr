@@ -867,7 +867,7 @@ int main(int argc, char* argv[]) {
       /* LD (HL-), A - Same as LDD (HL), A -----------------------------------------------------*/
       /* LDD (HL), A ---------------------------------------------------------------------------*/
       case 0x32: { // LD (HLD), A, LD (HL-), A and LDD (HL), A
-        writeByte(&m, (registers.h) << 8 | registers.l, registers.a);
+        writeByte(&m, (registers.h << 8) | registers.l, registers.a);
         registers.l--;
         if (registers.l == 0xFF) { // If the resulting value is 255 then the previous value must have been 0 so also decrement H
           registers.h--;
