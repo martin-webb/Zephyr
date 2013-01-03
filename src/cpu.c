@@ -1574,6 +1574,26 @@ int main(int argc, char* argv[]) {
       }
       
       /* ADD SP, n -----------------------------------------------------------------------------*/
+      case 0xE8: { // ADD SP, n
+        // TODO: Check this for correctness, particularly the setting of the H and C flags of register F
+        // and the use of int32_t and conversion of int32_t to uint16_t
+        int8_t value = (int8_t)readByte(&m, registers.pc++);
+        uint16_t old = registers.sp;
+        int32_t new = old + value;
+        registers.sp = new;
+        registers.f |= 0 << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+        if (value >= 0) {
+          registers.f |= (((old & 0xF) + (value & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
+          registers.f |= (((old & 0xFF) + (value & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
+        } else {
+          registers.f |= ((new & 0xF) <= (old & 0xF)) << FLAG_REGISTER_H_BIT_SHIFT;
+          registers.f |= ((new & 0xFF) <= (old & 0xFF)) << FLAG_REGISTER_C_BIT_SHIFT;
+        }
+        cycles += 16;
+        break;
+      }
+      
       /* INC nn --------------------------------------------------------------------------------*/
       /* DEC nn --------------------------------------------------------------------------------*/
       
