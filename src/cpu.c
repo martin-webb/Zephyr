@@ -124,6 +124,15 @@
   cycles += 4; \
   break;
 
+#define MAKE_CP_N_OPCODE_IMPL(SOURCE_REGISTER) \
+  int16_t result = registers.a - registers.SOURCE_REGISTER; \
+  registers.f |= (result == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
+  registers.f |= 1 << FLAG_REGISTER_N_BIT_SHIFT; \
+  registers.f |= ((result & 0xF) >= 0x0) << FLAG_REGISTER_H_BIT_SHIFT; \
+  registers.f |= ((result & 0xFF) >= 0x00) << FLAG_REGISTER_C_BIT_SHIFT; \
+  cycles += 4; \
+  break;
+
 /************************************************************************************************/
 
 typedef struct {
@@ -1371,6 +1380,55 @@ int main(int argc, char* argv[]) {
       }
       
       /* CP n ----------------------------------------------------------------------------------*/
+      case 0xBF: { // CP A
+        // TODO: Check the conditions for setting the H and C bits of register F
+        MAKE_CP_N_OPCODE_IMPL(a)
+      }
+      case 0xB8: { // CP B
+        // TODO: Check the conditions for setting the H and C bits of register F
+        MAKE_CP_N_OPCODE_IMPL(b)
+      }
+      case 0xB9: { // CP C
+        // TODO: Check the conditions for setting the H and C bits of register F
+        MAKE_CP_N_OPCODE_IMPL(c)
+      }
+      case 0xBA: { // CP D
+        // TODO: Check the conditions for setting the H and C bits of register F
+        MAKE_CP_N_OPCODE_IMPL(d)
+      }
+      case 0xBB: { // CP E
+        // TODO: Check the conditions for setting the H and C bits of register F
+        MAKE_CP_N_OPCODE_IMPL(e)
+      }
+      case 0xBC: { // CP H
+        // TODO: Check the conditions for setting the H and C bits of register F
+        MAKE_CP_N_OPCODE_IMPL(h)
+      }
+      case 0xBD: { // CP L
+        // TODO: Check the conditions for setting the H and C bits of register F
+        MAKE_CP_N_OPCODE_IMPL(l)
+      }
+      case 0xBE: { // CP (HL)
+        // TODO: Check the conditions for setting the H and C bits of register F
+        int16_t result = registers.a - readByte(&m, (registers.h << 8) | registers.l);
+        registers.f |= (result == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 1 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= ((result & 0xF) >= 0x0) << FLAG_REGISTER_H_BIT_SHIFT;
+        registers.f |= ((result & 0xFF) >= 0x00) << FLAG_REGISTER_C_BIT_SHIFT;
+        cycles += 8;
+        break;
+      }
+      case 0xFE: { // CP #
+        // TODO: Check the conditions for setting the H and C bits of register F
+        int16_t result = registers.a - readByte(&m, registers.pc++);
+        registers.f |= (result == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 1 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= ((result & 0xF) >= 0x0) << FLAG_REGISTER_H_BIT_SHIFT;
+        registers.f |= ((result & 0xFF) >= 0x00) << FLAG_REGISTER_C_BIT_SHIFT;
+        cycles += 8;
+        break;
+      }
+      
       /* INC n ---------------------------------------------------------------------------------*/
       /* DEC n ---------------------------------------------------------------------------------*/
       
