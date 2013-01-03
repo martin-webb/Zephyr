@@ -75,6 +75,17 @@
   cycles += 4; \
   break;
 
+#define MAKE_SUB_N_OPCODE_IMPL(SOURCE_REGISTER) \
+  uint8_t old = registers.a; \
+  int32_t new = old - registers.SOURCE_REGISTER; \
+  registers.a = new; \
+  registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
+  registers.f |= 1 << FLAG_REGISTER_N_BIT_SHIFT; \
+  registers.f |= ((new & 0xF) >= 0x0) << FLAG_REGISTER_H_BIT_SHIFT; \
+  registers.f |= ((new & 0xFF) >= 0x00) << FLAG_REGISTER_C_BIT_SHIFT; \
+  cycles += 4; \
+  break;
+
 /************************************************************************************************/
 
 typedef struct {
@@ -1087,7 +1098,59 @@ int main(int argc, char* argv[]) {
       }
          
       /* SUB n ---------------------------------------------------------------------------------*/
-      /* SBC A, n ------------------------------------------------------------------------------*/
+      // TODO: Check all of these
+      case 0x97: { // SUB A
+        // TODO: Check the setting of F register bits H and C
+        MAKE_SUB_N_OPCODE_IMPL(a)
+      }
+      case 0x90: { // SUB B
+        // TODO: Check the setting of F register bits H and C
+        MAKE_SUB_N_OPCODE_IMPL(b)
+      }
+      case 0x91: { // SUB C
+        // TODO: Check the setting of F register bits H and C
+        MAKE_SUB_N_OPCODE_IMPL(c)
+      }
+      case 0x92: { // SUB D
+        // TODO: Check the setting of F register bits H and C
+        MAKE_SUB_N_OPCODE_IMPL(d)
+      }
+      case 0x93: { // SUB E
+        // TODO: Check the setting of F register bits H and C
+        MAKE_SUB_N_OPCODE_IMPL(e)
+      }
+      case 0x94: { // SUB H
+        // TODO: Check the setting of F register bits H and C
+        MAKE_SUB_N_OPCODE_IMPL(h)
+      }
+      case 0x95: { // SUB L
+        // TODO: Check the setting of F register bits H and C
+        MAKE_SUB_N_OPCODE_IMPL(l)
+      }
+      case 0x96: { // SUB (HL)
+        uint8_t old = registers.a;
+        int32_t new = old - readByte(&m, (registers.h << 8) | registers.l);
+        registers.a = new;
+        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 1 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= ((new & 0xF) >= 0x0) << FLAG_REGISTER_H_BIT_SHIFT;
+        registers.f |= ((new & 0xFF) >= 0x00) << FLAG_REGISTER_C_BIT_SHIFT;
+        cycles += 8;
+        break;
+      }
+      case 0xD6: { // SUB #
+        uint8_t old = registers.a;
+        int32_t new = old - readByte(&m, registers.pc++);
+        registers.a = new;
+        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 1 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= ((new & 0xF) >= 0x0) << FLAG_REGISTER_H_BIT_SHIFT;
+        registers.f |= ((new & 0xFF) >= 0x00) << FLAG_REGISTER_C_BIT_SHIFT;
+        cycles += 8;
+        break;
+      }
+      
+      /* SBC A, n ------------------------------------------------------------------------------*/      
       /* AND n ---------------------------------------------------------------------------------*/
       /* OR n ----------------------------------------------------------------------------------*/
       /* XOR n ---------------------------------------------------------------------------------*/
