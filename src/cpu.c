@@ -55,23 +55,25 @@
 
 #define MAKE_ADD_A_N_OPCODE_IMPL(SOURCE_REGISTER) \
   uint8_t old = registers.a; \
-  uint32_t new = old + registers.SOURCE_REGISTER; \
+  uint8_t value = registers.SOURCE_REGISTER; \
+  uint32_t new = old + value; \
   registers.a = new; \
   registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
   registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
-  registers.f |= (((old & 0xF) + (new & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT; \
-  registers.f |= (((old & 0xFF) + (new & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT; \
+  registers.f |= (((old & 0xF) + (value & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT; \
+  registers.f |= (((old & 0xFF) + (value & 0xFF)) > 0xFF) << FLAG_REGISTER_H_BIT_SHIFT; \
   cycles += 4; \
   break;
 
 #define MAKE_ADC_A_N_OPCODE_IMPL(SOURCE_REGISTER) \
   uint8_t old = registers.a; \
-  uint32_t new = old + registers.SOURCE_REGISTER + ((registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT); \
+  uint8_t value = registers.SOURCE_REGISTER; \
+  uint32_t new = old + value + ((registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT); \
   registers.a = new; \
   registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
   registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
-  registers.f |= (((old & 0xF) + (new & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT; \
-  registers.f |= (((old & 0xFF) + (new & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT; \
+  registers.f |= (((old & 0xF) + (value & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT; \
+  registers.f |= (((old & 0xFF) + (value & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT; \
   cycles += 4; \
   break;
 
@@ -1101,24 +1103,26 @@ int main(int argc, char* argv[]) {
       case 0x86: { // ADD A, (HL)
         // TODO: Check the setting of F register bits H and C
         uint8_t old = registers.a;
-        uint32_t new = old + readByte(&m, (registers.h << 8) | registers.l);
+        uint8_t value = readByte(&m, (registers.h << 8) | registers.l);
+        uint32_t new = old + value;
         registers.a = new;
         registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
         registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-        registers.f |= (((old & 0xF) + (new & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
-        registers.f |= (((old & 0xFF) + (new & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
+        registers.f |= (((old & 0xF) + (value & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
+        registers.f |= (((old & 0xFF) + (value & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
         cycles += 8;
         break;
       }
       case 0xC6: { // ADD A, #
         // TODO: Check the setting of F register bits H and C
         uint8_t old = registers.a;
-        uint32_t new = old + readByte(&m, registers.pc++);
+        uint8_t value = readByte(&m, registers.pc++);
+        uint32_t new = old + value;
         registers.a = new;
         registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
         registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-        registers.f |= (((old & 0xF) + (new & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
-        registers.f |= (((old & 0xFF) + (new & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
+        registers.f |= (((old & 0xF) + (value & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
+        registers.f |= (((old & 0xFF) + (value & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
         cycles += 8;
         break;
       }
@@ -1155,24 +1159,26 @@ int main(int argc, char* argv[]) {
       case 0x8E: { // ADC A, (HL)
         // TODO: Check the setting of F register bits H and C
         uint8_t old = registers.a;
-        uint32_t new = old + readByte(&m, (registers.h << 8) | registers.l) + ((registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT);
+        uint8_t value = readByte(&m, (registers.h << 8) | registers.l);
+        uint32_t new = old + value + ((registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT);
         registers.a = new;
         registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
         registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-        registers.f |= (((old & 0xF) + (new & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
-        registers.f |= (((old & 0xFF) + (new & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
+        registers.f |= (((old & 0xF) + (value & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
+        registers.f |= (((old & 0xFF) + (value & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
         cycles += 8;
         break;
       }
       case 0xCE: { // ADC A, #
         // TODO: Check the setting of F register bits H and C
         uint8_t old = registers.a;
-        uint32_t new = old + readByte(&m, registers.pc++) + ((registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT);
+        uint8_t value = readByte(&m, registers.pc++);
+        uint32_t new = old + value + ((registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT);
         registers.a = new;
         registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
         registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-        registers.f |= (((old & 0xF) + (new & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
-        registers.f |= (((old & 0xFF) + (new & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
+        registers.f |= (((old & 0xF) + (value & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
+        registers.f |= (((old & 0xFF) + (value & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
         cycles += 8;
         break;
       }
