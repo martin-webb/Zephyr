@@ -183,6 +183,17 @@
   cycles += 8; \
   break;
 
+#define MAKE_SWAP_N_OPCODE_IMPL(REGISTER) \
+  uint8_t nibbleTemp = (registers.REGISTER & 0xF0) >> 4; \
+  registers.REGISTER <<= 4; \
+  registers.REGISTER |= nibbleTemp; \
+  registers.f |= (registers.REGISTER == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
+  registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
+  registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT; \
+  registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT; \
+  cycles += 8; \
+  break;
+
 /************************************************************************************************/
 
 typedef struct {
@@ -1643,7 +1654,6 @@ int main(int argc, char* argv[]) {
       }
       
       /* Miscellaneous **************************************************************************/
-      /* SWAP n --------------------------------------------------------------------------------*/
       /* DAA -----------------------------------------------------------------------------------*/
       /* CPL -----------------------------------------------------------------------------------*/
       /* CCF -----------------------------------------------------------------------------------*/
@@ -1700,6 +1710,56 @@ int main(int argc, char* argv[]) {
       /* RET -----------------------------------------------------------------------------------*/
       /* RET cc --------------------------------------------------------------------------------*/
       /* RETI ----------------------------------------------------------------------------------*/
+      
+      /* CB-Prefixed Opcodes ********************************************************************/
+      case 0xCB: {
+        uint8_t opcode2 = readByte(&m, registers.pc++);
+        switch (opcode2) {
+          /* Miscellaneous **********************************************************************/
+          /* SWAP n ----------------------------------------------------------------------------*/
+          case 0x37: { // SWAP A
+            MAKE_SWAP_N_OPCODE_IMPL(a)
+          }
+          case 0x30: { // SWAP B
+            MAKE_SWAP_N_OPCODE_IMPL(b)
+          }
+          case 0x31: { // SWAP C
+            MAKE_SWAP_N_OPCODE_IMPL(c)
+          }
+          case 0x32: { // SWAP D
+            MAKE_SWAP_N_OPCODE_IMPL(d)
+          }
+          case 0x33: { // SWAP E
+            MAKE_SWAP_N_OPCODE_IMPL(e)
+          }
+          case 0x34: { // SWAP H
+            MAKE_SWAP_N_OPCODE_IMPL(h)
+          }
+          case 0x35: { // SWAP L
+            MAKE_SWAP_N_OPCODE_IMPL(l)
+          }
+          case 0x36: { // SWAP (HL)
+            uint8_t value = readByte(&m, (registers.h << 8) | registers.l);
+            uint8_t nibbleTemp = (value & 0xF0) >> 4;
+            value <<= 4;
+            value |= nibbleTemp;
+            writeByte(&m, (registers.h << 8) | registers.l, value);
+            registers.f |= (value == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+            registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+            registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
+            registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT;
+            cycles += 16;
+            break;
+          }
+          
+          /**************************************************************************************/
+          default: {
+            printf("FATAL ERROR: ENCOUNTERED UNKNOWN CB-PREFIXED OPCODE: 0x%02X\n", opcode2);
+            exit(1);
+            break;
+          }
+        }
+      }
       
       /******************************************************************************************/
       default:
