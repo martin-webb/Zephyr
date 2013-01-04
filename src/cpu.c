@@ -184,9 +184,7 @@
   break;
 
 #define MAKE_SWAP_N_OPCODE_IMPL(REGISTER) \
-  uint8_t nibbleTemp = (registers.REGISTER & 0xF0) >> 4; \
-  registers.REGISTER <<= 4; \
-  registers.REGISTER |= nibbleTemp; \
+  registers.REGISTER = ((registers.REGISTER & 0xF0) >> 4) | ((registers.REGISTER & 0x0F) << 4); \
   registers.f |= (registers.REGISTER == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
   registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
   registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT; \
@@ -1740,9 +1738,7 @@ int main(int argc, char* argv[]) {
           }
           case 0x36: { // SWAP (HL)
             uint8_t value = readByte(&m, (registers.h << 8) | registers.l);
-            uint8_t nibbleTemp = (value & 0xF0) >> 4;
-            value <<= 4;
-            value |= nibbleTemp;
+            value = ((value & 0xF0) >> 4) | ((value & 0x0F) << 4);
             writeByte(&m, (registers.h << 8) | registers.l, value);
             registers.f |= (value == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
             registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
