@@ -1653,7 +1653,7 @@ int main(int argc, char* argv[]) {
       
       /* Miscellaneous **************************************************************************/
       /* DAA -----------------------------------------------------------------------------------*/
-      case 0x27: {
+      case 0x27: { // DAA
         uint8_t n = (registers.f & FLAG_REGISTER_N_BIT) >> FLAG_REGISTER_N_BIT_SHIFT;
         uint8_t c = (registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT;
         uint8_t h = (registers.f & FLAG_REGISTER_H_BIT) >> FLAG_REGISTER_H_BIT_SHIFT;
