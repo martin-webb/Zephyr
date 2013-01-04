@@ -1762,10 +1762,12 @@ int main(int argc, char* argv[]) {
       }
       
       /******************************************************************************************/
-      default:
+      default: {
         printf("FATAL ERROR: ENCOUNTERED UNKNOWN OPCODE: 0x%02X\n", opcode);
         exit(1);
         break;
+      }
+        
     }
     struct timespec sleepRequested = {0, cycles * CLOCK_CYCLE_TIME_SECS * 1000000000};
     struct timespec sleepRemaining;
