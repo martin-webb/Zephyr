@@ -1653,6 +1653,82 @@ int main(int argc, char* argv[]) {
       
       /* Miscellaneous **************************************************************************/
       /* DAA -----------------------------------------------------------------------------------*/
+      case 0x27: {
+        uint8_t n = (registers.f & FLAG_REGISTER_N_BIT) >> FLAG_REGISTER_N_BIT_SHIFT;
+        uint8_t c = (registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT;
+        uint8_t h = (registers.f & FLAG_REGISTER_H_BIT) >> FLAG_REGISTER_H_BIT_SHIFT;
+        uint8_t upperDigit = (registers.a & 0xF0) >> 4;
+        uint8_t lowerDigit = registers.a & 0x0F;
+        if (n == 0) {
+          if (c == 0) {
+            if ((upperDigit <= 0x9) && (h == 0) && (lowerDigit <= 0x9)) {
+              registers.a += 0x00; // Adding 0 simply for consistency and awareness that there is no change here - this could be removed (if it's not optimised out)
+              registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT;
+            } else if (
+              ((upperDigit <= 0x8) && (h == 0) && (lowerDigit >= 0xA) && (lowerDigit <= 0xF)) ||
+              ((upperDigit <= 0x9) && (h == 1) && (lowerDigit <= 0x3))
+              ) {
+              registers.a += 0x06;
+              registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT;
+            } else if ((upperDigit >= 0xA) && (upperDigit <= 0xF) && (h == 0) && (lowerDigit <= 0x9)) {
+              registers.a += 0x60;
+              registers.f |= 1 << FLAG_REGISTER_C_BIT_SHIFT;
+            } else if (
+              ((upperDigit >= 0x9) && (upperDigit <= 0xF) && (h == 0) && (lowerDigit >= 0xA) && (lowerDigit <= 0xF)) ||
+              ((upperDigit >= 0xA) && (upperDigit <= 0xF) && (h == 1) && (lowerDigit <= 0x3))
+              ) {
+              registers.a += 0x66;
+              registers.f |= 1 << FLAG_REGISTER_C_BIT_SHIFT;
+            } else {
+              printf("FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 1)", n, c, h, upperDigit, lowerDigit);
+              exit(1);
+            }
+          } else { // (c == 1)
+            if ((upperDigit <= 0x2) && (h == 0) && (lowerDigit <= 0x9)) {
+              registers.a += 0x60;
+              registers.f |= 1 << FLAG_REGISTER_C_BIT_SHIFT;
+            } else if (
+              ((upperDigit <= 0x2) && (h == 0) && (lowerDigit >= 0xA) && (lowerDigit <= 0xF)) ||
+              ((upperDigit <= 0x3) && (h == 1) && (lowerDigit <= 0x3))
+              ) {
+              registers.a += 0x66;
+              registers.f |= 1 << FLAG_REGISTER_C_BIT_SHIFT;
+            } else {
+              printf("FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 2)", n, c, h, upperDigit, lowerDigit);
+              exit(1);
+            }
+          }
+        } else { // (n == 1)
+          if (c == 0) {
+            if ((upperDigit <= 0x9) && (h == 0) && (lowerDigit <= 0x9)) {
+              registers.a += 0x00; // Adding 0 simply for consistency and awareness that there is no change here - this could be removed (if it's not optimised out)
+              registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT;
+            } else if ((upperDigit <= 0x8) && (h == 1) && (lowerDigit >= 0x6) && (lowerDigit <= 0xF)) {
+              registers.a += 0xFA;
+              registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT;
+            } else {
+              printf("FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 3)", n, c, h, upperDigit, lowerDigit);
+              exit(1);
+            }
+          } else { // (c == 1)
+            if ((upperDigit >= 0x7) && (upperDigit <= 0xF) && (h == 0) && (lowerDigit <= 0x9)) {
+              registers.a += 0xA0;
+              registers.f |= 1 << FLAG_REGISTER_C_BIT_SHIFT;
+            } else if ((upperDigit >= 0x6) && (upperDigit <= 0xF) && (h == 1) && (lowerDigit >= 0x6) && (lowerDigit <= 0xF)) {
+              registers.a += 0x9A;
+              registers.f |= 1 << FLAG_REGISTER_C_BIT_SHIFT;
+            } else {
+              printf("FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 4)", n, c, h, upperDigit, lowerDigit);
+              exit(1);
+            }
+          }
+        }
+        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
+        cycles += 4;
+        break;
+      }
+      
       /* CPL -----------------------------------------------------------------------------------*/
       /* CCF -----------------------------------------------------------------------------------*/
       /* SCF -----------------------------------------------------------------------------------*/
