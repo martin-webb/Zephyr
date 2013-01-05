@@ -217,6 +217,15 @@
   cycles += 8; \
   break;
 
+#define MAKE_RRC_N_OPCODE_IMPL(REGISTER) \
+  registers.f |= (registers.REGISTER & BIT_0) << FLAG_REGISTER_C_BIT_SHIFT; \
+  registers.REGISTER = ((registers.REGISTER & BIT_0) << BIT_7_SHIFT) | (registers.REGISTER >> 1); \
+  registers.f |= (registers.REGISTER == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
+  registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
+  registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT; \
+  cycles += 8; \
+  break;
+
 /************************************************************************************************/
 
 typedef struct {
@@ -1978,6 +1987,39 @@ int main(int argc, char* argv[]) {
           }
           
           /* RRC n -----------------------------------------------------------------------------*/
+          case 0x0F: { // RRC A
+            MAKE_RRC_N_OPCODE_IMPL(a)
+          }
+          case 0x08: { // RRC B
+            MAKE_RRC_N_OPCODE_IMPL(b)
+          }
+          case 0x09: { // RRC C
+            MAKE_RRC_N_OPCODE_IMPL(c)
+          }
+          case 0x0A: { // RRC D
+            MAKE_RRC_N_OPCODE_IMPL(d)
+          }
+          case 0x0B: { // RRC E
+            MAKE_RRC_N_OPCODE_IMPL(e)
+          }
+          case 0x0C: { // RRC H
+            MAKE_RRC_N_OPCODE_IMPL(h)
+          }
+          case 0x0D: { // RRC L
+            MAKE_RRC_N_OPCODE_IMPL(l)
+          }
+          case 0x0E: { // RRC (HL)
+            uint8_t value = readByte(&m, (registers.h << 8) | registers.l);
+            registers.f |= (value & BIT_0) << FLAG_REGISTER_C_BIT_SHIFT; // NOTE: Set the C bit of F before we modify A
+            value = ((value & BIT_0) << BIT_7_SHIFT) | (value >> 1);
+            writeByte(&m, (registers.h << 8) | registers.l, value);
+            registers.f |= (value == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+            registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+            registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
+            cycles += 16;
+            break;
+          }
+          
           /* RR n ------------------------------------------------------------------------------*/
           /* SLA n -----------------------------------------------------------------------------*/
           /* SRA n -----------------------------------------------------------------------------*/
