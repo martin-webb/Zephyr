@@ -1739,6 +1739,14 @@ int main(int argc, char* argv[]) {
       }
       
       /* CCF -----------------------------------------------------------------------------------*/
+      case 0x3F: { // CCF
+        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
+        registers.f ^= 1 << FLAG_REGISTER_C_BIT_SHIFT;
+        cycles += 4;
+        break;
+      }
+      
       /* SCF -----------------------------------------------------------------------------------*/
       /* NOP -----------------------------------------------------------------------------------*/
       case 0x00: { // NOP
