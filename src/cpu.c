@@ -22,6 +22,9 @@
 #define FLAG_REGISTER_N_BIT (0x1 << FLAG_REGISTER_N_BIT_SHIFT)
 #define FLAG_REGISTER_Z_BIT (0x1 << FLAG_REGISTER_Z_BIT_SHIFT)
 
+#define BIT_0_SHIFT 0
+#define BIT_0 (0x1 << BIT_0_SHIFT)
+
 #define BIT_7_SHIFT 7
 #define BIT_7 (0x1 << BIT_7_SHIFT)
 
@@ -1794,6 +1797,16 @@ int main(int argc, char* argv[]) {
       }
       
       /* RRCA ----------------------------------------------------------------------------------*/
+      case 0x0F: { // RRCA
+        registers.f |= (registers.a & BIT_0) << FLAG_REGISTER_C_BIT_SHIFT; // NOTE: Set the C bit of F before we modify A
+        registers.a = ((registers.a & BIT_0) << BIT_7_SHIFT) | (registers.a >> 1);
+        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
+        cycles += 4;
+        break;
+      }
+      
       /* RRA -----------------------------------------------------------------------------------*/
       /* RLC n ---------------------------------------------------------------------------------*/
       /* RL n ----------------------------------------------------------------------------------*/
