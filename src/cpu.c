@@ -1808,6 +1808,17 @@ int main(int argc, char* argv[]) {
       }
       
       /* RRA -----------------------------------------------------------------------------------*/
+      case 0x1F: { // RRA
+        uint8_t oldCarryBit = (registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT;
+        registers.f |= (registers.a & BIT_0) << FLAG_REGISTER_C_BIT_SHIFT; // NOTE: Set the C bit of F before we modify A
+        registers.a = (oldCarryBit << BIT_7_SHIFT) | (registers.a >> 1);
+        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
+        cycles += 4;
+        break;
+      }
+      
       /* RLC n ---------------------------------------------------------------------------------*/
       /* RL n ----------------------------------------------------------------------------------*/
       /* RRC n ---------------------------------------------------------------------------------*/
