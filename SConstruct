@@ -1,5 +1,5 @@
 env = Environment()
-env.AppendUnique(CFLAGS="-std=c99")
+env.AppendUnique(CFLAGS=["-std=c99", "-Wall"])
 
 buildDir = Dir("build")
 
