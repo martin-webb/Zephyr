@@ -22,6 +22,9 @@
 #define FLAG_REGISTER_N_BIT (0x1 << FLAG_REGISTER_N_BIT_SHIFT)
 #define FLAG_REGISTER_Z_BIT (0x1 << FLAG_REGISTER_Z_BIT_SHIFT)
 
+#define BIT_7_SHIFT 7
+#define BIT_7 (0x1 << BIT_7_SHIFT)
+
 #define VBLANK_INTERRUPT_START_ADDRESS 0x40
 #define LCDC_STATUS_INTERRUPT_START_ADDRESS 0x48
 #define TIMER_OVERFLOW_INTERRUPT_START_ADDRESS 0x50 
@@ -1768,6 +1771,16 @@ int main(int argc, char* argv[]) {
       
       /* Rotates and Shifts *********************************************************************/
       /* RLCA ----------------------------------------------------------------------------------*/
+      case 0x07: { // RLCA
+        registers.f |= (registers.a & BIT_7) >> (BIT_7_SHIFT - FLAG_REGISTER_C_BIT_SHIFT); // NOTE: Set the C bit of F before we modify A
+        registers.a = (registers.a << 1) | ((registers.a & BIT_7) >> BIT_7_SHIFT);
+        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
+        cycles += 4;
+        break;
+      }
+      
       /* RLA -----------------------------------------------------------------------------------*/
       /* RRCA ----------------------------------------------------------------------------------*/
       /* RRA -----------------------------------------------------------------------------------*/
