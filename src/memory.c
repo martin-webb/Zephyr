@@ -100,9 +100,9 @@ void ROMOnlyWriteByte(MemoryController* memoryController, uint16_t address, uint
     
     // Additional write to support the echo of 7.5KB of internal RAM
     if (address >= 0xC000 && address < 0xDE00) {
-      memoryController->memory[address - CARTRIDGE_SIZE + 0x2000];
+      memoryController->memory[address - CARTRIDGE_SIZE + 0x2000] = value;
     } else if (address >= 0xE000 && address < 0xFE00) {
-      memoryController->memory[address - CARTRIDGE_SIZE - 0x2000];
+      memoryController->memory[address - CARTRIDGE_SIZE - 0x2000] = value;
     }
   }
 }
@@ -171,9 +171,9 @@ void MBC1WriteByte(MemoryController* memoryController, uint16_t address, uint8_t
     
     // Additional write to support the echo of 7.5KB of internal RAM
     if (address >= 0xC000 && address < 0xDE00) {
-      memoryController->memory[address - CARTRIDGE_SIZE + 0x2000];
+      memoryController->memory[address - CARTRIDGE_SIZE + 0x2000] = value;
     } else if (address >= 0xE000 && address < 0xFE00) {
-      memoryController->memory[address - CARTRIDGE_SIZE - 0x2000];
+      memoryController->memory[address - CARTRIDGE_SIZE - 0x2000] = value;
     }
   }
 }
