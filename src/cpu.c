@@ -226,6 +226,16 @@
   cycles += 8; \
   break;
 
+#define MAKE_RR_N_OPCODE_IMPL(REGISTER) \
+  uint8_t oldCarryBit = (registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT; \
+  registers.f |= (registers.REGISTER & BIT_0) << FLAG_REGISTER_C_BIT_SHIFT; \
+  registers.REGISTER = (oldCarryBit << BIT_7_SHIFT) | (registers.REGISTER >> 1); \
+  registers.f |= (registers.REGISTER == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
+  registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
+  registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT; \
+  cycles += 8; \
+  break;
+
 /************************************************************************************************/
 
 typedef struct {
@@ -2021,6 +2031,40 @@ int main(int argc, char* argv[]) {
           }
           
           /* RR n ------------------------------------------------------------------------------*/
+          case 0x1F: { // RR A
+            MAKE_RR_N_OPCODE_IMPL(a)
+          }
+          case 0x18: { // RR B
+            MAKE_RR_N_OPCODE_IMPL(b)
+          }
+          case 0x19: { // RR C
+            MAKE_RR_N_OPCODE_IMPL(c)
+          }
+          case 0x1A: { // RR D
+            MAKE_RR_N_OPCODE_IMPL(d)
+          }
+          case 0x1B: { // RR E
+            MAKE_RR_N_OPCODE_IMPL(e)
+          }
+          case 0x1C: { // RR H
+            MAKE_RR_N_OPCODE_IMPL(h)
+          }
+          case 0x1D: { // RR L
+            MAKE_RR_N_OPCODE_IMPL(l)
+          }
+          case 0x1E: { // RR (HL)
+            uint8_t value = readByte(&m, (registers.h << 8) | registers.l);
+            uint8_t oldCarryBit = (registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT;
+            registers.f |= (value & BIT_0) << FLAG_REGISTER_C_BIT_SHIFT; // NOTE: Set the C bit of F before we modify A
+            value = (oldCarryBit << BIT_7_SHIFT) | (value >> 1);
+            writeByte(&m, (registers.h << 8) | registers.l, value);
+            registers.f |= (value == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+            registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+            registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
+            cycles += 16;
+            break;
+          }
+          
           /* SLA n -----------------------------------------------------------------------------*/
           /* SRA n -----------------------------------------------------------------------------*/
           /* SRL n -----------------------------------------------------------------------------*/
