@@ -1748,6 +1748,14 @@ int main(int argc, char* argv[]) {
       }
       
       /* SCF -----------------------------------------------------------------------------------*/
+      case 0x37: { // SCF
+        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
+        registers.f |= 1 << FLAG_REGISTER_C_BIT_SHIFT;
+        cycles += 4;
+        break;
+      }
+      
       /* NOP -----------------------------------------------------------------------------------*/
       case 0x00: { // NOP
         cycles += 4;
