@@ -140,6 +140,7 @@ uint8_t MBC1ReadByte(MemoryController* memoryController, uint16_t address)
   } else if (address >= 0xA000 && address <= 0xBFFF) { // External RAM Read
     // TODO: DO THIS
     printf("[WARNING]: MBC1ReadByte() - read from external RAM (0xA000-0xBFFF) at 0x%02X", address);
+    return 0; // TODO: Remove this with full implementation
   } else { // Reads from remaining addresses are standard
     return memoryController->memory[address - CARTRIDGE_SIZE];
   }
