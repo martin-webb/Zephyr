@@ -1782,6 +1782,17 @@ int main(int argc, char* argv[]) {
       }
       
       /* RLA -----------------------------------------------------------------------------------*/
+      case 0x17: { // RLA
+        uint8_t oldCarryBit = (registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT;
+        registers.f |= (registers.a & BIT_7) >> (BIT_7_SHIFT - FLAG_REGISTER_C_BIT_SHIFT); // NOTE: Set the C bit of F before we modify A
+        registers.a = (registers.a << 1) | oldCarryBit;
+        registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+        registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
+        cycles += 4;
+        break;
+      }
+      
       /* RRCA ----------------------------------------------------------------------------------*/
       /* RRA -----------------------------------------------------------------------------------*/
       /* RLC n ---------------------------------------------------------------------------------*/
