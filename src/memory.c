@@ -149,7 +149,7 @@ uint8_t MBC1ReadByte(MemoryController* memoryController, uint16_t address)
 void MBC1WriteByte(MemoryController* memoryController, uint16_t address, uint8_t value)
 {
   if (address <= 0x1FFF) { // External RAM Enable/Disable    
-    if (value & 0xF == 0xA) {
+    if ((value & 0xF) == 0xA) {
       printf("[INFO]: External RAM was ENABLED by value 0x%02X", value);
     } else {
       printf("[INFO]: External RAM was DISABLED by value 0x%02X", value);
