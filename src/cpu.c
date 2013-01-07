@@ -236,6 +236,15 @@
   cycles += 8; \
   break;
 
+#define MAKE_SLA_N_OPCODE_IMPL(REGISTER) \
+  registers.f |= (registers.REGISTER & BIT_7) >> (BIT_7_SHIFT - FLAG_REGISTER_C_BIT_SHIFT); \
+  registers.REGISTER <<= 1; \
+  registers.f |= (registers.REGISTER == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
+  registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
+  registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT; \
+  cycles += 8; \
+  break;
+
 /************************************************************************************************/
 
 typedef struct {
@@ -2066,6 +2075,39 @@ int main(int argc, char* argv[]) {
           }
           
           /* SLA n -----------------------------------------------------------------------------*/
+          case 0x27: { // SLA A
+            MAKE_SLA_N_OPCODE_IMPL(a)
+          }
+          case 0x20: { // SLA B
+            MAKE_SLA_N_OPCODE_IMPL(b)
+          }
+          case 0x21: { // SLA C
+            MAKE_SLA_N_OPCODE_IMPL(c)
+          }
+          case 0x22: { // SLA D
+            MAKE_SLA_N_OPCODE_IMPL(d)
+          }
+          case 0x23: { // SLA E
+            MAKE_SLA_N_OPCODE_IMPL(e)
+          }
+          case 0x24: { // SLA H
+            MAKE_SLA_N_OPCODE_IMPL(h)
+          }
+          case 0x25: { // SLA L
+            MAKE_SLA_N_OPCODE_IMPL(l)
+          }
+          case 0x26: { // SLA (HL)
+            uint8_t value = readByte(&m, (registers.h << 8) | registers.l);
+            registers.f |= (value & BIT_7) >> (BIT_7_SHIFT - FLAG_REGISTER_C_BIT_SHIFT);
+            value <<= 1;
+            writeByte(&m, (registers.h << 8) | registers.l, value);
+            registers.f |= (value == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
+            registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+            registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
+            cycles += 16;
+            break;
+          }
+          
           /* SRA n -----------------------------------------------------------------------------*/
           /* SRL n -----------------------------------------------------------------------------*/
           
