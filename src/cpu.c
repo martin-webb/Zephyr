@@ -305,6 +305,44 @@
     MAKE_BIT_B_MEM_AT_HL_OPCODE_IMPL(B) \
   }
 
+#define MAKE_SET_B_R_OPCODE_IMPL(B, REGISTER) \
+  registers.REGISTER |= (0x1 << B); \
+  cycles += 8; \
+  break;
+  
+#define MAKE_SET_B_MEM_AT_HL_OPCODE_IMPL(B) \
+  uint8_t value = readByte(&m, (registers.h << 8) | registers.l); \
+  value |= (0x1 << B); \
+  writeByte(&m, (registers.h << 8) | registers.l, value); \
+  cycles += 16; \
+  break;
+
+#define MAKE_SET_B_R_OPCODE_GROUP(B, BEGINNING_OPCODE) \
+  case BEGINNING_OPCODE - 0: { \
+    MAKE_SET_B_R_OPCODE_IMPL(B, a) \
+  } \
+  case BEGINNING_OPCODE - 7: { \
+    MAKE_SET_B_R_OPCODE_IMPL(B, b) \
+  } \
+  case BEGINNING_OPCODE - 6: { \
+    MAKE_SET_B_R_OPCODE_IMPL(B, c) \
+  } \
+  case BEGINNING_OPCODE - 5: { \
+    MAKE_SET_B_R_OPCODE_IMPL(B, d) \
+  } \
+  case BEGINNING_OPCODE - 4: { \
+    MAKE_SET_B_R_OPCODE_IMPL(B, e) \
+  } \
+  case BEGINNING_OPCODE - 3: { \
+    MAKE_SET_B_R_OPCODE_IMPL(B, h) \
+  } \
+  case BEGINNING_OPCODE - 2: { \
+    MAKE_SET_B_R_OPCODE_IMPL(B, l) \
+  } \
+  case BEGINNING_OPCODE - 1: { \
+    MAKE_SET_B_MEM_AT_HL_OPCODE_IMPL(B) \
+  }
+
 /************************************************************************************************/
 
 typedef struct {
@@ -2243,6 +2281,15 @@ int main(int argc, char* argv[]) {
           MAKE_BIT_B_R_OPCODE_GROUP(7, 0x7F)
           
           /* SET b, r --------------------------------------------------------------------------*/
+          MAKE_SET_B_R_OPCODE_GROUP(0, 0xC7)
+          MAKE_SET_B_R_OPCODE_GROUP(1, 0xCF)
+          MAKE_SET_B_R_OPCODE_GROUP(2, 0xD7)
+          MAKE_SET_B_R_OPCODE_GROUP(3, 0xDF)
+          MAKE_SET_B_R_OPCODE_GROUP(4, 0xE7)
+          MAKE_SET_B_R_OPCODE_GROUP(5, 0xEF)
+          MAKE_SET_B_R_OPCODE_GROUP(6, 0xF7)
+          MAKE_SET_B_R_OPCODE_GROUP(7, 0xFF)
+          
           /* RES b, r --------------------------------------------------------------------------*/
           
           /**************************************************************************************/
