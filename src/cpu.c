@@ -2061,6 +2061,38 @@ int main(int argc, char* argv[]) {
       }
       
       /* JR cc, n-------------------------------------------------------------------------------*/
+      case 0x20: { // JR NZ, n
+        int8_t value = (int8_t)readByte(&m, registers.pc++);
+        if (((registers.f & FLAG_REGISTER_Z_BIT) >> FLAG_REGISTER_Z_BIT_SHIFT) == 0) {
+          registers.pc += value;
+        }
+        cycles += 8;
+        break;
+      }
+      case 0x28: { // JR Z, n
+        int8_t value = (int8_t)readByte(&m, registers.pc++);
+        if (((registers.f & FLAG_REGISTER_Z_BIT) >> FLAG_REGISTER_Z_BIT_SHIFT) == 1) {
+          registers.pc += value;
+        }
+        cycles += 8;
+        break;
+      }
+      case 0x30: { // JR NC, n
+        int8_t value = (int8_t)readByte(&m, registers.pc++);
+        if (((registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT) == 0) {
+          registers.pc += value;
+        }
+        cycles += 8;
+        break;
+      }
+      case 0x38: { // JR C, n
+        int8_t value = (int8_t)readByte(&m, registers.pc++);
+        if (((registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT) == 1) {
+          registers.pc += value;
+        }
+        cycles += 8;
+        break;
+      }
       
       /* Calls **********************************************************************************/
       /* CALL nn -------------------------------------------------------------------------------*/
