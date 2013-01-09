@@ -263,6 +263,48 @@
   cycles += 8; \
   break;
 
+#define MAKE_BIT_B_N_OPCODE_IMPL(B, REGISTER) \
+  registers.f |= (((registers.REGISTER & (0x1 << B)) >> B) == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
+  registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
+  registers.f |= 1 << FLAG_REGISTER_H_BIT_SHIFT; \
+  cycles += 8; \
+  break;
+
+// TODO: Check this, with only one extra memory access (the byte read) I would expect this to be 12 clock cycles, not 16
+#define MAKE_BIT_B_MEM_AT_HL_OPCODE_IMPL(B) \
+  uint8_t value = readByte(&m, (registers.h << 8) | registers.l); \
+  registers.f |= (((value & (0x1 << B)) >> B) == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
+  registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
+  registers.f |= 1 << FLAG_REGISTER_H_BIT_SHIFT; \
+  cycles += 16; \
+  break;
+
+#define MAKE_BIT_B_N_OPCODE_GROUP(B, OPCODE) \
+  case OPCODE - 0: { \
+    MAKE_BIT_B_N_OPCODE_IMPL(B, a) \
+  } \
+  case OPCODE - 7: { \
+    MAKE_BIT_B_N_OPCODE_IMPL(B, b) \
+  } \
+  case OPCODE - 6: { \
+    MAKE_BIT_B_N_OPCODE_IMPL(B, c) \
+  } \
+  case OPCODE - 5: { \
+    MAKE_BIT_B_N_OPCODE_IMPL(B, d) \
+  } \
+  case OPCODE - 4: { \
+    MAKE_BIT_B_N_OPCODE_IMPL(B, e) \
+  } \
+  case OPCODE - 3: { \
+    MAKE_BIT_B_N_OPCODE_IMPL(B, h) \
+  } \
+  case OPCODE - 2: { \
+    MAKE_BIT_B_N_OPCODE_IMPL(B, l) \
+  } \
+  case OPCODE - 1: { \
+    MAKE_BIT_B_MEM_AT_HL_OPCODE_IMPL(B) \
+  }
+
 /************************************************************************************************/
 
 typedef struct {
@@ -2191,6 +2233,15 @@ int main(int argc, char* argv[]) {
           
           /* Bit Opcodes ************************************************************************/
           /* BIT b, r --------------------------------------------------------------------------*/
+          MAKE_BIT_B_N_OPCODE_GROUP(0, 0x47)
+          MAKE_BIT_B_N_OPCODE_GROUP(1, 0x4F)
+          MAKE_BIT_B_N_OPCODE_GROUP(2, 0x57)
+          MAKE_BIT_B_N_OPCODE_GROUP(3, 0x5F)
+          MAKE_BIT_B_N_OPCODE_GROUP(4, 0x67)
+          MAKE_BIT_B_N_OPCODE_GROUP(5, 0x6F)
+          MAKE_BIT_B_N_OPCODE_GROUP(6, 0x77)
+          MAKE_BIT_B_N_OPCODE_GROUP(7, 0x7F)
+          
           /* SET b, r --------------------------------------------------------------------------*/
           /* RES b, r --------------------------------------------------------------------------*/
           
