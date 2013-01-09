@@ -279,29 +279,29 @@
   cycles += 16; \
   break;
 
-#define MAKE_BIT_B_N_OPCODE_GROUP(B, OPCODE) \
-  case OPCODE - 0: { \
+#define MAKE_BIT_B_N_OPCODE_GROUP(B, BEGINNING_OPCODE) \
+  case BEGINNING_OPCODE - 0: { \
     MAKE_BIT_B_N_OPCODE_IMPL(B, a) \
   } \
-  case OPCODE - 7: { \
+  case BEGINNING_OPCODE - 7: { \
     MAKE_BIT_B_N_OPCODE_IMPL(B, b) \
   } \
-  case OPCODE - 6: { \
+  case BEGINNING_OPCODE - 6: { \
     MAKE_BIT_B_N_OPCODE_IMPL(B, c) \
   } \
-  case OPCODE - 5: { \
+  case BEGINNING_OPCODE - 5: { \
     MAKE_BIT_B_N_OPCODE_IMPL(B, d) \
   } \
-  case OPCODE - 4: { \
+  case BEGINNING_OPCODE - 4: { \
     MAKE_BIT_B_N_OPCODE_IMPL(B, e) \
   } \
-  case OPCODE - 3: { \
+  case BEGINNING_OPCODE - 3: { \
     MAKE_BIT_B_N_OPCODE_IMPL(B, h) \
   } \
-  case OPCODE - 2: { \
+  case BEGINNING_OPCODE - 2: { \
     MAKE_BIT_B_N_OPCODE_IMPL(B, l) \
   } \
-  case OPCODE - 1: { \
+  case BEGINNING_OPCODE - 1: { \
     MAKE_BIT_B_MEM_AT_HL_OPCODE_IMPL(B) \
   }
 
