@@ -2005,11 +2005,12 @@ int main(int argc, char* argv[]) {
       /* Jumps **********************************************************************************/
       /* JP nn ---------------------------------------------------------------------------------*/
       case 0xC3: { // JP nn
-        registers.pc = readWord(&m, registers.pc);
-        // registers.pc += 2; WHY WOULD WE DO THIS?????
+        uint16_t address = readWord(&m, registers.pc); // NOTE: No real need to increment PC in this type of instruction
+        registers.pc = address;
         cycles += 12;
         break;
       }
+      
       /* JP cc, nn -----------------------------------------------------------------------------*/
       /* JP (HL) -------------------------------------------------------------------------------*/
       /* JR n ----------------------------------------------------------------------------------*/
