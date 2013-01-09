@@ -2012,6 +2012,39 @@ int main(int argc, char* argv[]) {
       }
       
       /* JP cc, nn -----------------------------------------------------------------------------*/
+      case 0xC2: { // JP NZ, nn
+        uint16_t address = readWord(&m, registers.pc); // NOTE: No real need to increment PC in this type of instruction
+        if (((registers.f & FLAG_REGISTER_Z_BIT) >> FLAG_REGISTER_Z_BIT_SHIFT) == 0) {
+          registers.pc = address;
+        }
+        cycles += 12;
+        break;
+      }
+      case 0xCA: { // JP Z, nn
+        uint16_t address = readWord(&m, registers.pc); // NOTE: No real need to increment PC in this type of instruction
+        if (((registers.f & FLAG_REGISTER_Z_BIT) >> FLAG_REGISTER_Z_BIT_SHIFT) == 1) {
+          registers.pc = address;
+        }
+        cycles += 12;
+        break;
+      }
+      case 0xD2: { // JP NC, nn
+        uint16_t address = readWord(&m, registers.pc); // NOTE: No real need to increment PC in this type of instruction
+        if (((registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT) == 0) {
+          registers.pc = address;
+        }
+        cycles += 12;
+        break;
+      }
+      case 0xDA: { // JP C, nn
+        uint16_t address = readWord(&m, registers.pc); // NOTE: No real need to increment PC in this type of instruction
+        if (((registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT) == 1) {
+          registers.pc = address;
+        }
+        cycles += 12;
+        break;
+      }
+      
       /* JP (HL) -------------------------------------------------------------------------------*/
       /* JR n ----------------------------------------------------------------------------------*/
       /* JR cc, n-------------------------------------------------------------------------------*/
