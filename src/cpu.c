@@ -263,7 +263,7 @@
   cycles += 8; \
   break;
 
-#define MAKE_BIT_B_N_OPCODE_IMPL(B, REGISTER) \
+#define MAKE_BIT_B_R_OPCODE_IMPL(B, REGISTER) \
   registers.f |= (((registers.REGISTER & (0x1 << B)) >> B) == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
   registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
   registers.f |= 1 << FLAG_REGISTER_H_BIT_SHIFT; \
@@ -279,27 +279,27 @@
   cycles += 16; \
   break;
 
-#define MAKE_BIT_B_N_OPCODE_GROUP(B, BEGINNING_OPCODE) \
+#define MAKE_BIT_B_R_OPCODE_GROUP(B, BEGINNING_OPCODE) \
   case BEGINNING_OPCODE - 0: { \
-    MAKE_BIT_B_N_OPCODE_IMPL(B, a) \
+    MAKE_BIT_B_R_OPCODE_IMPL(B, a) \
   } \
   case BEGINNING_OPCODE - 7: { \
-    MAKE_BIT_B_N_OPCODE_IMPL(B, b) \
+    MAKE_BIT_B_R_OPCODE_IMPL(B, b) \
   } \
   case BEGINNING_OPCODE - 6: { \
-    MAKE_BIT_B_N_OPCODE_IMPL(B, c) \
+    MAKE_BIT_B_R_OPCODE_IMPL(B, c) \
   } \
   case BEGINNING_OPCODE - 5: { \
-    MAKE_BIT_B_N_OPCODE_IMPL(B, d) \
+    MAKE_BIT_B_R_OPCODE_IMPL(B, d) \
   } \
   case BEGINNING_OPCODE - 4: { \
-    MAKE_BIT_B_N_OPCODE_IMPL(B, e) \
+    MAKE_BIT_B_R_OPCODE_IMPL(B, e) \
   } \
   case BEGINNING_OPCODE - 3: { \
-    MAKE_BIT_B_N_OPCODE_IMPL(B, h) \
+    MAKE_BIT_B_R_OPCODE_IMPL(B, h) \
   } \
   case BEGINNING_OPCODE - 2: { \
-    MAKE_BIT_B_N_OPCODE_IMPL(B, l) \
+    MAKE_BIT_B_R_OPCODE_IMPL(B, l) \
   } \
   case BEGINNING_OPCODE - 1: { \
     MAKE_BIT_B_MEM_AT_HL_OPCODE_IMPL(B) \
@@ -2233,14 +2233,14 @@ int main(int argc, char* argv[]) {
           
           /* Bit Opcodes ************************************************************************/
           /* BIT b, r --------------------------------------------------------------------------*/
-          MAKE_BIT_B_N_OPCODE_GROUP(0, 0x47)
-          MAKE_BIT_B_N_OPCODE_GROUP(1, 0x4F)
-          MAKE_BIT_B_N_OPCODE_GROUP(2, 0x57)
-          MAKE_BIT_B_N_OPCODE_GROUP(3, 0x5F)
-          MAKE_BIT_B_N_OPCODE_GROUP(4, 0x67)
-          MAKE_BIT_B_N_OPCODE_GROUP(5, 0x6F)
-          MAKE_BIT_B_N_OPCODE_GROUP(6, 0x77)
-          MAKE_BIT_B_N_OPCODE_GROUP(7, 0x7F)
+          MAKE_BIT_B_R_OPCODE_GROUP(0, 0x47)
+          MAKE_BIT_B_R_OPCODE_GROUP(1, 0x4F)
+          MAKE_BIT_B_R_OPCODE_GROUP(2, 0x57)
+          MAKE_BIT_B_R_OPCODE_GROUP(3, 0x5F)
+          MAKE_BIT_B_R_OPCODE_GROUP(4, 0x67)
+          MAKE_BIT_B_R_OPCODE_GROUP(5, 0x6F)
+          MAKE_BIT_B_R_OPCODE_GROUP(6, 0x77)
+          MAKE_BIT_B_R_OPCODE_GROUP(7, 0x7F)
           
           /* SET b, r --------------------------------------------------------------------------*/
           /* RES b, r --------------------------------------------------------------------------*/
