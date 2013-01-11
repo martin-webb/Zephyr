@@ -2096,6 +2096,16 @@ int main(int argc, char* argv[]) {
       
       /* Calls **********************************************************************************/
       /* CALL nn -------------------------------------------------------------------------------*/
+      case 0xCD: { // CALL nn
+        uint16_t address = readWord(&m, registers.pc);
+        registers.pc += 2;
+        writeByte(&m, --registers.sp, ((registers.pc & 0xFF00) >> 8));
+        writeByte(&m, --registers.sp, (registers.pc & 0x00FF));
+        registers.pc = address;
+        cycles += 12;
+        break;
+      }
+      
       /* CALL cc, nn ---------------------------------------------------------------------------*/
       
       /* Restarts *******************************************************************************/
