@@ -52,10 +52,6 @@ MemoryController InitMemoryController(uint8_t cartridgeType, uint8_t* memory, ui
     case CARTRIDGE_TYPE_MBC3:
     case CARTRIDGE_TYPE_MBC3_PLUS_RAM:
     case CARTRIDGE_TYPE_MBC3_PLUS_RAM_PLUS_BATTERY:
-      // return InitMBC3MemoryController(memory, cartridge);
-      // TODO: REMOVE THIS HACK WHEN MBC3 IS IMPLEMENTED
-      return InitROMOnlyMemoryController(memory, cartridge);
-      break;
     case CARTRIDGE_TYPE_MBC4:
     case CARTRIDGE_TYPE_MBC4_PLUS_RAM:
     case CARTRIDGE_TYPE_MBC4_PLUS_RAM_PLUS_BATTERY:
@@ -93,8 +89,7 @@ uint8_t ROMOnlyReadByte(MemoryController* memoryController, uint16_t address)
 void ROMOnlyWriteByte(MemoryController* memoryController, uint16_t address, uint8_t value)
 {
   if (address < CARTRIDGE_SIZE) {
-    printf("[FATAL]: Write of value 0x%02X to address 0x%04X in ROM space (0x%04X-0x%04X) on ROM Only cartridge\n", value, address, 0, CARTRIDGE_SIZE);
-    exit(1);
+    printf("[WARNING]: Write of value 0x%02X to address 0x%04X in ROM space (0x%04X-0x%04X) on ROM Only cartridge\n", value, address, 0, CARTRIDGE_SIZE);
   } else {
     memoryController->memory[address - CARTRIDGE_SIZE] = value;
     
