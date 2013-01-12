@@ -540,7 +540,7 @@ void InitForExecution(CPURegisters* registers, MemoryController* m, GBType gbTyp
       registers->f = 0x11;
       break;
     default:
-      printf("InitForExecution(): Unknown GBType %i encountered. Exiting...", gbType);
+      printf("InitForExecution(): Unknown GBType %i encountered. Exiting...\n", gbType);
       exit(1);
       break;
   }
@@ -650,7 +650,7 @@ int main(int argc, char* argv[]) {
   
   uint8_t* cartridgeData = LoadCartridge(argv[1]);
   if (cartridgeData == NULL) {
-    printf("Failed to read cartridge from '%s'", argv[1]);
+    printf("Failed to read cartridge from '%s'\n", argv[1]);
     exit(1);
   }
   
@@ -1904,7 +1904,7 @@ int main(int argc, char* argv[]) {
               registers.a += 0x66;
               registers.f |= 1 << FLAG_REGISTER_C_BIT_SHIFT;
             } else {
-              printf("FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 1)", n, c, h, upperDigit, lowerDigit);
+              printf("FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 1)\n", n, c, h, upperDigit, lowerDigit);
               exit(1);
             }
           } else { // (c == 1)
@@ -1918,7 +1918,7 @@ int main(int argc, char* argv[]) {
               registers.a += 0x66;
               registers.f |= 1 << FLAG_REGISTER_C_BIT_SHIFT;
             } else {
-              printf("FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 2)", n, c, h, upperDigit, lowerDigit);
+              printf("FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 2)\n", n, c, h, upperDigit, lowerDigit);
               exit(1);
             }
           }
@@ -1931,7 +1931,7 @@ int main(int argc, char* argv[]) {
               registers.a += 0xFA;
               registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT;
             } else {
-              printf("FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 3)", n, c, h, upperDigit, lowerDigit);
+              printf("FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 3)\n", n, c, h, upperDigit, lowerDigit);
               exit(1);
             }
           } else { // (c == 1)
@@ -1942,7 +1942,7 @@ int main(int argc, char* argv[]) {
               registers.a += 0x9A;
               registers.f |= 1 << FLAG_REGISTER_C_BIT_SHIFT;
             } else {
-              printf("FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 4)", n, c, h, upperDigit, lowerDigit);
+              printf("FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 4)\n", n, c, h, upperDigit, lowerDigit);
               exit(1);
             }
           }
