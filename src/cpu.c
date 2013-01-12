@@ -67,7 +67,7 @@
   registers.f |= (registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
   registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
   registers.f |= (((old & 0xF) + (value & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT; \
-  registers.f |= (((old & 0xFF) + (value & 0xFF)) > 0xFF) << FLAG_REGISTER_H_BIT_SHIFT; \
+  registers.f |= (((old & 0xFF) + (value & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT; \
   cycles += 4; \
   break;
 
