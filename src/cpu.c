@@ -407,6 +407,15 @@
   cycles += 32; \
   break;
 
+#define MAKE_RET_CC_OPCODE_IMPL(FLAG_REGISTER_BIT_MASK, FLAG_REGISTER_BIT_SHIFT, CONDITION_VALUE) \
+  if (((registers.f & FLAG_REGISTER_BIT_MASK) >> FLAG_REGISTER_BIT_SHIFT) == CONDITION_VALUE) { \
+    uint8_t addressLow = readByte(&m, registers.sp++); \
+    uint8_t addressHigh = readByte(&m, registers.sp++); \
+    registers.pc = (addressHigh << 8) | addressLow; \
+  } \
+  cycles += 8; \
+  break;
+
 /************************************************************************************************/
 
 typedef struct {
@@ -2184,6 +2193,19 @@ int main(int argc, char* argv[]) {
       }
       
       /* RET cc --------------------------------------------------------------------------------*/
+      case 0xC0: { // RET NZ
+        MAKE_RET_CC_OPCODE_IMPL(FLAG_REGISTER_Z_BIT, FLAG_REGISTER_Z_BIT_SHIFT, 0)
+      }
+      case 0xC8: { // RET Z
+        MAKE_RET_CC_OPCODE_IMPL(FLAG_REGISTER_Z_BIT, FLAG_REGISTER_Z_BIT_SHIFT, 1)
+      }
+      case 0xD0: { // RET NC
+        MAKE_RET_CC_OPCODE_IMPL(FLAG_REGISTER_C_BIT, FLAG_REGISTER_C_BIT_SHIFT, 0)
+      }
+      case 0xD8: { // RET C
+        MAKE_RET_CC_OPCODE_IMPL(FLAG_REGISTER_C_BIT, FLAG_REGISTER_C_BIT_SHIFT, 1)
+      }
+      
       /* RETI ----------------------------------------------------------------------------------*/
       
       /* CB-Prefixed Opcodes ********************************************************************/
