@@ -381,6 +381,17 @@
     MAKE_RES_B_MEM_AT_HL_OPCODE_IMPL(B) \
   }
 
+#define MAKE_CALL_CC_NN_OPCODE_IMPL(FLAG_REGISTER_BIT_MASK, FLAG_REGISTER_BIT_SHIFT, CONDITION_VALUE) \
+  uint16_t address = readWord(&m, registers.pc); \
+  registers.pc += 2; \
+  if (((registers.f & FLAG_REGISTER_BIT_MASK) >> FLAG_REGISTER_BIT_SHIFT) == CONDITION_VALUE) { \
+    writeByte(&m, --registers.sp, ((registers.pc & 0xFF00) >> 8)); \
+    writeByte(&m, --registers.sp, (registers.pc & 0x00FF)); \
+    registers.pc = address; \
+  } \
+  cycles += 12; \
+  break;
+
 /************************************************************************************************/
 
 typedef struct {
@@ -2107,6 +2118,18 @@ int main(int argc, char* argv[]) {
       }
       
       /* CALL cc, nn ---------------------------------------------------------------------------*/
+      case 0xC4: { // CALL NZ, nn
+        MAKE_CALL_CC_NN_OPCODE_IMPL(FLAG_REGISTER_Z_BIT, FLAG_REGISTER_Z_BIT_SHIFT, 0)
+      }
+      case 0xCC: { // CALL Z, nn
+        MAKE_CALL_CC_NN_OPCODE_IMPL(FLAG_REGISTER_Z_BIT, FLAG_REGISTER_Z_BIT_SHIFT, 1)
+      }
+      case 0xD4: { // CALL NC, nn
+        MAKE_CALL_CC_NN_OPCODE_IMPL(FLAG_REGISTER_C_BIT, FLAG_REGISTER_C_BIT_SHIFT, 0)
+      }
+      case 0xDC: { // CALL C, nn
+        MAKE_CALL_CC_NN_OPCODE_IMPL(FLAG_REGISTER_C_BIT, FLAG_REGISTER_C_BIT_SHIFT, 1)
+      }
       
       /* Restarts *******************************************************************************/
       /* RST n ---------------------------------------------------------------------------------*/
