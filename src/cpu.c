@@ -584,7 +584,7 @@ void PrintCPUState(CPU* cpu) {
     cpu->registers.h,
     cpu->registers.l
   );
-  printf("SP: 0x%02X PC: 0x%02X\n",
+  printf("SP: 0x%04X PC: 0x%04X\n",
     cpu->registers.sp,
     cpu->registers.pc
   );
