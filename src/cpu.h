@@ -17,6 +17,9 @@ typedef struct {
   CPURegisters registers;
   bool halt;
   bool stop;
+  bool ime;
+  uint8_t di; // Control value to trigger a disable of interrupts "after the instruction after DI is executed"
+  uint8_t ei; // Control value to trigger an enable of interrupts "after the instruction after EI is executed"
 } CPU;
 
 typedef enum {

@@ -1941,7 +1941,18 @@ uint32_t FetchDecodeExecute(CPU* cpu, MemoryController* m)
     }
     
     /* DI ------------------------------------------------------------------------------------*/
+    case 0xF3: { // DI
+      cpu->di = 1;
+      cycles += 4;
+      break;
+    }
+    
     /* EI ------------------------------------------------------------------------------------*/
+    case 0xFB: { // EI
+      cpu->ei = 1;
+      cycles += 4;
+      break;
+    }
 
     /* Rotates and Shifts *********************************************************************/
     /* RLCA ----------------------------------------------------------------------------------*/
@@ -2493,6 +2504,23 @@ uint32_t FetchDecodeExecute(CPU* cpu, MemoryController* m)
   return cycles;
 }
 
+void UpdateIME(CPU* cpu)
+{
+  if (cpu->di == 1) {
+    cpu->di++;
+  } else if (cpu->di == 2) {
+    cpu->ime = false;
+    cpu->di = 0;
+  }
+  
+  if (cpu->ei == 1) {
+    cpu->ei++;
+  } else if (cpu->ei == 2) {
+    cpu->ime = true;
+    cpu->ei = 0;
+  }
+}
+
 int main(int argc, char* argv[]) {
   if (argc != 2) {
     printf("Usage: %s PATH_TO_ROM\n", argv[0]);
@@ -2539,6 +2567,7 @@ int main(int argc, char* argv[]) {
   
   while (1) {
     uint32_t cycles = FetchDecodeExecute(&cpu, &m);
+    UpdateIME(&cpu);
     struct timespec sleepRequested = {0, cycles * CLOCK_CYCLE_TIME_SECS * 1000000000};
     struct timespec sleepRemaining;
     nanosleep(&sleepRequested, &sleepRemaining);
