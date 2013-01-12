@@ -1102,7 +1102,7 @@ int main(int argc, char* argv[]) {
         cycles += 8;
         break;
       }
-      case 0xEA: { // LD (HL), A
+      case 0xEA: { // LD (NN), A
         writeByte(&m, readWord(&m, registers.pc), registers.a);
         registers.pc += 2;
         cycles += 16;
