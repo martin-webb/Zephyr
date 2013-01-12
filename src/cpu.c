@@ -2490,6 +2490,7 @@ uint32_t FetchDecodeExecute(CPU* cpu, MemoryController* m)
           break;
         }
       }
+      break;
     }
 
     /******************************************************************************************/
