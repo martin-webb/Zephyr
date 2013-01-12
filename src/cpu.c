@@ -392,6 +392,21 @@
   cycles += 12; \
   break;
 
+// TODO: Check the implementations here - the GB CPU Manual says to 'push present address onto
+// the stack' but if the 'present address' is the address of the opcode currently executing
+// and this address is returned to after a jump, the same opcode will be executed, causing an infinite loop.
+// The wording here is notably different to CALL instructions, where the 'address of the next instruction'
+// is pushed onto the stack.
+// Zilog's Z80 manual always uses the phrase 'current contents of the program counter' for
+// CALL and RST instructions, implying both the same behaviour and a program counter that is already incremented.
+// TODO: Also check the 32 clock cycles for this
+#define MAKE_RST_N_OPCODE_IMPL(N) \
+  writeByte(&m, --registers.sp, ((registers.pc & 0xFF00) >> 8)); \
+  writeByte(&m, --registers.sp, (registers.pc & 0x00FF)); \
+  registers.pc = N; \
+  cycles += 32; \
+  break;
+
 /************************************************************************************************/
 
 typedef struct {
@@ -2133,6 +2148,30 @@ int main(int argc, char* argv[]) {
       
       /* Restarts *******************************************************************************/
       /* RST n ---------------------------------------------------------------------------------*/
+      case 0xC7: { // RST 00
+        MAKE_RST_N_OPCODE_IMPL(0x0000)
+      }
+      case 0xCF: { // RST 08
+        MAKE_RST_N_OPCODE_IMPL(0x0008)
+      }
+      case 0xD7: { // RST 10
+        MAKE_RST_N_OPCODE_IMPL(0x0010)
+      }
+      case 0xDF: { // RST 18
+        MAKE_RST_N_OPCODE_IMPL(0x0018)
+      }
+      case 0xE7: { // RST 20
+        MAKE_RST_N_OPCODE_IMPL(0x0020)
+      }
+      case 0xEF: { // RST 28
+        MAKE_RST_N_OPCODE_IMPL(0x0028)
+      }
+      case 0xF7: { // RST 30
+        MAKE_RST_N_OPCODE_IMPL(0x0030)
+      }
+      case 0xFF: { // RST 38
+        MAKE_RST_N_OPCODE_IMPL(0x0038)
+      }
       
       /* Returns ********************************************************************************/
       /* RET -----------------------------------------------------------------------------------*/
