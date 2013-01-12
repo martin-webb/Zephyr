@@ -689,7 +689,7 @@ int main(int argc, char* argv[]) {
   
   while (1) {
     uint8_t opcode = readByte(&m, registers.pc++);
-    // printf("PC: 0x%02X Opcode: 0x%02X\n", registers.pc - 1, opcode);
+    // printf("PC: 0x%04X Opcode: 0x%02X\n", registers.pc - 1, opcode);
     
     // TODO: Check for overflow of opcode here?
     
