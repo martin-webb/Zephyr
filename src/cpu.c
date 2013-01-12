@@ -1931,6 +1931,15 @@ uint32_t FetchDecodeExecute(CPU* cpu, MemoryController* m)
     }
     
     /* STOP ----------------------------------------------------------------------------------*/
+    case 0x10: { // STOP
+      // NOTE: Some Game Boy CPU manuals document the opcode for this instruction as 10 00 but there
+      // seems to be no reason for this to not be a single byte opcode so some assemblers simply code
+      // it as 10. There is also no indication in the number of required clock cycles of a a read of an additional byte.
+      cpu->stop = true;
+      cycles += 4;
+      break;
+    }
+    
     /* DI ------------------------------------------------------------------------------------*/
     /* EI ------------------------------------------------------------------------------------*/
 
