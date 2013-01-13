@@ -2171,6 +2171,15 @@ uint32_t FetchDecodeExecute(CPU* cpu, MemoryController* m)
     }
 
     /* RETI ----------------------------------------------------------------------------------*/
+    case 0xD9: { // RETI
+      // TODO: Check how IME is set - is there a single instruction delay before interrupts are enabled as with DI and EI?
+      uint8_t addressLow = readByte(m, cpu->registers.sp++);
+      uint8_t addressHigh = readByte(m, cpu->registers.sp++);
+      cpu->registers.pc = (addressHigh << 8) | addressLow;
+      cpu->ime = true;
+      cycles += 8;
+      break;
+    }
 
     /* CB-Prefixed Opcodes ********************************************************************/
     case 0xCB: {
