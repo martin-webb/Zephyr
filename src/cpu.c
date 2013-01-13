@@ -7,6 +7,7 @@
 
 #include "cartridge.h"
 #include "memory.h"
+#include "mnemonics.h"
 
 #define CLOCK_CYCLE_FREQUENCY (1024 * 1024 * 4)
 #define CLOCK_CYCLE_TIME_SECS (1.0 / CLOCK_CYCLE_FREQUENCY)
@@ -627,7 +628,7 @@ uint8_t* LoadCartridge(char* pathToROM) {
 uint32_t FetchDecodeExecute(CPU* cpu, MemoryController* m)
 {
   uint8_t opcode = readByte(m, cpu->registers.pc++);
-  printf("PC: 0x%04X Opcode: 0x%02X\n", cpu->registers.pc - 1, opcode);
+  printf("[0x%04X] %s\n", cpu->registers.pc - 1, OPCODE_MNEMONICS[opcode]);
 
   // TODO: Check for overflow of opcode here?
 
@@ -2184,6 +2185,8 @@ uint32_t FetchDecodeExecute(CPU* cpu, MemoryController* m)
     /* CB-Prefixed Opcodes ********************************************************************/
     case 0xCB: {
       uint8_t opcode2 = readByte(m, cpu->registers.pc++);
+      printf("[0x%04X] %s\n", cpu->registers.pc - 1, CB_OPCODE_MNEMONICS[opcode]);
+      
       switch (opcode2) {
         /* Miscellaneous **********************************************************************/
         /* SWAP n ----------------------------------------------------------------------------*/
