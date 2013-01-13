@@ -22,6 +22,8 @@
 * Instruction Skipping After HALT When Interrupts Are Disabled (GB, GBP and SGB but not GBC, even in GB mode ($143=$00))
 * Prevent reads or writes to specific I/O registers in the $FF00-$FF4C areas?
 
+* Sprite RAM Bug
+
 ## Questions
 
 * RETI instruction - is there a single instruction delay before interrupts are actually enabled as with EI and DI? 
