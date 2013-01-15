@@ -1,5 +1,7 @@
 #include <stdbool.h>
 
+#define CPU_MIN_CYCLES_PER_SET 100
+
 typedef struct {
   uint8_t a;
   uint8_t f;

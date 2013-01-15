@@ -2534,6 +2534,26 @@ void UpdateIME(CPU* cpu)
   }
 }
 
+uint32_t cpuRunAtLeastNCycles(CPU* cpu, MemoryController* m, uint32_t targetCycles)
+{
+  uint32_t cyclesExecuted = 0;
+  uint32_t opsExecuted = 0;
+  
+  while (cyclesExecuted < targetCycles) {
+    cyclesExecuted += FetchDecodeExecute(cpu, m);
+    opsExecuted++;
+    UpdateIME(cpu);
+  }
+  
+  struct timespec sleepRequested = {0, cyclesExecuted * CLOCK_CYCLE_TIME_SECS * 1000000000};
+  struct timespec sleepRemaining;
+  nanosleep(&sleepRequested, &sleepRemaining);
+  
+  // printf("Executed: %u ops in %u cycles - slept for %luns\n", cyclesExecuted, opsExecuted, sleepRequested.tv_nsec);
+  
+  return cyclesExecuted; 
+}
+
 int main(int argc, char* argv[]) {
   if (argc != 2) {
     printf("Usage: %s PATH_TO_ROM\n", argv[0]);
@@ -2579,11 +2599,7 @@ int main(int argc, char* argv[]) {
   PrintCPUState(&cpu);
   
   while (1) {
-    uint32_t cycles = FetchDecodeExecute(&cpu, &m);
-    UpdateIME(&cpu);
-    struct timespec sleepRequested = {0, cycles * CLOCK_CYCLE_TIME_SECS * 1000000000};
-    struct timespec sleepRemaining;
-    nanosleep(&sleepRequested, &sleepRemaining);
+    cpuRunAtLeastNCycles(&cpu, &m, CPU_MIN_CYCLES_PER_SET);
   }
   
   free(cartridgeData);
