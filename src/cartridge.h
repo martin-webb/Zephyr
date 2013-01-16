@@ -1,5 +1,26 @@
 #include <stdint.h>
 
+#define NINTENDO_GRAPHIC_START_ADDRESS 0x104
+#define NINTENDO_GRAPHIC_END_ADDRESS 0x133
+
+#define GAME_TITLE_START_ADDRESS 0x134
+#define GAME_TITLE_END_ADDRESS 0x142
+
+#define COLOR_GB_FLAG_ADDRESS 0x143
+#define GB_OR_SGB_FLAG_ADDRESS 0x146
+#define CARTRIDGE_TYPE_ADDRESS 0x147
+
+#define ROM_SIZE_ADDRESS 0x148
+#define RAM_SIZE_ADDRESS 0x149
+
+#define DESTINATION_CODE_ADDRESS 0x14A
+#define LICENSEE_CODE_ADDRESS 0x14B
+#define MASK_ROM_VERSION_NUM_ADDRESS 0x14C
+#define COMPLEMENT_CHECK_ADDRESS 0x14D
+
+#define CHECKSUM_START_ADDRESS 0x14E
+#define CHECKSUM_END_ADDRESS 0x14F
+
 #define CARTRIDGE_TYPE_ROM_ONLY 0x0
 #define CARTRIDGE_TYPE_MBC1 0x1
 #define CARTRIDGE_TYPE_MBC1_PLUS_RAM 0x2
@@ -30,4 +51,10 @@
 #define CARTRIDGE_TYPE_HuC3 0xFE
 #define CARTRIDGE_TYPE_HuC1_PLUS_RAM_PLUS_BATTERY 0xFF
 
+char* ColorGBIdentifierToString(uint8_t destinationCode);
+char* ROMSizeToString(uint8_t romSize);
+char* RAMSizeToString(uint8_t ramSize);
+char* DestinationCodeToString(uint8_t destinationCode);
 char* CartridgeTypeToString(uint8_t cartridgeType);
+int GetCartridgeSize(FILE* cartridgeFile);
+uint8_t* LoadCartridge(char* pathToROM);

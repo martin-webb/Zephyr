@@ -9,29 +9,6 @@
 #include "memory.h"
 #include "mnemonics.h"
 
-/* Cartridge Internal Information ***************************************************************/
-
-#define NINTENDO_GRAPHIC_START_ADDRESS 0x104
-#define NINTENDO_GRAPHIC_END_ADDRESS 0x133
-
-#define GAME_TITLE_START_ADDRESS 0x134
-#define GAME_TITLE_END_ADDRESS 0x142
-
-#define COLOR_GB_FLAG_ADDRESS 0x143
-#define GB_OR_SGB_FLAG_ADDRESS 0x146
-#define CARTRIDGE_TYPE_ADDRESS 0x147
-
-#define ROM_SIZE_ADDRESS 0x148
-#define RAM_SIZE_ADDRESS 0x149
-
-#define DESTINATION_CODE_ADDRESS 0x14A
-#define LICENSEE_CODE_ADDRESS 0x14B
-#define MASK_ROM_VERSION_NUM_ADDRESS 0x14C
-#define COMPLEMENT_CHECK_ADDRESS 0x14D
-
-#define CHECKSUM_START_ADDRESS 0x14E
-#define CHECKSUM_END_ADDRESS 0x14F
-
 /* Opcode Generation Macros *********************************************************************/
 
 #define MAKE_ADD_A_N_OPCODE_IMPL(SOURCE_REGISTER) \
@@ -391,95 +368,10 @@
   cycles += 8; \
   break;
 
-/************************************************************************************************/
+/* End Opcode Generation Macros *****************************************************************/
 
-char* ColorGBIdentifierToString(uint8_t destinationCode) {
-  switch (destinationCode) {
-    case 0x80:
-      return "Yes";
-      break;
-    default:
-      return "No";
-      break;
-  }
-}
-
-char* ROMSizeToString(uint8_t romSize) {
-  switch (romSize) {
-    case 0x0:
-      return "32KB (2 banks)";
-      break;
-    case 0x1:
-      return "64KB (4 banks)";
-      break;
-    case 0x2:
-      return "128KB (8 banks)";
-      break;
-    case 0x3:
-      return "256KB (16 banks)";
-      break;
-    case 0x4:
-      return "512KB (32 banks)";
-      break;
-    case 0x5:
-      return "1MB (64 banks)";
-      break;
-    case 0x6:
-      return "2MB (128 banks)";
-      break;
-    case 0x52:
-      return "1.1MB (72 banks)";
-      break;
-    case 0x53:
-      return "1.2MB (80 banks)";
-      break;
-    case 0x54:
-      return "1.5MB (96 banks)";
-      break;
-    default:
-      return "UNKNOWN";
-      break;
-  }
-}
-
-char* RAMSizeToString(uint8_t ramSize) {
-  switch (ramSize) {
-    case 0x0:
-      return "None";
-      break;
-    case 0x1:
-      return "2KB (1 bank)";
-      break;
-    case 0x2:
-      return "8KB (1 bank)";
-      break;
-    case 0x3:
-      return "32KB (4 banks)";
-      break;
-    case 0x4:
-      return "128KB (16 banks)";
-      break;
-    default:
-      return "UNKNOWN";
-      break;
-  }
-}
-
-char* DestinationCodeToString(uint8_t destinationCode) {
-  switch (destinationCode) {
-    case 0x0:
-      return "Japanese";
-      break;
-    case 0x1:
-      return "Non-Japanese";
-      break;
-    default:
-      return "UNKNOWN";
-      break;
-  }
-}
-
-void InitForExecution(CPU* cpu, MemoryController* m, GBType gbType) {
+void InitForExecution(CPU* cpu, MemoryController* m, GBType gbType)
+{
   switch (gbType) {
     case GB:
     case SGB:
@@ -546,7 +438,8 @@ void InitForExecution(CPU* cpu, MemoryController* m, GBType gbType) {
   writeByte(m, 0xFFFF, 0x00);
 }
 
-void PrintCPUState(CPU* cpu) {
+void PrintCPUState(CPU* cpu)
+{
   printf("A: 0x%02X B: 0x%02X C: 0x%02X D: 0x%02X E: 0x%02X F: 0x%02X H: 0x%02X L: 0x%02X\n",
     cpu->registers.a,
     cpu->registers.b,
@@ -567,34 +460,6 @@ void PrintCPUState(CPU* cpu) {
     (cpu->registers.f & FLAG_REGISTER_H_BIT) >> 5,
     (cpu->registers.f & FLAG_REGISTER_C_BIT) >> 4
   );
-}
-
-int GetCartridgeSize(FILE* cartridgeFile) {
-  long int size;
-  fseek(cartridgeFile, 0, SEEK_END);
-  size = ftell(cartridgeFile);
-  fseek(cartridgeFile, 0, SEEK_SET);
-  return size;
-}
-
-uint8_t* LoadCartridge(char* pathToROM) {
-  uint8_t* cartridgeData = NULL;
-  
-  FILE* cartridgeFile = fopen(pathToROM, "rb");
-  if (cartridgeFile == NULL) {
-    printf("Failed to read GB cartridge from '%s'\n", pathToROM);
-    return NULL;
-  }
-  long int cartridgeSize = GetCartridgeSize(cartridgeFile);
-  printf("Cartridge Size: %li\n", cartridgeSize);
-  
-  cartridgeData = (uint8_t*)malloc(cartridgeSize * sizeof(uint8_t));
-  
-  fseek(cartridgeFile, 0, SEEK_SET);
-  fread(cartridgeData, 1, cartridgeSize, cartridgeFile);
-  fclose(cartridgeFile);
-  
-  return cartridgeData;
 }
 
 uint32_t FetchDecodeExecute(CPU* cpu, MemoryController* m)

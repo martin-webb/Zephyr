@@ -1,6 +1,100 @@
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "cartridge.h"
 
-char* CartridgeTypeToString(uint8_t cartridgeType) {
+char* ColorGBIdentifierToString(uint8_t destinationCode)
+{
+  switch (destinationCode) {
+    case 0x80:
+      return "Yes";
+      break;
+    default:
+      return "No";
+      break;
+  }
+}
+
+char* ROMSizeToString(uint8_t romSize)
+{
+  switch (romSize) {
+    case 0x0:
+      return "32KB (2 banks)";
+      break;
+    case 0x1:
+      return "64KB (4 banks)";
+      break;
+    case 0x2:
+      return "128KB (8 banks)";
+      break;
+    case 0x3:
+      return "256KB (16 banks)";
+      break;
+    case 0x4:
+      return "512KB (32 banks)";
+      break;
+    case 0x5:
+      return "1MB (64 banks)";
+      break;
+    case 0x6:
+      return "2MB (128 banks)";
+      break;
+    case 0x52:
+      return "1.1MB (72 banks)";
+      break;
+    case 0x53:
+      return "1.2MB (80 banks)";
+      break;
+    case 0x54:
+      return "1.5MB (96 banks)";
+      break;
+    default:
+      return "UNKNOWN";
+      break;
+  }
+}
+
+char* RAMSizeToString(uint8_t ramSize)
+{
+  switch (ramSize) {
+    case 0x0:
+      return "None";
+      break;
+    case 0x1:
+      return "2KB (1 bank)";
+      break;
+    case 0x2:
+      return "8KB (1 bank)";
+      break;
+    case 0x3:
+      return "32KB (4 banks)";
+      break;
+    case 0x4:
+      return "128KB (16 banks)";
+      break;
+    default:
+      return "UNKNOWN";
+      break;
+  }
+}
+
+char* DestinationCodeToString(uint8_t destinationCode)
+{
+  switch (destinationCode) {
+    case 0x0:
+      return "Japanese";
+      break;
+    case 0x1:
+      return "Non-Japanese";
+      break;
+    default:
+      return "UNKNOWN";
+      break;
+  }
+}
+
+char* CartridgeTypeToString(uint8_t cartridgeType)
+{
   switch (cartridgeType) {
     case CARTRIDGE_TYPE_ROM_ONLY:
       return "ROM ONLY";
@@ -93,4 +187,34 @@ char* CartridgeTypeToString(uint8_t cartridgeType) {
       return "UNKNOWN";
       break;
   }
+}
+
+int GetCartridgeSize(FILE* cartridgeFile)
+{
+  long int size;
+  fseek(cartridgeFile, 0, SEEK_END);
+  size = ftell(cartridgeFile);
+  fseek(cartridgeFile, 0, SEEK_SET);
+  return size;
+}
+
+uint8_t* LoadCartridge(char* pathToROM)
+{
+  uint8_t* cartridgeData = NULL;
+  
+  FILE* cartridgeFile = fopen(pathToROM, "rb");
+  if (cartridgeFile == NULL) {
+    printf("Failed to read GB cartridge from '%s'\n", pathToROM);
+    return NULL;
+  }
+  long int cartridgeSize = GetCartridgeSize(cartridgeFile);
+  printf("Cartridge Size: %li\n", cartridgeSize);
+  
+  cartridgeData = (uint8_t*)malloc(cartridgeSize * sizeof(uint8_t));
+  
+  fseek(cartridgeFile, 0, SEEK_SET);
+  fread(cartridgeData, 1, cartridgeSize, cartridgeFile);
+  fclose(cartridgeFile);
+  
+  return cartridgeData;
 }
