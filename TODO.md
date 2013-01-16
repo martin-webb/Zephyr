@@ -1,6 +1,10 @@
 # TODO
 
-* Add to initialisation routine
+* Storage types for the cartridgeSize value in cartridge.h/cartridge.c - make these consistent and relevant to the actual maximum possible cartridge size - perhaps unsigned aswell.
+
+* Add to/update initialisation routine
+
+* CPU batch run wrapper - include the time taken to execute the actual ops in the calculation of sleep time
 
 * Video
 * Input
@@ -24,6 +28,18 @@
 
 * Sprite RAM Bug
 
+## Coding Issues
+
+* Const correctness?
+
+* Explanatory comments
+
+* Include guards
+
 ## Questions
 
-* RETI instruction - is there a single instruction delay before interrupts are actually enabled as with EI and DI? 
+* RETI instruction - is there a single instruction delay before interrupts are actually enabled as with EI and DI?
+
+## Things of General Interest
+
+* Plot a graph of the average ns delay achieved per single clock cycle and the % CPU utilisation while varying the CPU_MIN_CYCLES_PER_SET parameter
