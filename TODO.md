@@ -6,6 +6,8 @@
 
 * CPU batch run wrapper - include the time taken to execute the actual ops in the calculation of sleep time
 
+* Consider how the CPU core will be switched to GBP/SGB/GBC mode
+
 * Video
 * Input
 * Interrupts
