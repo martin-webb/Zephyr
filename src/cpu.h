@@ -1,5 +1,7 @@
 #include <stdbool.h>
 
+#include "memory.h"
+
 #define CLOCK_CYCLE_FREQUENCY (1024 * 1024 * 4)
 #define CLOCK_CYCLE_TIME_SECS (1.0 / CLOCK_CYCLE_FREQUENCY)
 
@@ -55,3 +57,7 @@ typedef enum {
   GBC,
   SGB
 } GBType;
+
+void InitForExecution(CPU* cpu, MemoryController* m, GBType gbType);
+void PrintCPUState(CPU* cpu);
+uint32_t cpuRunAtLeastNCycles(CPU* cpu, MemoryController* m, uint32_t targetCycles);
