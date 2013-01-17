@@ -12,43 +12,47 @@ int main(int argc, char* argv[])
     return 1;
   }
   
-  uint8_t* cartridgeData = LoadCartridge(argv[1]);
+  // Load all cartridge data
+  uint8_t* cartridgeData = cartridgeLoadData(argv[1]);
   if (cartridgeData == NULL) {
     printf("Failed to read cartridge from '%s'\n", argv[1]);
-    exit(1);
+    exit(EXIT_FAILURE);
   }
   
-  uint8_t memory[1024 * 32]; // 32KB
+  uint8_t memory[1024 * 32];
   
-  uint8_t cartridgeType = cartridgeData[CARTRIDGE_TYPE_ADDRESS];
+  uint8_t cartridgeType = cartridgeGetType(cartridgeData);
   printf("Cartridge Type: 0x%02X - %s\n", cartridgeType, CartridgeTypeToString(cartridgeType));
+  
+  
   
   CPU cpu;
   MemoryController m = InitMemoryController(cartridgeType, memory, cartridgeData);
+  GBType gameBoyType = GB;
+  GBType gameType = gbGetGameType(cartridgeData);
+  CGBMode cgbSpeed = CGBModeGB;
+  
+  
   
   printf("Title: ");
   for (int i = GAME_TITLE_START_ADDRESS; i < GAME_TITLE_END_ADDRESS; i++) {
-    printf("%c", readByte(&m, i));
+    printf("%c", cartridgeData[i]);
   }
   printf("\n");
   
-  uint8_t colorGB = readByte(&m, COLOR_GB_FLAG_ADDRESS);
-  printf("Color GB: 0x%02X - %s\n", colorGB, ColorGBIdentifierToString(colorGB));
+  printf("Game Type: %s\n", (gameType == GB) ? "GB" : (gameType == CGB) ? "CGB" : "SGB");
   
-  uint8_t gbOrSGB = readByte(&m, GB_OR_SGB_FLAG_ADDRESS);
-  printf("GB/SGB: 0x%02X - %s\n", gbOrSGB, (gbOrSGB == 0x0) ? "GB" : (gbOrSGB == 0x3) ? "SGB" : "Unknown");
-  
-  uint8_t romSize = readByte(&m, ROM_SIZE_ADDRESS);
+  uint8_t romSize = cartridgeData[ROM_SIZE_ADDRESS];
   printf("ROM size: 0x%02X - %s\n", romSize, ROMSizeToString(romSize));
   
-  uint8_t ramSize = readByte(&m, RAM_SIZE_ADDRESS);
+  uint8_t ramSize = cartridgeData[RAM_SIZE_ADDRESS];
   printf("RAM size: 0x%02X - %s\n", ramSize, RAMSizeToString(ramSize));
   
-  uint8_t destinationCode = readByte(&m, DESTINATION_CODE_ADDRESS);
+  uint8_t destinationCode = cartridgeData[DESTINATION_CODE_ADDRESS];
   printf("Destination Code: 0x%02X - %s\n", destinationCode, DestinationCodeToString(destinationCode));
   
-  InitForExecution(&cpu, &m, GB);
-  PrintCPUState(&cpu);
+  cpuReset(&cpu, &m, GB);
+  cpuPrintState(&cpu);
   
   while (1) {
     cpuRunAtLeastNCycles(&cpu, &m, CPU_MIN_CYCLES_PER_SET);

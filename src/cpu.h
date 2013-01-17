@@ -1,5 +1,6 @@
 #include <stdbool.h>
 
+#include "gameboy.h"
 #include "memory.h"
 
 #define CLOCK_CYCLE_FREQUENCY (1024 * 1024 * 4)
@@ -51,13 +52,6 @@ typedef struct {
   uint8_t ei; // Control value to trigger an enable of interrupts "after the instruction after EI is executed"
 } CPU;
 
-typedef enum {
-  GB,
-  GBP,
-  GBC,
-  SGB
-} GBType;
-
-void InitForExecution(CPU* cpu, MemoryController* m, GBType gbType);
-void PrintCPUState(CPU* cpu);
+void cpuReset(CPU* cpu, MemoryController* m, GBType gameBoyType);
+void cpuPrintState(CPU* cpu);
 uint32_t cpuRunAtLeastNCycles(CPU* cpu, MemoryController* m, uint32_t targetCycles);

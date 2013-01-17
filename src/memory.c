@@ -66,11 +66,11 @@ MemoryController InitMemoryController(uint8_t cartridgeType, uint8_t* memory, ui
     case CARTRIDGE_TYPE_HuC3:
     case CARTRIDGE_TYPE_HuC1_PLUS_RAM_PLUS_BATTERY:
       printf("[FATAL]: Error in InitMemoryController() - cartridge type UNSUPPORTED\n");
-      exit(1);
+      exit(EXIT_FAILURE);
       break;
     default:
       printf("[FATAL]: Error in InitMemoryController() - cartridge type UNKNOWN\n");
-      exit(1);
+      exit(EXIT_FAILURE);
       break;
   }
 }

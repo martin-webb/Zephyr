@@ -368,9 +368,9 @@
 
 /* End Opcode Generation Macros *****************************************************************/
 
-void InitForExecution(CPU* cpu, MemoryController* m, GBType gbType)
+void cpuReset(CPU* cpu, MemoryController* m, GBType gameBoyType)
 {
-  switch (gbType) {
+  switch (gameBoyType) {
     case GB:
     case SGB:
       cpu->registers.a = 0x00;
@@ -380,13 +380,13 @@ void InitForExecution(CPU* cpu, MemoryController* m, GBType gbType)
       cpu->registers.a = 0x00;
       cpu->registers.f = 0xFF;
       break;
-    case GBC:
+    case CGB:
       cpu->registers.a = 0x00;
       cpu->registers.f = 0x11;
       break;
     default:
-      printf("InitForExecution(): Unknown GBType %i encountered. Exiting...\n", gbType);
-      exit(1);
+      printf("cpuReset(): Unknown GameBoyType %i encountered. Exiting...\n", gameBoyType);
+      exit(EXIT_FAILURE);
       break;
   }
   cpu->registers.f = 0xB0;
@@ -413,7 +413,7 @@ void InitForExecution(CPU* cpu, MemoryController* m, GBType gbType)
   writeByte(m, 0xFF23, 0xBF);
   writeByte(m, 0xFF24, 0x77);
   writeByte(m, 0xFF25, 0xF3);
-  switch (gbType) {
+  switch (gameBoyType) {
     case GB:
       writeByte(m, 0xFF26, 0xF1);
       break;
@@ -436,7 +436,7 @@ void InitForExecution(CPU* cpu, MemoryController* m, GBType gbType)
   writeByte(m, 0xFFFF, 0x00);
 }
 
-void PrintCPUState(CPU* cpu)
+void cpuPrintState(CPU* cpu)
 {
   printf("A: 0x%02X B: 0x%02X C: 0x%02X D: 0x%02X E: 0x%02X F: 0x%02X H: 0x%02X L: 0x%02X\n",
     cpu->registers.a,
@@ -460,7 +460,7 @@ void PrintCPUState(CPU* cpu)
   );
 }
 
-uint32_t FetchDecodeExecute(CPU* cpu, MemoryController* m)
+uint32_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
 {
   uint8_t opcode = readByte(m, cpu->registers.pc++);
   printf("[0x%04X] %s\n", cpu->registers.pc - 1, OPCODE_MNEMONICS[opcode]);
@@ -1679,7 +1679,7 @@ uint32_t FetchDecodeExecute(CPU* cpu, MemoryController* m)
             cpu->registers.f |= 1 << FLAG_REGISTER_C_BIT_SHIFT;
           } else {
             printf("FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 1)\n", n, c, h, upperDigit, lowerDigit);
-            exit(1);
+            exit(EXIT_FAILURE);
           }
         } else { // (c == 1)
           if ((upperDigit <= 0x2) && (h == 0) && (lowerDigit <= 0x9)) {
@@ -1693,7 +1693,7 @@ uint32_t FetchDecodeExecute(CPU* cpu, MemoryController* m)
             cpu->registers.f |= 1 << FLAG_REGISTER_C_BIT_SHIFT;
           } else {
             printf("FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 2)\n", n, c, h, upperDigit, lowerDigit);
-            exit(1);
+            exit(EXIT_FAILURE);
           }
         }
       } else { // (n == 1)
@@ -1706,7 +1706,7 @@ uint32_t FetchDecodeExecute(CPU* cpu, MemoryController* m)
             cpu->registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT;
           } else {
             printf("FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 3)\n", n, c, h, upperDigit, lowerDigit);
-            exit(1);
+            exit(EXIT_FAILURE);
           }
         } else { // (c == 1)
           if ((upperDigit >= 0x7) && (upperDigit <= 0xF) && (h == 0) && (lowerDigit <= 0x9)) {
@@ -1717,7 +1717,7 @@ uint32_t FetchDecodeExecute(CPU* cpu, MemoryController* m)
             cpu->registers.f |= 1 << FLAG_REGISTER_C_BIT_SHIFT;
           } else {
             printf("FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 4)\n", n, c, h, upperDigit, lowerDigit);
-            exit(1);
+            exit(EXIT_FAILURE);
           }
         }
       }
@@ -2333,7 +2333,7 @@ uint32_t FetchDecodeExecute(CPU* cpu, MemoryController* m)
         /**************************************************************************************/
         default: {
           printf("FATAL ERROR: ENCOUNTERED UNKNOWN CB-PREFIXED OPCODE: 0x%02X\n", opcode2);
-          exit(1);
+          exit(EXIT_FAILURE);
           break;
         }
       }
@@ -2343,7 +2343,7 @@ uint32_t FetchDecodeExecute(CPU* cpu, MemoryController* m)
     /******************************************************************************************/
     default: {
       printf("FATAL ERROR: ENCOUNTERED UNKNOWN OPCODE: 0x%02X\n", opcode);
-      exit(1);
+      exit(EXIT_FAILURE);
       break;
     }
 
@@ -2352,7 +2352,7 @@ uint32_t FetchDecodeExecute(CPU* cpu, MemoryController* m)
   return cycles;
 }
 
-void UpdateIME(CPU* cpu)
+void cpuUpdateIME(CPU* cpu)
 {
   if (cpu->di == 1) {
     cpu->di++;
@@ -2375,16 +2375,16 @@ uint32_t cpuRunAtLeastNCycles(CPU* cpu, MemoryController* m, uint32_t targetCycl
   uint32_t opsExecuted = 0;
   
   while (cyclesExecuted < targetCycles) {
-    cyclesExecuted += FetchDecodeExecute(cpu, m);
+    cyclesExecuted += cpuRunSingleOp(cpu, m);
     opsExecuted++;
-    UpdateIME(cpu);
+    cpuUpdateIME(cpu);
   }
   
   struct timespec sleepRequested = {0, cyclesExecuted * CLOCK_CYCLE_TIME_SECS * 1000000000};
   struct timespec sleepRemaining;
   nanosleep(&sleepRequested, &sleepRemaining);
   
-  // printf("Executed: %u ops in %u cycles - slept for %luns\n", cyclesExecuted, opsExecuted, sleepRequested.tv_nsec);
+  printf("Executed: %u ops in %u cycles - slept for %luns\n", cyclesExecuted, opsExecuted, sleepRequested.tv_nsec);
   
   return cyclesExecuted; 
 }

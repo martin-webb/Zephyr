@@ -3,16 +3,39 @@
 
 #include "cartridge.h"
 
-char* ColorGBIdentifierToString(uint8_t destinationCode)
+int cartridgeGetSize(FILE* cartridgeFile)
 {
-  switch (destinationCode) {
-    case 0x80:
-      return "Yes";
-      break;
-    default:
-      return "No";
-      break;
+  long int size;
+  fseek(cartridgeFile, 0, SEEK_END);
+  size = ftell(cartridgeFile);
+  fseek(cartridgeFile, 0, SEEK_SET);
+  return size;
+}
+
+uint8_t* cartridgeLoadData(char* pathToROM)
+{
+  uint8_t* cartridgeData = NULL;
+  
+  FILE* cartridgeFile = fopen(pathToROM, "rb");
+  if (cartridgeFile == NULL) {
+    printf("Failed to read GB cartridge from '%s'\n", pathToROM);
+    return NULL;
   }
+  long int cartridgeSize = cartridgeGetSize(cartridgeFile);
+  printf("Cartridge Size: %li\n", cartridgeSize);
+  
+  cartridgeData = (uint8_t*)malloc(cartridgeSize * sizeof(uint8_t));
+  
+  fseek(cartridgeFile, 0, SEEK_SET);
+  fread(cartridgeData, 1, cartridgeSize, cartridgeFile);
+  fclose(cartridgeFile);
+  
+  return cartridgeData;
+}
+
+uint8_t cartridgeGetType(uint8_t* cartridgeData)
+{
+  return cartridgeData[CARTRIDGE_TYPE_ADDRESS];
 }
 
 char* ROMSizeToString(uint8_t romSize)
@@ -187,34 +210,4 @@ char* CartridgeTypeToString(uint8_t cartridgeType)
       return "UNKNOWN";
       break;
   }
-}
-
-int GetCartridgeSize(FILE* cartridgeFile)
-{
-  long int size;
-  fseek(cartridgeFile, 0, SEEK_END);
-  size = ftell(cartridgeFile);
-  fseek(cartridgeFile, 0, SEEK_SET);
-  return size;
-}
-
-uint8_t* LoadCartridge(char* pathToROM)
-{
-  uint8_t* cartridgeData = NULL;
-  
-  FILE* cartridgeFile = fopen(pathToROM, "rb");
-  if (cartridgeFile == NULL) {
-    printf("Failed to read GB cartridge from '%s'\n", pathToROM);
-    return NULL;
-  }
-  long int cartridgeSize = GetCartridgeSize(cartridgeFile);
-  printf("Cartridge Size: %li\n", cartridgeSize);
-  
-  cartridgeData = (uint8_t*)malloc(cartridgeSize * sizeof(uint8_t));
-  
-  fseek(cartridgeFile, 0, SEEK_SET);
-  fread(cartridgeData, 1, cartridgeSize, cartridgeFile);
-  fclose(cartridgeFile);
-  
-  return cartridgeData;
 }
