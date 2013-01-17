@@ -2,6 +2,8 @@
 
 * Storage types for the cartridgeSize value in cartridge.h/cartridge.c - make these consistent and relevant to the actual maximum possible cartridge size - perhaps unsigned aswell.
 
+* Merge the GBType and CGBMode enums? Ensure that the types for CGBMode variables are restricted.
+
 * Add to/update initialisation routine
 
 * CPU batch run wrapper - include the time taken to execute the actual ops in the calculation of sleep time
@@ -30,6 +32,8 @@
 
 * Sprite RAM Bug
 
+* Power Up Sequence - Does the GBP init A to a different value than other GB hardware as the GB CPU Manual PDF suggests?
+
 ## Coding Issues
 
 * Const correctness?
@@ -37,6 +41,8 @@
 * Explanatory comments
 
 * Include guards
+
+* GameBoyType assignment - there is currently no set of conditions that can "detect" a GBP (because this is a hardware function not a feature of the cartridge, however in the emulator the line between the two is slightly blurred - consider adding a "Force GBP" mode so games that look for GBP (by checking the A register) can run "correctly")
 
 ## Questions
 
