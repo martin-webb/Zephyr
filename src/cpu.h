@@ -3,8 +3,14 @@
 #include "gameboy.h"
 #include "memory.h"
 
-#define CLOCK_CYCLE_FREQUENCY (1024 * 1024 * 4)
-#define CLOCK_CYCLE_TIME_SECS (1.0 / CLOCK_CYCLE_FREQUENCY)
+#define CLOCK_CYCLE_FREQUENCY_NORMAL_SPEED 4194304
+#define CLOCK_CYCLE_TIME_SECS_NORMAL_SPEED (1.0 / CLOCK_CYCLE_FREQUENCY_NORMAL_SPEED)
+
+#define CLOCK_CYCLE_FREQUENCY_DOUBLE_SPEED 8388608
+#define CLOCK_CYCLE_TIME_SECS_DOUBLE_SPEED (1.0 / CLOCK_CYCLE_FREQUENCY_DOUBLE_SPEED)
+
+#define CLOCK_CYCLE_FREQUENCY_SGB 4295454
+#define CLOCK_CYCLE_TIME_SECS_SGB (1.0 / CLOCK_CYCLE_FREQUENCY_SGB)
 
 #define FLAG_REGISTER_C_BIT_SHIFT 4
 #define FLAG_REGISTER_H_BIT_SHIFT 5
@@ -29,6 +35,7 @@
 #define HIGH_TO_LOW_P10_TO_P13_INTERRUPT_START_ADDRESS 0x60
 
 #define CPU_MIN_CYCLES_PER_SET 100
+#define SECONDS_TO_NANOSECONDS 1000000000
 
 typedef struct {
   uint8_t a;
@@ -52,6 +59,6 @@ typedef struct {
   uint8_t ei; // Control value to trigger an enable of interrupts "after the instruction after EI is executed"
 } CPU;
 
-void cpuReset(CPU* cpu, MemoryController* m, GBType gameBoyType);
+void cpuReset(CPU* cpu, MemoryController* m, GameBoyType gameBoyType);
 void cpuPrintState(CPU* cpu);
-uint32_t cpuRunAtLeastNCycles(CPU* cpu, MemoryController* m, uint32_t targetCycles);
+uint32_t cpuRunAtLeastNCycles(CPU* cpu, MemoryController* m, GameBoyType gameBoyType, SpeedMode speedMode, uint32_t targetCycles);

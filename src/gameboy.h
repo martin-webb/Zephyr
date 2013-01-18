@@ -6,11 +6,11 @@ typedef enum {
   GBP,
   CGB,
   SGB
-} GBType;
+} GameBoyType;
 
 typedef enum {
-  CGBModeGB,
-  CGBModeCGB
-} CGBMode;
+  NORMAL,
+  DOUBLE
+} SpeedMode;
 
-GBType gbGetGameType(uint8_t* cartridgeData);
+GameBoyType gbGetGameType(uint8_t* cartridgeData);

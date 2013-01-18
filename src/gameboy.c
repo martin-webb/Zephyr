@@ -2,7 +2,7 @@
 
 #include "cartridge.h"
 
-GBType gbGetGameType(uint8_t* cartridgeData)
+GameBoyType gbGetGameType(uint8_t* cartridgeData)
 {
   if (cartridgeData[SGB_FLAG_ADDRESS] == 0x03) {
     return SGB;

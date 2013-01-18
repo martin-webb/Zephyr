@@ -368,7 +368,7 @@
 
 /* End Opcode Generation Macros *****************************************************************/
 
-void cpuReset(CPU* cpu, MemoryController* m, GBType gameBoyType)
+void cpuReset(CPU* cpu, MemoryController* m, GameBoyType gameBoyType)
 {
   switch (gameBoyType) {
     case GB:
@@ -2369,18 +2369,44 @@ void cpuUpdateIME(CPU* cpu)
   }
 }
 
-uint32_t cpuRunAtLeastNCycles(CPU* cpu, MemoryController* m, uint32_t targetCycles)
+uint32_t cpuRunAtLeastNCycles(CPU* cpu, MemoryController* m, GameBoyType gameBoyType, SpeedMode speedMode, uint32_t targetCycles)
 {
   uint32_t cyclesExecuted = 0;
   uint32_t opsExecuted = 0;
   
+  if (speedMode == DOUBLE) {
+    targetCycles *= 2; // TODO: Modifying the function parameter seems a nasty way of doing this
+  }
+  
+  // Execute instructions until we have reached the minimum required number of cycles that would have occurred
   while (cyclesExecuted < targetCycles) {
     cyclesExecuted += cpuRunSingleOp(cpu, m);
     opsExecuted++;
     cpuUpdateIME(cpu);
   }
   
-  struct timespec sleepRequested = {0, cyclesExecuted * CLOCK_CYCLE_TIME_SECS * 1000000000};
+  // Determine the correct amount of time to sleep for based on the Game Boy type and (for CGB) the speed mode
+  float clockCycleTimeSecs;
+  if (gameBoyType == GB || gameBoyType == GBP) {
+    clockCycleTimeSecs = CLOCK_CYCLE_TIME_SECS_NORMAL_SPEED;
+  } else if (gameBoyType == CGB) {
+    if (speedMode == NORMAL) {
+      clockCycleTimeSecs = CLOCK_CYCLE_TIME_SECS_NORMAL_SPEED;
+    } else if (speedMode == DOUBLE) {
+      clockCycleTimeSecs = CLOCK_CYCLE_TIME_SECS_DOUBLE_SPEED;
+    } else {
+      fprintf(stderr, "cpuRunAtLeastNCycles(): Unknown value for speedMode '%i'", speedMode);
+      exit(EXIT_FAILURE);
+    }
+  } else if (gameBoyType == SGB) {
+    clockCycleTimeSecs = CLOCK_CYCLE_TIME_SECS_SGB;
+  } else {
+    fprintf(stderr, "cpuRunAtLeastNCycles(): Unknown value for gameBoyType '%i'", gameBoyType);
+    exit(EXIT_FAILURE);
+  }
+  
+  // Sleep for the amount of time needed to approximate the operating speed of the Game Boy
+  struct timespec sleepRequested = {0, cyclesExecuted * clockCycleTimeSecs * SECONDS_TO_NANOSECONDS};
   struct timespec sleepRemaining;
   nanosleep(&sleepRequested, &sleepRemaining);
   

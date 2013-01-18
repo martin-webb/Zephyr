@@ -24,15 +24,11 @@ int main(int argc, char* argv[])
   uint8_t cartridgeType = cartridgeGetType(cartridgeData);
   printf("Cartridge Type: 0x%02X - %s\n", cartridgeType, CartridgeTypeToString(cartridgeType));
   
-  
-  
   CPU cpu;
   MemoryController m = InitMemoryController(cartridgeType, memory, cartridgeData);
-  GBType gameBoyType = GB;
-  GBType gameType = gbGetGameType(cartridgeData);
-  CGBMode cgbSpeed = CGBModeGB;
-  
-  
+  GameBoyType gameBoyType = GB;
+  SpeedMode speedMode = NORMAL;
+  GameBoyType gameType = gbGetGameType(cartridgeData);
   
   printf("Title: ");
   for (int i = GAME_TITLE_START_ADDRESS; i < GAME_TITLE_END_ADDRESS; i++) {
@@ -55,7 +51,7 @@ int main(int argc, char* argv[])
   cpuPrintState(&cpu);
   
   while (1) {
-    cpuRunAtLeastNCycles(&cpu, &m, CPU_MIN_CYCLES_PER_SET);
+    cpuRunAtLeastNCycles(&cpu, &m, gameBoyType, speedMode, CPU_MIN_CYCLES_PER_SET);
   }
   
   free(cartridgeData);
