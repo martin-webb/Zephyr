@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/time.h>
 
 #include "cpu.h"
 
@@ -460,14 +459,14 @@ void cpuPrintState(CPU* cpu)
   );
 }
 
-uint32_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
+uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
 {
   uint8_t opcode = readByte(m, cpu->registers.pc++);
   printf("[0x%04X] %s\n", cpu->registers.pc - 1, OPCODE_MNEMONICS[opcode]);
 
   // TODO: Check for overflow of opcode here?
 
-  uint32_t cycles = 0;
+  uint8_t cycles = 0;
   switch (opcode) {
     /* 8-Bit Loads ****************************************************************************/
     /* LD nn, n ------------------------------------------------------------------------------*/
@@ -2367,50 +2366,4 @@ void cpuUpdateIME(CPU* cpu)
     cpu->ime = true;
     cpu->ei = 0;
   }
-}
-
-uint32_t cpuRunAtLeastNCycles(CPU* cpu, MemoryController* m, GameBoyType gameBoyType, SpeedMode speedMode, uint32_t targetCycles)
-{
-  uint32_t cyclesExecuted = 0;
-  uint32_t opsExecuted = 0;
-  
-  if (speedMode == DOUBLE) {
-    targetCycles *= 2; // TODO: Modifying the function parameter seems a nasty way of doing this
-  }
-  
-  // Execute instructions until we have reached the minimum required number of cycles that would have occurred
-  while (cyclesExecuted < targetCycles) {
-    cyclesExecuted += cpuRunSingleOp(cpu, m);
-    opsExecuted++;
-    cpuUpdateIME(cpu);
-  }
-  
-  // Determine the correct amount of time to sleep for based on the Game Boy type and (for CGB) the speed mode
-  float clockCycleTimeSecs;
-  if (gameBoyType == GB || gameBoyType == GBP) {
-    clockCycleTimeSecs = CLOCK_CYCLE_TIME_SECS_NORMAL_SPEED;
-  } else if (gameBoyType == CGB) {
-    if (speedMode == NORMAL) {
-      clockCycleTimeSecs = CLOCK_CYCLE_TIME_SECS_NORMAL_SPEED;
-    } else if (speedMode == DOUBLE) {
-      clockCycleTimeSecs = CLOCK_CYCLE_TIME_SECS_DOUBLE_SPEED;
-    } else {
-      fprintf(stderr, "cpuRunAtLeastNCycles(): Unknown value for speedMode '%i'", speedMode);
-      exit(EXIT_FAILURE);
-    }
-  } else if (gameBoyType == SGB) {
-    clockCycleTimeSecs = CLOCK_CYCLE_TIME_SECS_SGB;
-  } else {
-    fprintf(stderr, "cpuRunAtLeastNCycles(): Unknown value for gameBoyType '%i'", gameBoyType);
-    exit(EXIT_FAILURE);
-  }
-  
-  // Sleep for the amount of time needed to approximate the operating speed of the Game Boy
-  struct timespec sleepRequested = {0, cyclesExecuted * clockCycleTimeSecs * SECONDS_TO_NANOSECONDS};
-  struct timespec sleepRemaining;
-  nanosleep(&sleepRequested, &sleepRemaining);
-  
-  printf("Executed: %u ops in %u cycles - slept for %luns\n", cyclesExecuted, opsExecuted, sleepRequested.tv_nsec);
-  
-  return cyclesExecuted; 
 }

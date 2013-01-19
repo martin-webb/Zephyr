@@ -4,6 +4,7 @@
 
 #include "cartridge.h"
 #include "cpu.h"
+#include "gameboy.h"
 
 int main(int argc, char* argv[])
 {
@@ -51,7 +52,7 @@ int main(int argc, char* argv[])
   cpuPrintState(&cpu);
   
   while (1) {
-    cpuRunAtLeastNCycles(&cpu, &m, gameBoyType, speedMode, CPU_MIN_CYCLES_PER_SET);
+    gbRunAtLeastNCycles(&cpu, &m, gameBoyType, speedMode, CPU_MIN_CYCLES_PER_SET);
   }
   
   free(cartridgeData);

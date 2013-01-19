@@ -1,3 +1,6 @@
+#ifndef MEMORY_H_
+#define MEMORY_H_
+
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -34,3 +37,5 @@ uint8_t ROMOnlyReadByte(MemoryController* memoryController, uint16_t address);
 void ROMOnlyWriteByte(MemoryController* memoryController, uint16_t address, uint8_t value);
 
 MemoryController InitMBC1MemoryController(uint8_t* memory, uint8_t* cartridge);
+
+#endif // MEMORY_H_

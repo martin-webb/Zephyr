@@ -1,3 +1,6 @@
+#ifndef CARTRIDGE_H_
+#define CARTRIDGE_H_
+
 #include <stdint.h>
 #include <stdio.h>
 
@@ -60,3 +63,5 @@ char* ROMSizeToString(uint8_t romSize);
 char* RAMSizeToString(uint8_t ramSize);
 char* DestinationCodeToString(uint8_t destinationCode);
 char* CartridgeTypeToString(uint8_t cartridgeType);
+
+#endif // CARTRIDGE_H_

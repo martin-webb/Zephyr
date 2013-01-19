@@ -1,3 +1,6 @@
+#ifndef MNEMONICS_H_
+#define MNEMONICS_H_
+
 const char* OPCODE_MNEMONICS[256] = {
   // 00
   "NOP", // x0
@@ -577,3 +580,5 @@ const char* CB_OPCODE_MNEMONICS[256] = {
   "SET 7, (HL)", // xE
   "SET 7, A", // xF
 };
+
+#endif // MNEMONICS_H_

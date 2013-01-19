@@ -40,8 +40,6 @@
 
 * Explanatory comments
 
-* Include guards
-
 * GameBoyType assignment - there is currently no set of conditions that can "detect" a GBP (because this is a hardware function not a feature of the cartridge, however in the emulator the line between the two is slightly blurred - consider adding a "Force GBP" mode so games that look for GBP (by checking the A register) can run "correctly")
 
 ## Questions

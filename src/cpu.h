@@ -1,6 +1,9 @@
+#ifndef CPU_H_
+#define CPU_H_
+
 #include <stdbool.h>
 
-#include "gameboy.h"
+#include "gbtype.h"
 #include "memory.h"
 
 #define CLOCK_CYCLE_FREQUENCY_NORMAL_SPEED 4194304
@@ -61,4 +64,7 @@ typedef struct {
 
 void cpuReset(CPU* cpu, MemoryController* m, GameBoyType gameBoyType);
 void cpuPrintState(CPU* cpu);
-uint32_t cpuRunAtLeastNCycles(CPU* cpu, MemoryController* m, GameBoyType gameBoyType, SpeedMode speedMode, uint32_t targetCycles);
+uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m);
+void cpuUpdateIME(CPU* cpu);
+
+#endif // CPU_H_

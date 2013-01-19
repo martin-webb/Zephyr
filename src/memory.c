@@ -65,11 +65,11 @@ MemoryController InitMemoryController(uint8_t cartridgeType, uint8_t* memory, ui
     case CARTRIDGE_TYPE_BANDAI_TAMA5:
     case CARTRIDGE_TYPE_HuC3:
     case CARTRIDGE_TYPE_HuC1_PLUS_RAM_PLUS_BATTERY:
-      printf("[FATAL]: Error in InitMemoryController() - cartridge type UNSUPPORTED\n");
+      printf("[FATAL]: Error in %s - cartridge type UNSUPPORTED\n", __func__);
       exit(EXIT_FAILURE);
       break;
     default:
-      printf("[FATAL]: Error in InitMemoryController() - cartridge type UNKNOWN\n");
+      printf("[FATAL]: Error in %s - cartridge type UNKNOWN\n", __func__);
       exit(EXIT_FAILURE);
       break;
   }
@@ -134,7 +134,7 @@ uint8_t MBC1ReadByte(MemoryController* memoryController, uint16_t address)
     return memoryController->cartridge[romAddress];
   } else if (address >= 0xA000 && address <= 0xBFFF) { // External RAM Read
     // TODO: DO THIS
-    printf("[WARNING]: MBC1ReadByte() - read from external RAM (0xA000-0xBFFF) at 0x%04X\n", address);
+    printf("[WARNING]: %s - read from external RAM (0xA000-0xBFFF) at 0x%04X\n", __func__, address);
     return 0; // TODO: Remove this with full implementation
   } else { // Reads from remaining addresses are standard
     return memoryController->memory[address - CARTRIDGE_SIZE];
@@ -162,7 +162,7 @@ void MBC1WriteByte(MemoryController* memoryController, uint16_t address, uint8_t
     // TODO: Add cycle cost here??
   } else if (address >= 0xA000 && address <= 0xBFFF) { // External RAM Write
     // TODO: DO THIS
-    printf("[WARNING]: MBC1WriteByte() - write of value 0x%02X to external RAM (0xA000-0xBFFF) at address 0x%04X (RAM Status: %s)\n", value, address, (memoryController->ramEnabled) ? "ENABLED" : "DISABLED");
+    printf("[WARNING]: %s - write of value 0x%02X to external RAM (0xA000-0xBFFF) at address 0x%04X (RAM Status: %s)\n", __func__, value, address, (memoryController->ramEnabled) ? "ENABLED" : "DISABLED");
   } else {
     memoryController->memory[address - CARTRIDGE_SIZE] = value;
     
