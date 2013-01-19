@@ -18,7 +18,7 @@ GameBoyType gbGetGameType(uint8_t* cartridgeData)
   }
 }
 
-uint32_t gbRunAtLeastNCycles(CPU* cpu, MemoryController* m, GameBoyType gameBoyType, SpeedMode speedMode, uint32_t targetCycles)
+uint32_t gbRunAtLeastNCycles(CPU* cpu, MemoryController* m, TimerState* t, GameBoyType gameBoyType, SpeedMode speedMode, uint32_t targetCycles)
 {
   uint32_t totalCyclesExecuted = 0;
   uint32_t totalOpsExecuted = 0;
@@ -33,6 +33,7 @@ uint32_t gbRunAtLeastNCycles(CPU* cpu, MemoryController* m, GameBoyType gameBoyT
     totalCyclesExecuted += cyclesExecuted;
     totalOpsExecuted++;
     cpuUpdateIME(cpu);
+    timerUpdateDivider(t, m, gameBoyType, cyclesExecuted);
   }
   
   // Determine the correct amount of time to sleep for based on the Game Boy type and (for CGB) the speed mode

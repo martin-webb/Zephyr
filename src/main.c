@@ -5,6 +5,7 @@
 #include "cartridge.h"
 #include "cpu.h"
 #include "gameboy.h"
+#include "timer.h"
 
 int main(int argc, char* argv[])
 {
@@ -27,6 +28,7 @@ int main(int argc, char* argv[])
   
   CPU cpu;
   MemoryController m = InitMemoryController(cartridgeType, memory, cartridgeData);
+  TimerState t = {0, 0};
   GameBoyType gameBoyType = GB;
   SpeedMode speedMode = NORMAL;
   GameBoyType gameType = gbGetGameType(cartridgeData);
@@ -52,7 +54,7 @@ int main(int argc, char* argv[])
   cpuPrintState(&cpu);
   
   while (1) {
-    gbRunAtLeastNCycles(&cpu, &m, gameBoyType, speedMode, CPU_MIN_CYCLES_PER_SET);
+    gbRunAtLeastNCycles(&cpu, &m, &t, gameBoyType, speedMode, CPU_MIN_CYCLES_PER_SET);
   }
   
   free(cartridgeData);

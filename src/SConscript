@@ -1,3 +1,10 @@
 Import("env")
 
-env.Program(["main.c", "cpu.c", "memory.c", "cartridge.c", "gameboy.c"])
+env.Program("gbemu1", [
+  "cartridge.c",
+  "cpu.c",
+  "gameboy.c",
+  "main.c",
+  "memory.c",
+  "timer.c"
+])
