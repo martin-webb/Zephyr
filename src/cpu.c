@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "cpu.h"
+#include "timer.h"
 
 #include "mnemonics.h"
 
@@ -392,9 +393,9 @@ void cpuReset(CPU* cpu, MemoryController* m, GameBoyType gameBoyType)
   cpu->registers.sp = 0xFFFE;
   cpu->registers.pc = 0x100;
 
-  writeByte(m, 0xFF05, 0x00);
-  writeByte(m, 0xFF06, 0x00);
-  writeByte(m, 0xFF07, 0x00);
+  writeByte(m, IO_REG_ADDRESS_TIMA, 0x00);
+  writeByte(m, IO_REG_ADDRESS_TMA, 0x00);
+  writeByte(m, IO_REG_ADDRESS_TAC, 0x00);
   writeByte(m, 0xFF10, 0x80);
   writeByte(m, 0xFF11, 0xBF);
   writeByte(m, 0xFF12, 0xF3);
