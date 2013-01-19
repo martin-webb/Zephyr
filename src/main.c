@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
   // Load all cartridge data
   uint8_t* cartridgeData = cartridgeLoadData(argv[1]);
   if (cartridgeData == NULL) {
-    printf("Failed to read cartridge from '%s'\n", argv[1]);
+    fprintf(stderr, "Failed to read cartridge from '%s'\n", argv[1]);
     exit(EXIT_FAILURE);
   }
   

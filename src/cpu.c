@@ -385,7 +385,7 @@ void cpuReset(CPU* cpu, MemoryController* m, GameBoyType gameBoyType)
       cpu->registers.f = 0x11;
       break;
     default:
-      printf("cpuReset(): Unknown GameBoyType %i encountered. Exiting...\n", gameBoyType);
+      fprintf(stderr, "%s: Unknown GameBoyType %i encountered. Exiting...\n", __func__, gameBoyType);
       exit(EXIT_FAILURE);
       break;
   }
@@ -1678,7 +1678,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
             cpu->registers.a += 0x66;
             cpu->registers.f |= 1 << FLAG_REGISTER_C_BIT_SHIFT;
           } else {
-            printf("FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 1)\n", n, c, h, upperDigit, lowerDigit);
+            fprintf(stderr, "FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 1)\n", n, c, h, upperDigit, lowerDigit);
             exit(EXIT_FAILURE);
           }
         } else { // (c == 1)
@@ -1692,7 +1692,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
             cpu->registers.a += 0x66;
             cpu->registers.f |= 1 << FLAG_REGISTER_C_BIT_SHIFT;
           } else {
-            printf("FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 2)\n", n, c, h, upperDigit, lowerDigit);
+            fprintf(stderr, "FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 2)\n", n, c, h, upperDigit, lowerDigit);
             exit(EXIT_FAILURE);
           }
         }
@@ -1705,7 +1705,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
             cpu->registers.a += 0xFA;
             cpu->registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT;
           } else {
-            printf("FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 3)\n", n, c, h, upperDigit, lowerDigit);
+            fprintf(stderr, "FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 3)\n", n, c, h, upperDigit, lowerDigit);
             exit(EXIT_FAILURE);
           }
         } else { // (c == 1)
@@ -1716,7 +1716,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
             cpu->registers.a += 0x9A;
             cpu->registers.f |= 1 << FLAG_REGISTER_C_BIT_SHIFT;
           } else {
-            printf("FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 4)\n", n, c, h, upperDigit, lowerDigit);
+            fprintf(stderr, "FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 4)\n", n, c, h, upperDigit, lowerDigit);
             exit(EXIT_FAILURE);
           }
         }
@@ -2332,7 +2332,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
 
         /**************************************************************************************/
         default: {
-          printf("FATAL ERROR: ENCOUNTERED UNKNOWN CB-PREFIXED OPCODE: 0x%02X\n", opcode2);
+          fprintf(stderr, "FATAL ERROR: ENCOUNTERED UNKNOWN CB-PREFIXED OPCODE: 0x%02X\n", opcode2);
           exit(EXIT_FAILURE);
           break;
         }
@@ -2342,7 +2342,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
 
     /******************************************************************************************/
     default: {
-      printf("FATAL ERROR: ENCOUNTERED UNKNOWN OPCODE: 0x%02X\n", opcode);
+      fprintf(stderr, "FATAL ERROR: ENCOUNTERED UNKNOWN OPCODE: 0x%02X\n", opcode);
       exit(EXIT_FAILURE);
       break;
     }

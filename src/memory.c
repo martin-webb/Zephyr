@@ -75,11 +75,11 @@ MemoryController InitMemoryController(uint8_t cartridgeType, uint8_t* memory, ui
     case CARTRIDGE_TYPE_BANDAI_TAMA5:
     case CARTRIDGE_TYPE_HuC3:
     case CARTRIDGE_TYPE_HuC1_PLUS_RAM_PLUS_BATTERY:
-      printf("[FATAL]: Error in %s - cartridge type UNSUPPORTED\n", __func__);
+      fprintf(stderr, "[FATAL]: Error in %s - cartridge type UNSUPPORTED\n", __func__);
       exit(EXIT_FAILURE);
       break;
     default:
-      printf("[FATAL]: Error in %s - cartridge type UNKNOWN\n", __func__);
+      fprintf(stderr, "[FATAL]: Error in %s - cartridge type UNKNOWN\n", __func__);
       exit(EXIT_FAILURE);
       break;
   }
