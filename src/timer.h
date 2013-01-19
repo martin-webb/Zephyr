@@ -19,6 +19,6 @@ typedef struct {
   uint32_t timerCounter;
 } TimerState;
 
-void timerUpdateDivider(TimerState* t, MemoryController* m, GameBoyType gameBoyType, uint8_t cyclesExecuted);
+void timerUpdateDivider(TimerState* t, MemoryController* m, uint8_t cyclesExecuted);
 
 #endif // TIMER_H_

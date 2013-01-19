@@ -2,7 +2,7 @@
 
 #include "timer.h"
 
-void timerUpdateDivider(TimerState* t, MemoryController* m, GameBoyType gameBoyType, uint8_t cyclesExecuted)
+void timerUpdateDivider(TimerState* t, MemoryController* m, uint8_t cyclesExecuted)
 {
   // If we have executed enough clock cycles-worth of time since the last update then increment the DIV register
   // (taking into account any 'excess' clock cycles that we should include), otherwise simply update the clock cycle count.
