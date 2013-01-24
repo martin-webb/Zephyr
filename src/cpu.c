@@ -1840,7 +1840,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
     /* Jumps **********************************************************************************/
     /* JP nn ---------------------------------------------------------------------------------*/
     case 0xC3: { // JP nn
-      uint16_t address = readWord(m, cpu->registers.pc); // NOTE: No real need to increment PC in this type of instruction
+      uint16_t address = readWord(m, cpu->registers.pc++);
       cpu->registers.pc = address;
       cycles += 12;
       break;
@@ -1848,7 +1848,8 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
 
     /* JP cc, nn -----------------------------------------------------------------------------*/
     case 0xC2: { // JP NZ, nn
-      uint16_t address = readWord(m, cpu->registers.pc); // NOTE: No real need to increment PC in this type of instruction
+      uint16_t address = readWord(m, cpu->registers.pc);
+      cpu->registers.pc += 2;
       if (((cpu->registers.f & FLAG_REGISTER_Z_BIT) >> FLAG_REGISTER_Z_BIT_SHIFT) == 0) {
         cpu->registers.pc = address;
       }
@@ -1856,7 +1857,8 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       break;
     }
     case 0xCA: { // JP Z, nn
-      uint16_t address = readWord(m, cpu->registers.pc); // NOTE: No real need to increment PC in this type of instruction
+      uint16_t address = readWord(m, cpu->registers.pc);
+      cpu->registers.pc += 2;
       if (((cpu->registers.f & FLAG_REGISTER_Z_BIT) >> FLAG_REGISTER_Z_BIT_SHIFT) == 1) {
         cpu->registers.pc = address;
       }
@@ -1864,7 +1866,8 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       break;
     }
     case 0xD2: { // JP NC, nn
-      uint16_t address = readWord(m, cpu->registers.pc); // NOTE: No real need to increment PC in this type of instruction
+      uint16_t address = readWord(m, cpu->registers.pc);
+      cpu->registers.pc += 2;
       if (((cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT) == 0) {
         cpu->registers.pc = address;
       }
@@ -1872,7 +1875,8 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       break;
     }
     case 0xDA: { // JP C, nn
-      uint16_t address = readWord(m, cpu->registers.pc); // NOTE: No real need to increment PC in this type of instruction
+      uint16_t address = readWord(m, cpu->registers.pc);
+      cpu->registers.pc += 2;
       if (((cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT) == 1) {
         cpu->registers.pc = address;
       }
