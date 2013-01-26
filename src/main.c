@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
   
-  uint8_t memory[1024 * 32];
+  uint8_t memory[1024 * 32] = {0};
   
   uint8_t cartridgeType = cartridgeGetType(cartridgeData);
   printf("Cartridge Type: 0x%02X - %s\n", cartridgeType, CartridgeTypeToString(cartridgeType));
