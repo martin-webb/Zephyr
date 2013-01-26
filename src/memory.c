@@ -105,6 +105,11 @@ void ROMOnlyWriteByte(MemoryController* memoryController, uint16_t address, uint
   } else {
     memoryController->memory[address - CARTRIDGE_SIZE] = value;
     
+    // TODO: Add to formal logging strategy that can be removed for release builds (for example)
+    if (address >= 0xFF00 && address < 0xFF4C) {
+      printf("[MEMORYLOG]: Write to I/O reg - address=0x%04X value=0x%02X\n", address, value);
+    }
+    
     // Additional write to support the echo of 7.5KB of internal RAM
     if (address >= 0xC000 && address < 0xDE00) {
       memoryController->memory[address - CARTRIDGE_SIZE + 0x2000] = value;
@@ -179,6 +184,11 @@ void MBC1WriteByte(MemoryController* memoryController, uint16_t address, uint8_t
     memoryController->memory[address - CARTRIDGE_SIZE] = 0x00; // Writes to DIV are always 0, regardless of the actual value
   } else {
     memoryController->memory[address - CARTRIDGE_SIZE] = value;
+    
+    // TODO: Add to formal logging strategy that can be removed for release builds (for example)
+    if (address >= 0xFF00 && address < 0xFF4C) {
+      printf("[MEMORYLOG]: Write to I/O reg - address=0x%04X value=0x%02X\n", address, value);
+    }
     
     // Additional write to support the echo of 7.5KB of internal RAM
     if (address >= 0xC000 && address < 0xDE00) {
