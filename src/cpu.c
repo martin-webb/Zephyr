@@ -464,7 +464,7 @@ void cpuPrintState(CPU* cpu)
 uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
 {
   uint8_t opcode = readByte(m, cpu->registers.pc++);
-  printf("[0x%04X] %s\n", cpu->registers.pc - 1, OPCODE_MNEMONICS[opcode]);
+  printf("[0x%04X][0x%02X] %s\n", cpu->registers.pc - 1, opcode, OPCODE_MNEMONICS[opcode]);
 
   // TODO: Check for overflow of opcode here?
 
@@ -1965,7 +1965,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
     /* CB-Prefixed Opcodes ********************************************************************/
     case 0xCB: {
       uint8_t opcode2 = readByte(m, cpu->registers.pc++);
-      printf("[0x%04X] %s\n", cpu->registers.pc - 1, CB_OPCODE_MNEMONICS[opcode]);
+      printf("[0x%04X][0x%02X] %s\n", cpu->registers.pc - 1, opcode2, CB_OPCODE_MNEMONICS[opcode]);
       
       switch (opcode2) {
         /* Miscellaneous **********************************************************************/
