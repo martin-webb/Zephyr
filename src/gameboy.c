@@ -63,7 +63,7 @@ uint32_t gbRunAtLeastNCycles(CPU* cpu, MemoryController* m, TimerState* t, GameB
   struct timespec sleepRemaining;
   nanosleep(&sleepRequested, &sleepRemaining);
   
-  printf("Executed: %u ops in %u cycles - slept for %luns\n", totalCyclesExecuted, totalOpsExecuted, sleepRequested.tv_nsec);
+  // printf("Executed: %u ops in %u cycles - slept for %luns\n", totalCyclesExecuted, totalOpsExecuted, sleepRequested.tv_nsec);
   
   return totalCyclesExecuted; 
 }
