@@ -34,6 +34,7 @@ uint32_t gbRunAtLeastNCycles(CPU* cpu, MemoryController* m, TimerState* t, GameB
     totalOpsExecuted++;
     cpuUpdateIME(cpu);
     timerUpdateDivider(t, m, cyclesExecuted);
+    cpuHandleInterrupts(cpu, m);
   }
   
   // Determine the correct amount of time to sleep for based on the Game Boy type and (for CGB) the speed mode

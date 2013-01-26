@@ -434,7 +434,7 @@ void cpuReset(CPU* cpu, MemoryController* m, GameBoyType gameBoyType)
   writeByte(m, 0xFF49, 0xFF);
   writeByte(m, 0xFF4A, 0x00);
   writeByte(m, 0xFF4B, 0x00);
-  writeByte(m, 0xFFFF, 0x00);
+  writeByte(m, IO_REG_ADDRESS_IE, 0x00);
 }
 
 void cpuPrintState(CPU* cpu)
@@ -1951,6 +1951,9 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
     /* RETI ----------------------------------------------------------------------------------*/
     case 0xD9: { // RETI
       // TODO: Check how IME is set - is there a single instruction delay before interrupts are enabled as with DI and EI?
+      // Potentially not because this replicates the combination of the combination of "EI, RET" instructions,
+      // in which EI would cause interrupts to be enabled AFTER the RET had executed, so the effect
+      // of the single instruction delay would/should be replicated here.
       uint8_t addressLow = readByte(m, cpu->registers.sp++);
       uint8_t addressHigh = readByte(m, cpu->registers.sp++);
       cpu->registers.pc = (addressHigh << 8) | addressLow;
@@ -2308,5 +2311,55 @@ void cpuUpdateIME(CPU* cpu)
   } else if (cpu->ei == 2) {
     cpu->ime = true;
     cpu->ei = 0;
+  }
+}
+
+void cpuFlagInterrupt(MemoryController* m, uint8_t interruptBit)
+{
+  uint8_t interruptsFlagged = readByte(m, IO_REG_ADDRESS_IF);
+  interruptsFlagged |= interruptBit;
+  writeByte(m, IO_REG_ADDRESS_IF, interruptsFlagged);
+}
+
+void cpuUnflagInterrupt(MemoryController* m, uint8_t interruptBit)
+{
+  uint8_t interruptsFlagged = readByte(m, IO_REG_ADDRESS_IF);
+  interruptsFlagged ^= interruptBit; // TODO: Check this use of XOR to reset a single bit under the assumption that "interruptBit" is the correct value for the single bit being reset
+  writeByte(m, IO_REG_ADDRESS_IF, interruptsFlagged);
+}
+
+void cpuHandleInterrupts(CPU* cpu, MemoryController* m)
+{
+  if (cpu->ime) {
+    uint8_t interruptsFlagged = readByte(m, IO_REG_ADDRESS_IF);
+    uint8_t interruptsEnabled = readByte(m, IO_REG_ADDRESS_IE);
+    
+    // Test each bit in order of interrupt priority (which, handily, is in the order of least- to most-significant bits)
+    for (uint8_t bitOffset = 0; bitOffset < 5; bitOffset++) {
+      
+      if ((interruptsFlagged & interruptsEnabled) & (1 << bitOffset)) {
+        // Disable ALL interrupts during the interrupt
+        cpu->ime = false;
+        
+        // Push the program counter onto the stack
+        writeByte(m, --cpu->registers.sp, ((cpu->registers.pc & 0xFF00) >> 8));
+        writeByte(m, --cpu->registers.sp, (cpu->registers.pc & 0x00FF));
+        
+        // Jump to the starting address of the interrupt - here the interrupt address is at the offset of the matching bit location in the IE register
+        const uint16_t interruptAddresses[] = {
+          VBLANK_INTERRUPT_START_ADDRESS,
+          LCDC_STATUS_INTERRUPT_START_ADDRESS,
+          TIMER_OVERFLOW_INTERRUPT_START_ADDRESS,
+          SERIAL_TRANSFER_COMPLETION_INTERRUPT_START_ADDRESS,
+          HIGH_TO_LOW_P10_TO_P13_INTERRUPT_START_ADDRESS
+        };
+        cpu->registers.pc = interruptAddresses[bitOffset];
+        
+        // Reset the IF register bit of the interrupt being handled
+        cpuUnflagInterrupt(m, 1 << bitOffset);
+        
+        break;
+      }
+    }
   }
 }

@@ -31,14 +31,23 @@
 #define BIT_7_SHIFT 7
 #define BIT_7 (0x1 << BIT_7_SHIFT)
 
-#define VBLANK_INTERRUPT_START_ADDRESS 0x40
-#define LCDC_STATUS_INTERRUPT_START_ADDRESS 0x48
-#define TIMER_OVERFLOW_INTERRUPT_START_ADDRESS 0x50
-#define SERIAL_TRANSFER_COMPLETION_INTERRUPT_START_ADDRESS 0x58
-#define HIGH_TO_LOW_P10_TO_P13_INTERRUPT_START_ADDRESS 0x60
+#define VBLANK_INTERRUPT_START_ADDRESS 0x0040
+#define LCDC_STATUS_INTERRUPT_START_ADDRESS 0x0048
+#define TIMER_OVERFLOW_INTERRUPT_START_ADDRESS 0x0050
+#define SERIAL_TRANSFER_COMPLETION_INTERRUPT_START_ADDRESS 0x0058
+#define HIGH_TO_LOW_P10_TO_P13_INTERRUPT_START_ADDRESS 0x0060
+
+#define VBLANK_INTERRUPT_BIT (1 << 0)
+#define LCDC_STATUS_INTERRUPT_BIT (1 << 1)
+#define TIMER_OVERFLOW_INTERRUPT_BIT (1 << 2)
+#define SERIAL_TRANSFER_COMPLETION_INTERRUPT_BIT (1 << 3)
+#define HIGH_TO_LOW_P10_TO_P13_INTERRUPT_BIT (1 << 4)
 
 #define CPU_MIN_CYCLES_PER_SET 100
 #define SECONDS_TO_NANOSECONDS 1000000000
+
+#define IO_REG_ADDRESS_IF 0xFF0F
+#define IO_REG_ADDRESS_IE 0xFFFF
 
 typedef struct {
   uint8_t a;
@@ -66,5 +75,7 @@ void cpuReset(CPU* cpu, MemoryController* m, GameBoyType gameBoyType);
 void cpuPrintState(CPU* cpu);
 uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m);
 void cpuUpdateIME(CPU* cpu);
+void cpuFlagInterrupt(MemoryController* m, uint8_t interruptBit);
+void cpuHandleInterrupts(CPU* cpu, MemoryController* m);
 
 #endif // CPU_H_
