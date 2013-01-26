@@ -57,6 +57,8 @@
 	* Log instructions
 	* Log interrupts
 	* Log I/O register reads/writes
+	* Log execution of instruction groups including cycles executed, opcodes executed and sleep
+	* Consider using a structured log format such as JSON
 
 * I/O Register Read/Write Correctness
 	* IME is Write Only
