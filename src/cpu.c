@@ -108,7 +108,7 @@
   cpu->registers.REGISTER = new; \
   cpu->registers.f |= (cpu->registers.REGISTER == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
   cpu->registers.f |= 1 << FLAG_REGISTER_N_BIT_SHIFT; \
-  cpu->registers.f |= ((new & 0xF) >= 0x0) << FLAG_REGISTER_H_BIT_SHIFT; \
+  cpu->registers.f |= ((new & 0xF) < 0x0) << FLAG_REGISTER_H_BIT_SHIFT; \
   cycles += 4; \
   break;
 
@@ -1479,41 +1479,33 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
 
     /* DEC n ---------------------------------------------------------------------------------*/
     case 0x3D: { // DEC A
-      // TODO: Seriously check that C bit of register F is set correctly
       MAKE_DEC_N_OPCODE_IMPL(a)
     }
     case 0x05: { // DEC B
-      // TODO: Seriously check that C bit of register F is set correctly
       MAKE_DEC_N_OPCODE_IMPL(b)
     }
     case 0x0D: { // DEC C
-      // TODO: Seriously check that C bit of register F is set correctly
       MAKE_DEC_N_OPCODE_IMPL(c)
     }
     case 0x15: { // DEC D
-      // TODO: Seriously check that C bit of register F is set correctly
       MAKE_DEC_N_OPCODE_IMPL(d)
     }
     case 0x1D: { // DEC E
-      // TODO: Seriously check that C bit of register F is set correctly
       MAKE_DEC_N_OPCODE_IMPL(e)
     }
     case 0x25: { // DEC H
-      // TODO: Seriously check that C bit of register F is set correctly
       MAKE_DEC_N_OPCODE_IMPL(h)
     }
     case 0x2D: { // DEC L
-      // TODO: Seriously check that C bit of register F is set correctly
       MAKE_DEC_N_OPCODE_IMPL(l)
     }
     case 0x35: { // DEC (HL)
-      // TODO: Seriously check that C bit of register F is set correctly
       uint8_t old = readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
       int16_t new = old - 1;
       writeByte(m, (cpu->registers.h << 8) | cpu->registers.l, (uint8_t)new);
       cpu->registers.f |= ((uint8_t)new == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
       cpu->registers.f |= 1 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= ((new & 0xF) >= 0x0) << FLAG_REGISTER_H_BIT_SHIFT;
+      cpu->registers.f |= ((new & 0xF) < 0x0) << FLAG_REGISTER_H_BIT_SHIFT;
       cycles += 12;
       break;
     }
