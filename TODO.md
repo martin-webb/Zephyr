@@ -1,5 +1,22 @@
 # TODO
 
+* Divider
+	* How is this affected by the CGB double-speed mode?
+
+* Timer
+	* How is this affected by the CGB double-speed mode?
+
+* Video
+
+* Input
+
+* Interrupts
+	* V-Blank
+	* LCDC Status
+	* Timer Overflow
+	* Serial Transfer Completion
+	* Hi-Lo of P10-P13
+
 * Storage types for the cartridgeSize value in cartridge.h/cartridge.c - make these consistent and relevant to the actual maximum possible cartridge size - perhaps unsigned aswell.
 
 * Merge the GBType and CGBMode enums? Ensure that the types for CGBMode variables are restricted.
@@ -10,19 +27,14 @@
 
 * Consider how the CPU core will be switched to GBP/SGB/GBC mode
 
-* Video
-* Input
-* Interrupts
-	* V-Blank
-	* LCDC Status
-	* Timer Overflow
-	* Serial Transfer Completion
-	* Hi-Lo of P10-P13
-* Timer
 * Sound
+
 * Serial I/O
 
+* Battery-backed RAM
+
 * Low-power mode (HALT instruction effects)
+
 * Stop Mode (STOP instruction effects)
 
 * STOP instruction coded as 10 00
@@ -33,6 +45,21 @@
 * Sprite RAM Bug
 
 * Power Up Sequence - Does the GBP init A to a different value than other GB hardware as the GB CPU Manual PDF suggests?
+
+* Startup Options
+	* Game Boy type
+		* GB
+		* GBP
+		* CGB
+		* SGB
+
+* Logging options - potentially only in a debug release
+	* Log instructions
+	* Log interrupts
+	* Log I/O register reads/writes
+
+* I/O Register Read/Write Correctness
+	* IME is Write Only
 
 ## Coding Issues
 
