@@ -34,6 +34,7 @@ uint32_t gbRunAtLeastNCycles(CPU* cpu, MemoryController* m, TimerState* t, GameB
     totalOpsExecuted++;
     cpuUpdateIME(cpu);
     timerUpdateDivider(t, m, cyclesExecuted);
+    timerUpdateTimer(t, m, speedMode, cyclesExecuted);
     cpuHandleInterrupts(cpu, m);
   }
   

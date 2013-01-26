@@ -101,7 +101,7 @@ void ROMOnlyWriteByte(MemoryController* memoryController, uint16_t address, uint
   if (address < CARTRIDGE_SIZE) {
     printf("[WARNING]: Write of value 0x%02X to address 0x%04X in ROM space (0x%04X-0x%04X) on ROM Only cartridge\n", value, address, 0, CARTRIDGE_SIZE);
   } else if (address == IO_REG_ADDRESS_DIV) {
-    memoryController->memory[address - CARTRIDGE_SIZE] = 0x00;
+    memoryController->memory[address - CARTRIDGE_SIZE] = 0x00; // Writes to DIV are always 0, regardless of the actual value
   } else {
     memoryController->memory[address - CARTRIDGE_SIZE] = value;
     
@@ -176,7 +176,7 @@ void MBC1WriteByte(MemoryController* memoryController, uint16_t address, uint8_t
     // TODO: DO THIS
     printf("[WARNING]: %s - write of value 0x%02X to external RAM (0xA000-0xBFFF) at address 0x%04X (RAM Status: %s)\n", __func__, value, address, (memoryController->ramEnabled) ? "ENABLED" : "DISABLED");
   } else if (address == IO_REG_ADDRESS_DIV) {
-    memoryController->memory[address - CARTRIDGE_SIZE] = 0x00;
+    memoryController->memory[address - CARTRIDGE_SIZE] = 0x00; // Writes to DIV are always 0, regardless of the actual value
   } else {
     memoryController->memory[address - CARTRIDGE_SIZE] = value;
     
