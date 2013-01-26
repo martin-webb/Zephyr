@@ -471,7 +471,6 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
   switch (opcode) {
     /* 8-Bit Loads ****************************************************************************/
     /* LD nn, n ------------------------------------------------------------------------------*/
-    // TODO: Check if all of these are correct
     case 0x06: { // LD B, n
       cpu->registers.b = readByte(m, cpu->registers.pc++);
       cycles += 8;
@@ -766,8 +765,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       cycles += 8;
       break;
     }
-
-    // TODO: Especially these
+    
     case 0x70: { // LD (HL), B
       writeByte(m, (cpu->registers.h << 8) | cpu->registers.l, cpu->registers.b);
       cycles += 8;
@@ -806,7 +804,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
     }
 
     /* LD A, n -------------------------------------------------------------------------------*/
-    // NOTE: The GB CPU Manual contained duplicates of the following opcodes here: 7F, 78, 79, 7A, 7B, 7C, 7D, 0A, 1A, 7E, FA and 3E
+    // NOTE: The GB CPU Manual contained duplicates of the following opcodes here: 7F, 78, 79, 7A, 7B, 7C, 7D and 3E
     case 0x0A: { // LD A, (BC)
       cpu->registers.a = readByte(m, (cpu->registers.b << 8) | cpu->registers.c);
       cycles += 8;
@@ -824,7 +822,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       break;
     }
     case 0x3E: { // LD A, #
-      cpu->registers.a = readByte(m, cpu->registers.pc++); // TODO Check this
+      cpu->registers.a = readByte(m, cpu->registers.pc++);
       cycles += 8;
       break;
     }
@@ -1021,7 +1019,6 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
 
     /* LD (nn), SP ---------------------------------------------------------------------------*/
     case 0x08: { // LD (nn), SP
-      // TODO: Check this
       uint16_t address = readWord(m, cpu->registers.pc);
       cpu->registers.pc += 2;
       writeWord(m, address, cpu->registers.sp);
