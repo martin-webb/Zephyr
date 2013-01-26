@@ -24,12 +24,13 @@
 #define MAKE_ADC_A_N_OPCODE_IMPL(SOURCE_REGISTER) \
   uint8_t old = cpu->registers.a; \
   uint8_t value = cpu->registers.SOURCE_REGISTER; \
-  uint32_t new = old + value + ((cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT); \
+  uint8_t carry = ((cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT); \
+  uint32_t new = old + value + carry; \
   cpu->registers.a = new; \
   cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
   cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
-  cpu->registers.f |= (((old & 0xF) + (value & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT; \
-  cpu->registers.f |= (((old & 0xFF) + (value & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT; \
+  cpu->registers.f |= (((old & 0xF) + (value & 0xF) + carry) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT; \
+  cpu->registers.f |= (((old & 0xFF) + (value & 0xFF) + carry) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT; \
   cycles += 4; \
   break;
 
@@ -1093,35 +1094,27 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
     /* 8-Bit ALU ******************************************************************************/
     /* ADD A, n ------------------------------------------------------------------------------*/
     case 0x87: { // ADD A, A
-      // TODO: Check the setting of F register bits H and C
       MAKE_ADD_A_N_OPCODE_IMPL(a)
     }
     case 0x80: { // ADD A, B
-      // TODO: Check the setting of F register bits H and C
       MAKE_ADD_A_N_OPCODE_IMPL(b)
     }
     case 0x81: { // ADD A, C
-      // TODO: Check the setting of F register bits H and C
       MAKE_ADD_A_N_OPCODE_IMPL(c)
     }
     case 0x82: { // ADD A, D
-      // TODO: Check the setting of F register bits H and C
       MAKE_ADD_A_N_OPCODE_IMPL(d)
     }
     case 0x83: { // ADD A, E
-      // TODO: Check the setting of F register bits H and C
       MAKE_ADD_A_N_OPCODE_IMPL(e)
     }
     case 0x84: { // ADD A, H
-      // TODO: Check the setting of F register bits H and C
       MAKE_ADD_A_N_OPCODE_IMPL(h)
     }
     case 0x85: { // ADD A, L
-      // TODO: Check the setting of F register bits H and C
       MAKE_ADD_A_N_OPCODE_IMPL(l)
     }
     case 0x86: { // ADD A, (HL)
-      // TODO: Check the setting of F register bits H and C
       uint8_t old = cpu->registers.a;
       uint8_t value = readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
       uint32_t new = old + value;
@@ -1134,7 +1127,6 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       break;
     }
     case 0xC6: { // ADD A, #
-      // TODO: Check the setting of F register bits H and C
       uint8_t old = cpu->registers.a;
       uint8_t value = readByte(m, cpu->registers.pc++);
       uint32_t new = old + value;
@@ -1149,56 +1141,49 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
 
     /* ADC A, n ------------------------------------------------------------------------------*/
     case 0x8F: { // ADC A, A
-      // TODO: Check the setting of F register bits H and C
       MAKE_ADC_A_N_OPCODE_IMPL(a)
     }
     case 0x88: { // ADC A, B
-      // TODO: Check the setting of F register bits H and C
       MAKE_ADC_A_N_OPCODE_IMPL(b)
     }
     case 0x89: { // ADC A, C
-      // TODO: Check the setting of F register bits H and C
       MAKE_ADC_A_N_OPCODE_IMPL(c)
     }
     case 0x8A: { // ADC A, D
-      // TODO: Check the setting of F register bits H and C
       MAKE_ADC_A_N_OPCODE_IMPL(d)
     }
     case 0x8B: { // ADC A, E
-      // TODO: Check the setting of F register bits H and C
       MAKE_ADC_A_N_OPCODE_IMPL(e)
     }
     case 0x8C: { // ADC A, H
-      // TODO: Check the setting of F register bits H and C
       MAKE_ADC_A_N_OPCODE_IMPL(h)
     }
     case 0x8D: { // ADC A, L
-      // TODO: Check the setting of F register bits H and C
       MAKE_ADC_A_N_OPCODE_IMPL(l)
     }
     case 0x8E: { // ADC A, (HL)
-      // TODO: Check the setting of F register bits H and C
       uint8_t old = cpu->registers.a;
       uint8_t value = readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
-      uint32_t new = old + value + ((cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT);
+      uint8_t carry = ((cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT);
+      uint32_t new = old + value + carry;
       cpu->registers.a = new;
       cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
       cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= (((old & 0xF) + (value & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
-      cpu->registers.f |= (((old & 0xFF) + (value & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
+      cpu->registers.f |= (((old & 0xF) + (value & 0xF) + carry) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
+      cpu->registers.f |= (((old & 0xFF) + (value & 0xFF) + carry) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
       cycles += 8;
       break;
     }
     case 0xCE: { // ADC A, #
-      // TODO: Check the setting of F register bits H and C
       uint8_t old = cpu->registers.a;
       uint8_t value = readByte(m, cpu->registers.pc++);
-      uint32_t new = old + value + ((cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT);
+      uint8_t carry = ((cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT);
+      uint32_t new = old + value + carry;
       cpu->registers.a = new;
       cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
       cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= (((old & 0xF) + (value & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
-      cpu->registers.f |= (((old & 0xFF) + (value & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
+      cpu->registers.f |= (((old & 0xF) + (value & 0xF) + carry) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
+      cpu->registers.f |= (((old & 0xFF) + (value & 0xFF) + carry) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
       cycles += 8;
       break;
     }
