@@ -1446,35 +1446,27 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
 
     /* INC n ---------------------------------------------------------------------------------*/
     case 0x3C: { // INC A
-      // TODO: Seriously check that C bit of register F is set correctly
       MAKE_INC_N_OPCODE_IMPL(a)
     }
     case 0x04: { // INC B
-      // TODO: Seriously check that C bit of register F is set correctly
       MAKE_INC_N_OPCODE_IMPL(b)
     }
     case 0x0C: { // INC C
-      // TODO: Seriously check that C bit of register F is set correctly
       MAKE_INC_N_OPCODE_IMPL(c)
     }
     case 0x14: { // INC D
-      // TODO: Seriously check that C bit of register F is set correctly
       MAKE_INC_N_OPCODE_IMPL(d)
     }
     case 0x1C: { // INC E
-      // TODO: Seriously check that C bit of register F is set correctly
       MAKE_INC_N_OPCODE_IMPL(e)
     }
     case 0x24: { // INC H
-      // TODO: Seriously check that C bit of register F is set correctly
       MAKE_INC_N_OPCODE_IMPL(h)
     }
     case 0x2C: { // INC L
-      // TODO: Seriously check that C bit of register F is set correctly
       MAKE_INC_N_OPCODE_IMPL(l)
     }
     case 0x34: { // INC (HL)
-      // TODO: Seriously check that C bit of register F is set correctly
       uint8_t old = readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
       uint16_t new = old + 1;
       writeByte(m, (cpu->registers.h << 8) | cpu->registers.l, (uint8_t)new);
