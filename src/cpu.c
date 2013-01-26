@@ -87,8 +87,8 @@
   int16_t result = cpu->registers.a - cpu->registers.SOURCE_REGISTER; \
   cpu->registers.f |= (result == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
   cpu->registers.f |= 1 << FLAG_REGISTER_N_BIT_SHIFT; \
-  cpu->registers.f |= ((result & 0xF) >= 0x0) << FLAG_REGISTER_H_BIT_SHIFT; \
-  cpu->registers.f |= ((result & 0xFF) >= 0x00) << FLAG_REGISTER_C_BIT_SHIFT; \
+  cpu->registers.f |= ((result & 0xF) < 0x0) << FLAG_REGISTER_H_BIT_SHIFT; \
+  cpu->registers.f |= ((result & 0xFF) < 0x00) << FLAG_REGISTER_C_BIT_SHIFT; \
   cycles += 4; \
   break;
 
@@ -1405,50 +1405,41 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
 
     /* CP n ----------------------------------------------------------------------------------*/
     case 0xBF: { // CP A
-      // TODO: Check the conditions for setting the H and C bits of register F
       MAKE_CP_N_OPCODE_IMPL(a)
     }
     case 0xB8: { // CP B
-      // TODO: Check the conditions for setting the H and C bits of register F
       MAKE_CP_N_OPCODE_IMPL(b)
     }
     case 0xB9: { // CP C
-      // TODO: Check the conditions for setting the H and C bits of register F
       MAKE_CP_N_OPCODE_IMPL(c)
     }
     case 0xBA: { // CP D
-      // TODO: Check the conditions for setting the H and C bits of register F
       MAKE_CP_N_OPCODE_IMPL(d)
     }
     case 0xBB: { // CP E
-      // TODO: Check the conditions for setting the H and C bits of register F
       MAKE_CP_N_OPCODE_IMPL(e)
     }
     case 0xBC: { // CP H
-      // TODO: Check the conditions for setting the H and C bits of register F
       MAKE_CP_N_OPCODE_IMPL(h)
     }
     case 0xBD: { // CP L
-      // TODO: Check the conditions for setting the H and C bits of register F
       MAKE_CP_N_OPCODE_IMPL(l)
     }
     case 0xBE: { // CP (HL)
-      // TODO: Check the conditions for setting the H and C bits of register F
       int16_t result = cpu->registers.a - readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
       cpu->registers.f |= (result == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
       cpu->registers.f |= 1 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= ((result & 0xF) >= 0x0) << FLAG_REGISTER_H_BIT_SHIFT;
-      cpu->registers.f |= ((result & 0xFF) >= 0x00) << FLAG_REGISTER_C_BIT_SHIFT;
+      cpu->registers.f |= ((result & 0xF) < 0x0) << FLAG_REGISTER_H_BIT_SHIFT;
+      cpu->registers.f |= ((result & 0xFF) < 0x00) << FLAG_REGISTER_C_BIT_SHIFT;
       cycles += 8;
       break;
     }
     case 0xFE: { // CP #
-      // TODO: Check the conditions for setting the H and C bits of register F
       int16_t result = cpu->registers.a - readByte(m, cpu->registers.pc++);
       cpu->registers.f |= (result == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
       cpu->registers.f |= 1 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= ((result & 0xF) >= 0x0) << FLAG_REGISTER_H_BIT_SHIFT;
-      cpu->registers.f |= ((result & 0xFF) >= 0x00) << FLAG_REGISTER_C_BIT_SHIFT;
+      cpu->registers.f |= ((result & 0xF) < 0x0) << FLAG_REGISTER_H_BIT_SHIFT;
+      cpu->registers.f |= ((result & 0xFF) < 0x00) << FLAG_REGISTER_C_BIT_SHIFT;
       cycles += 8;
       break;
     }
