@@ -1778,7 +1778,8 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
     /* Jumps **********************************************************************************/
     /* JP nn ---------------------------------------------------------------------------------*/
     case 0xC3: { // JP nn
-      uint16_t address = readWord(m, cpu->registers.pc++);
+      uint16_t address = readWord(m, cpu->registers.pc);
+      cpu->registers.pc += 2;
       cpu->registers.pc = address;
       cycles += 12;
       break;
