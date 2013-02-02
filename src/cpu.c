@@ -7,6 +7,24 @@
 
 #include "mnemonics.h"
 
+extern inline void setZ(CPU* cpu);
+extern inline void setN(CPU* cpu);
+extern inline void setH(CPU* cpu);
+extern inline void setC(CPU* cpu);
+
+extern inline void resetZ(CPU* cpu);
+extern inline void resetN(CPU* cpu);
+extern inline void resetH(CPU* cpu);
+extern inline void resetC(CPU* cpu);
+
+/* Flag Set/Reset Generation Macros *************************************************************/
+#define SET_FLAG_TO_RESULT(FLAG, TEST) \
+  if (TEST) { \
+    set ## FLAG(cpu); \
+  } else { \
+    reset ## FLAG(cpu); \
+  } \
+
 /* Opcode Generation Macros *********************************************************************/
 
 #define MAKE_ADD_A_N_OPCODE_IMPL(SOURCE_REGISTER) \
@@ -14,10 +32,10 @@
   uint8_t value = cpu->registers.SOURCE_REGISTER; \
   uint32_t new = old + value; \
   cpu->registers.a = new; \
-  cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
-  cpu->registers.f |= (((old & 0xF) + (value & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT; \
-  cpu->registers.f |= (((old & 0xFF) + (value & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT; \
+  SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0) \
+  resetN(cpu); \
+  SET_FLAG_TO_RESULT(H, ((old & 0xF) + (value & 0xF)) > 0xF) \
+  SET_FLAG_TO_RESULT(C, ((old & 0xFF) + (value & 0xFF)) > 0xFF) \
   cycles += 4; \
   break;
 
@@ -27,10 +45,10 @@
   uint8_t carry = ((cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT); \
   uint32_t new = old + value + carry; \
   cpu->registers.a = new; \
-  cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
-  cpu->registers.f |= (((old & 0xF) + (value & 0xF) + carry) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT; \
-  cpu->registers.f |= (((old & 0xFF) + (value & 0xFF) + carry) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT; \
+  SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0) \
+  resetN(cpu); \
+  SET_FLAG_TO_RESULT(H, ((old & 0xF) + (value & 0xF) + carry) > 0xF) \
+  SET_FLAG_TO_RESULT(C, ((old & 0xFF) + (value & 0xFF) + carry) > 0xFF) \
   cycles += 4; \
   break;
 
@@ -38,10 +56,10 @@
   uint8_t old = cpu->registers.a; \
   int32_t new = old - cpu->registers.SOURCE_REGISTER; \
   cpu->registers.a = new; \
-  cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
-  cpu->registers.f |= 1 << FLAG_REGISTER_N_BIT_SHIFT; \
-  cpu->registers.f |= ((new & 0xF) < 0x0) << FLAG_REGISTER_H_BIT_SHIFT; \
-  cpu->registers.f |= ((new & 0xFF) < 0x00) << FLAG_REGISTER_C_BIT_SHIFT; \
+  SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0) \
+  setN(cpu); \
+  SET_FLAG_TO_RESULT(H, (new & 0xF) < 0x0) \
+  SET_FLAG_TO_RESULT(C, (new & 0xFF) < 0x00) \
   cycles += 4; \
   break;
   
@@ -49,46 +67,46 @@
   uint8_t old = cpu->registers.a; \
   int32_t new = old - (cpu->registers.SOURCE_REGISTER + ((cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT)); \
   cpu->registers.a = new; \
-  cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
-  cpu->registers.f |= 1 << FLAG_REGISTER_N_BIT_SHIFT; \
-  cpu->registers.f |= ((new & 0xF) < 0x0) << FLAG_REGISTER_H_BIT_SHIFT; \
-  cpu->registers.f |= ((new & 0xFF) < 0x00) << FLAG_REGISTER_C_BIT_SHIFT; \
+  SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0) \
+  setN(cpu); \
+  SET_FLAG_TO_RESULT(H, (new & 0xF) < 0x0) \
+  SET_FLAG_TO_RESULT(C, (new & 0xFF) < 0x00) \
   cycles += 4; \
   break;
 
 #define MAKE_AND_N_OPCODE_IMPL(SOURCE_REGISTER) \
   cpu->registers.a &= cpu->registers.SOURCE_REGISTER; \
-  cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
-  cpu->registers.f |= 1 << FLAG_REGISTER_H_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT; \
+  SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0) \
+  resetN(cpu); \
+  setH(cpu); \
+  resetC(cpu); \
   cycles += 4; \
   break;
   
 #define MAKE_OR_N_OPCODE_IMPL(SOURCE_REGISTER) \
   cpu->registers.a |= cpu->registers.SOURCE_REGISTER; \
-  cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT; \
+  SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0) \
+  resetN(cpu); \
+  resetH(cpu); \
+  resetC(cpu); \
   cycles += 4; \
   break;
 
 #define MAKE_XOR_N_OPCODE_IMPL(SOURCE_REGISTER) \
   cpu->registers.a ^= cpu->registers.SOURCE_REGISTER; \
-  cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT; \
+  SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0) \
+  resetN(cpu); \
+  resetH(cpu); \
+  resetC(cpu); \
   cycles += 4; \
   break;
 
 #define MAKE_CP_N_OPCODE_IMPL(SOURCE_REGISTER) \
   int16_t result = cpu->registers.a - cpu->registers.SOURCE_REGISTER; \
-  cpu->registers.f |= (result == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
-  cpu->registers.f |= 1 << FLAG_REGISTER_N_BIT_SHIFT; \
-  cpu->registers.f |= ((result & 0xF) < 0x0) << FLAG_REGISTER_H_BIT_SHIFT; \
-  cpu->registers.f |= ((result & 0xFF) < 0x00) << FLAG_REGISTER_C_BIT_SHIFT; \
+  SET_FLAG_TO_RESULT(Z, result == 0) \
+  setN(cpu); \
+  SET_FLAG_TO_RESULT(H, (result & 0xF) < 0x0) \
+  SET_FLAG_TO_RESULT(C, (result & 0xFF) < 0x00) \
   cycles += 4; \
   break;
 
@@ -96,9 +114,9 @@
   uint8_t old = cpu->registers.REGISTER; \
   uint16_t new = old + 1; \
   cpu->registers.REGISTER = new; \
-  cpu->registers.f |= (cpu->registers.REGISTER == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
-  cpu->registers.f |= (((old & 0xF) + (1 & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT; \
+  SET_FLAG_TO_RESULT(Z, cpu->registers.REGISTER == 0) \
+  resetN(cpu); \
+  SET_FLAG_TO_RESULT(H, ((old & 0xF) + (1 & 0xF)) > 0xF) \
   cycles += 4; \
   break;
 
@@ -106,9 +124,9 @@
   uint8_t old = cpu->registers.REGISTER; \
   int16_t new = old - 1; \
   cpu->registers.REGISTER = new; \
-  cpu->registers.f |= (cpu->registers.REGISTER == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
-  cpu->registers.f |= 1 << FLAG_REGISTER_N_BIT_SHIFT; \
-  cpu->registers.f |= ((new & 0xF) < 0x0) << FLAG_REGISTER_H_BIT_SHIFT; \
+  SET_FLAG_TO_RESULT(Z, cpu->registers.REGISTER == 0) \
+  setN(cpu); \
+  SET_FLAG_TO_RESULT(H, (new & 0xF) < 0x0) \
   cycles += 4; \
   break;
 
@@ -118,9 +136,9 @@
   uint16_t result = old + value; \
   cpu->registers.h = (result & 0xFF00) >> 8; \
   cpu->registers.l = (result & 0x00FF); \
-  cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
-  cpu->registers.f |= (((old & 0xFFF) + (value & 0xFFF)) > 0xFFF) << FLAG_REGISTER_H_BIT_SHIFT; \
-  cpu->registers.f |= (((old & 0xFFFF) + (value & 0xFFFF)) > 0xFFFF) << FLAG_REGISTER_C_BIT_SHIFT; \
+  resetN(cpu); \
+  SET_FLAG_TO_RESULT(H, ((old & 0xFFF) + (value & 0xFFF)) > 0xFFF) \
+  SET_FLAG_TO_RESULT(C, ((old & 0xFFFF) + (value & 0xFFFF)) > 0xFFFF) \
   cycles += 8; \
   break;
 
@@ -142,91 +160,91 @@
 
 #define MAKE_SWAP_N_OPCODE_IMPL(REGISTER) \
   cpu->registers.REGISTER = ((cpu->registers.REGISTER & 0xF0) >> 4) | ((cpu->registers.REGISTER & 0x0F) << 4); \
-  cpu->registers.f |= (cpu->registers.REGISTER == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT; \
+  SET_FLAG_TO_RESULT(Z, cpu->registers.REGISTER == 0) \
+  resetN(cpu); \
+  resetH(cpu); \
+  resetC(cpu); \
   cycles += 8; \
   break;
 
 #define MAKE_RLC_N_OPCODE_IMPL(REGISTER) \
-  cpu->registers.f |= (cpu->registers.REGISTER & BIT_7) >> (BIT_7_SHIFT - FLAG_REGISTER_C_BIT_SHIFT); \
+  SET_FLAG_TO_RESULT(C, cpu->registers.REGISTER & BIT_7); \
   cpu->registers.REGISTER = (cpu->registers.REGISTER << 1) | ((cpu->registers.REGISTER & BIT_7) >> BIT_7_SHIFT); \
-  cpu->registers.f |= (cpu->registers.REGISTER == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT; \
+  SET_FLAG_TO_RESULT(Z, cpu->registers.REGISTER == 0) \
+  resetN(cpu); \
+  resetH(cpu); \
   cycles += 8; \
   break;
 
 #define MAKE_RL_N_OPCODE_IMPL(REGISTER) \
   uint8_t oldCarryBit = (cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT; \
-  cpu->registers.f |= (cpu->registers.REGISTER & BIT_7) >> (BIT_7_SHIFT - FLAG_REGISTER_C_BIT_SHIFT); \
+  SET_FLAG_TO_RESULT(C, cpu->registers.REGISTER & BIT_7) \
   cpu->registers.REGISTER = (cpu->registers.REGISTER << 1) | oldCarryBit; \
-  cpu->registers.f |= (cpu->registers.REGISTER == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT; \
+  SET_FLAG_TO_RESULT(Z, cpu->registers.REGISTER == 0) \
+  resetN(cpu); \
+  resetH(cpu); \
   cycles += 8; \
   break;
 
 #define MAKE_RRC_N_OPCODE_IMPL(REGISTER) \
-  cpu->registers.f |= (cpu->registers.REGISTER & BIT_0) << FLAG_REGISTER_C_BIT_SHIFT; \
+  SET_FLAG_TO_RESULT(C, cpu->registers.REGISTER & BIT_0) \
   cpu->registers.REGISTER = ((cpu->registers.REGISTER & BIT_0) << BIT_7_SHIFT) | (cpu->registers.REGISTER >> 1); \
-  cpu->registers.f |= (cpu->registers.REGISTER == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT; \
+  SET_FLAG_TO_RESULT(Z, cpu->registers.REGISTER == 0) \
+  resetN(cpu); \
+  resetH(cpu); \
   cycles += 8; \
   break;
 
 #define MAKE_RR_N_OPCODE_IMPL(REGISTER) \
   uint8_t oldCarryBit = (cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT; \
-  cpu->registers.f |= (cpu->registers.REGISTER & BIT_0) << FLAG_REGISTER_C_BIT_SHIFT; \
+  SET_FLAG_TO_RESULT(C, cpu->registers.REGISTER & BIT_0) \
   cpu->registers.REGISTER = (oldCarryBit << BIT_7_SHIFT) | (cpu->registers.REGISTER >> 1); \
-  cpu->registers.f |= (cpu->registers.REGISTER == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT; \
+  SET_FLAG_TO_RESULT(Z, cpu->registers.REGISTER == 0) \
+  resetN(cpu); \
+  resetH(cpu); \
   cycles += 8; \
   break;
 
 #define MAKE_SLA_N_OPCODE_IMPL(REGISTER) \
-  cpu->registers.f |= (cpu->registers.REGISTER & BIT_7) >> (BIT_7_SHIFT - FLAG_REGISTER_C_BIT_SHIFT); \
+  SET_FLAG_TO_RESULT(C, cpu->registers.REGISTER & BIT_7) \
   cpu->registers.REGISTER <<= 1; \
-  cpu->registers.f |= (cpu->registers.REGISTER == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT; \
+  SET_FLAG_TO_RESULT(Z, cpu->registers.REGISTER == 0) \
+  resetN(cpu); \
+  resetH(cpu); \
   cycles += 8; \
   break;
 
 #define MAKE_SRA_N_OPCODE_IMPL(REGISTER) \
-  cpu->registers.f |= (cpu->registers.REGISTER & BIT_0) << FLAG_REGISTER_C_BIT_SHIFT; \
+  SET_FLAG_TO_RESULT(C, cpu->registers.REGISTER & BIT_0) \
   cpu->registers.REGISTER = (cpu->registers.REGISTER & BIT_7) | (cpu->registers.REGISTER >> 1); \
-  cpu->registers.f |= (cpu->registers.REGISTER == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT; \
+  SET_FLAG_TO_RESULT(Z, cpu->registers.REGISTER == 0) \
+  resetN(cpu); \
+  resetH(cpu); \
   cycles += 8; \
   break;
   
 #define MAKE_SRL_N_OPCODE_IMPL(REGISTER) \
-  cpu->registers.f |= (cpu->registers.REGISTER & BIT_0) << FLAG_REGISTER_C_BIT_SHIFT; \
+  SET_FLAG_TO_RESULT(C, cpu->registers.REGISTER & BIT_0) \
   cpu->registers.REGISTER = cpu->registers.REGISTER >> 1; \
-  cpu->registers.f |= (cpu->registers.REGISTER == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT; \
+  SET_FLAG_TO_RESULT(Z, cpu->registers.REGISTER == 0) \
+  resetN(cpu); \
+  resetH(cpu); \
   cycles += 8; \
   break;
 
 #define MAKE_BIT_B_R_OPCODE_IMPL(B, REGISTER) \
-  cpu->registers.f |= (((cpu->registers.REGISTER & (0x1 << B)) >> B) == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
-  cpu->registers.f |= 1 << FLAG_REGISTER_H_BIT_SHIFT; \
+  SET_FLAG_TO_RESULT(Z, ((cpu->registers.REGISTER & (0x1 << B)) >> B) == 0) \
+  resetN(cpu); \
+  setH(cpu); \
   cycles += 8; \
   break;
 
 // TODO: Check this, with only one extra memory access (the byte read) I would expect this to be 12 clock cycles, not 16
 #define MAKE_BIT_B_MEM_AT_HL_OPCODE_IMPL(B) \
   uint8_t value = readByte(m, (cpu->registers.h << 8) | cpu->registers.l); \
-  cpu->registers.f |= (((value & (0x1 << B)) >> B) == 0) << FLAG_REGISTER_Z_BIT_SHIFT; \
-  cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT; \
-  cpu->registers.f |= 1 << FLAG_REGISTER_H_BIT_SHIFT; \
+  SET_FLAG_TO_RESULT(Z, ((value & (0x1 << B)) >> B) == 0) \
+  resetN(cpu); \
+  setH(cpu); \
   cycles += 16; \
   break;
 
@@ -1004,15 +1022,15 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       uint16_t oldAddress = (cpu->registers.h) | cpu->registers.l;
       uint16_t newAddress = cpu->registers.sp + signedValue;
       cpu->registers.h = (newAddress & 0xFF00) >> 8;
-      cpu->registers.l = newAddress & 0x00FF;
-      cpu->registers.f |= 0 << FLAG_REGISTER_Z_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+      cpu->registers.l = newAddress & 0x00FF;      
+      resetZ(cpu);
+      resetN(cpu);
       if (signedValue >= 0) {
-        cpu->registers.f |= (((oldAddress & 0xFF) + signedValue) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
-        cpu->registers.f |= (((oldAddress & 0xF) + (signedValue & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
+        SET_FLAG_TO_RESULT(H, ((oldAddress & 0xF) + (signedValue & 0xF)) > 0xF)
+        SET_FLAG_TO_RESULT(C, ((oldAddress & 0xFF) + signedValue) > 0xFF)
       } else {
-        cpu->registers.f |= ((newAddress & 0xFF) <= (oldAddress & 0xFF)) << FLAG_REGISTER_C_BIT_SHIFT;
-        cpu->registers.f |= ((newAddress & 0xF) <= (oldAddress & 0xF)) << FLAG_REGISTER_H_BIT_SHIFT;
+        SET_FLAG_TO_RESULT(H, (newAddress & 0xF) <= (oldAddress & 0xF))
+        SET_FLAG_TO_RESULT(C, (newAddress & 0xFF) <= (oldAddress & 0xFF))
       }
       cycles += 12;
       break;
@@ -1119,10 +1137,10 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       uint8_t value = readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
       uint32_t new = old + value;
       cpu->registers.a = new;
-      cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= (((old & 0xF) + (value & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
-      cpu->registers.f |= (((old & 0xFF) + (value & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
+      SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
+      resetN(cpu);
+      SET_FLAG_TO_RESULT(H, ((old & 0xF) + (value & 0xF)) > 0xF)
+      SET_FLAG_TO_RESULT(C, ((old & 0xFF) + (value & 0xFF)) > 0xFF)
       cycles += 8;
       break;
     }
@@ -1131,10 +1149,10 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       uint8_t value = readByte(m, cpu->registers.pc++);
       uint32_t new = old + value;
       cpu->registers.a = new;
-      cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= (((old & 0xF) + (value & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
-      cpu->registers.f |= (((old & 0xFF) + (value & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
+      SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
+      resetN(cpu);
+      SET_FLAG_TO_RESULT(H, ((old & 0xF) + (value & 0xF)) > 0xF)
+      SET_FLAG_TO_RESULT(C, ((old & 0xFF) + (value & 0xFF)) > 0xFF)
       cycles += 8;
       break;
     }
@@ -1167,10 +1185,10 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       uint8_t carry = ((cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT);
       uint32_t new = old + value + carry;
       cpu->registers.a = new;
-      cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= (((old & 0xF) + (value & 0xF) + carry) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
-      cpu->registers.f |= (((old & 0xFF) + (value & 0xFF) + carry) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
+      SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
+      resetN(cpu);
+      SET_FLAG_TO_RESULT(H, ((old & 0xF) + (value & 0xF) + carry) > 0xF)
+      SET_FLAG_TO_RESULT(C, ((old & 0xFF) + (value & 0xFF) + carry) > 0xFF)
       cycles += 8;
       break;
     }
@@ -1180,10 +1198,10 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       uint8_t carry = ((cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT);
       uint32_t new = old + value + carry;
       cpu->registers.a = new;
-      cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= (((old & 0xF) + (value & 0xF) + carry) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
-      cpu->registers.f |= (((old & 0xFF) + (value & 0xFF) + carry) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
+      SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
+      resetN(cpu);
+      SET_FLAG_TO_RESULT(H, ((old & 0xF) + (value & 0xF) + carry) > 0xF)
+      SET_FLAG_TO_RESULT(C, ((old & 0xFF) + (value & 0xFF) + carry) > 0xFF)
       cycles += 8;
       break;
     }
@@ -1215,10 +1233,10 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       uint8_t old = cpu->registers.a;
       int32_t new = old - readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
       cpu->registers.a = new;
-      cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-      cpu->registers.f |= 1 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= ((new & 0xF) < 0x0) << FLAG_REGISTER_H_BIT_SHIFT;
-      cpu->registers.f |= ((new & 0xFF) < 0x00) << FLAG_REGISTER_C_BIT_SHIFT;
+      SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
+      setN(cpu);
+      SET_FLAG_TO_RESULT(H, (new & 0xF) < 0x0)
+      SET_FLAG_TO_RESULT(C, (new & 0xFF) < 0x00)
       cycles += 8;
       break;
     }
@@ -1226,10 +1244,10 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       uint8_t old = cpu->registers.a;
       int32_t new = old - readByte(m, cpu->registers.pc++);
       cpu->registers.a = new;
-      cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-      cpu->registers.f |= 1 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= ((new & 0xF) < 0x0) << FLAG_REGISTER_H_BIT_SHIFT;
-      cpu->registers.f |= ((new & 0xFF) < 0x00) << FLAG_REGISTER_C_BIT_SHIFT;
+      SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
+      setN(cpu);
+      SET_FLAG_TO_RESULT(H, (new & 0xF) < 0x0)
+      SET_FLAG_TO_RESULT(C, (new & 0xFF) < 0x00)
       cycles += 8;
       break;
     }
@@ -1261,10 +1279,10 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       uint8_t old = cpu->registers.a;
       int32_t new = old - (readByte(m, (cpu->registers.h << 8) | cpu->registers.l) + ((cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT));
       cpu->registers.a = new;
-      cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-      cpu->registers.f |= 1 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= ((new & 0xF) < 0x0) << FLAG_REGISTER_H_BIT_SHIFT;
-      cpu->registers.f |= ((new & 0xFF) < 0x00) << FLAG_REGISTER_C_BIT_SHIFT;
+      SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
+      setN(cpu);
+      SET_FLAG_TO_RESULT(H, (new & 0xF) < 0x0)
+      SET_FLAG_TO_RESULT(C, (new & 0xFF) < 0x00)
       cycles += 8;
       break;
     }
@@ -1272,10 +1290,10 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       uint8_t old = cpu->registers.a;
       int32_t new = old - (readByte(m, cpu->registers.pc++) + ((cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT));
       cpu->registers.a = new;
-      cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-      cpu->registers.f |= 1 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= ((new & 0xF) < 0x0) << FLAG_REGISTER_H_BIT_SHIFT;
-      cpu->registers.f |= ((new & 0xFF) < 0x0) << FLAG_REGISTER_C_BIT_SHIFT;
+      SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
+      setN(cpu);
+      SET_FLAG_TO_RESULT(H, (new & 0xF) < 0x0)
+      SET_FLAG_TO_RESULT(C, (new & 0xFF) < 0x00)
       cycles += 8;
       break;
     }
@@ -1304,19 +1322,19 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
     }
     case 0xA6: { // AND (HL)
       cpu->registers.a &= readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
-      cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= 1 << FLAG_REGISTER_H_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT;
+      SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
+      resetN(cpu);
+      setH(cpu);
+      resetC(cpu);
       cycles += 8;
       break;
     }
     case 0xE6: { // AND #
       cpu->registers.a &= readByte(m, cpu->registers.pc++);
-      cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= 1 << FLAG_REGISTER_H_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT;
+      SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
+      resetN(cpu);
+      setH(cpu);
+      resetC(cpu);
       cycles += 8;
       break;
     }
@@ -1345,19 +1363,19 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
     }
     case 0xB6: { // OR (HL)
       cpu->registers.a |= readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
-      cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT;
+      SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
+      resetN(cpu);
+      resetH(cpu);
+      resetC(cpu);
       cycles += 8;
       break;
     }
     case 0xF6: { // OR #
       cpu->registers.a |= readByte(m, cpu->registers.pc++);
-      cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT;
+      SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
+      resetN(cpu);
+      resetH(cpu);
+      resetC(cpu);
       cycles += 8;
       break;
     }
@@ -1386,19 +1404,19 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
     }
     case 0xAE: { // XOR (HL)
       cpu->registers.a ^= readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
-      cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT;
+      SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
+      resetN(cpu);
+      resetH(cpu);
+      resetC(cpu);
       cycles += 8;
       break;
     }
     case 0xEE: { // XOR *
       cpu->registers.a ^= readByte(m, cpu->registers.pc++);
-      cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT;
+      SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
+      resetN(cpu);
+      resetH(cpu);
+      resetC(cpu);
       cycles += 8;
       break;
     }
@@ -1427,19 +1445,19 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
     }
     case 0xBE: { // CP (HL)
       int16_t result = cpu->registers.a - readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
-      cpu->registers.f |= (result == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-      cpu->registers.f |= 1 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= ((result & 0xF) < 0x0) << FLAG_REGISTER_H_BIT_SHIFT;
-      cpu->registers.f |= ((result & 0xFF) < 0x00) << FLAG_REGISTER_C_BIT_SHIFT;
+      SET_FLAG_TO_RESULT(Z, result == 0)
+      setN(cpu);
+      SET_FLAG_TO_RESULT(H, (result & 0xF) < 0x0)
+      SET_FLAG_TO_RESULT(C, (result & 0xFF) < 0x00)
       cycles += 8;
       break;
     }
     case 0xFE: { // CP #
       int16_t result = cpu->registers.a - readByte(m, cpu->registers.pc++);
-      cpu->registers.f |= (result == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-      cpu->registers.f |= 1 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= ((result & 0xF) < 0x0) << FLAG_REGISTER_H_BIT_SHIFT;
-      cpu->registers.f |= ((result & 0xFF) < 0x00) << FLAG_REGISTER_C_BIT_SHIFT;
+      SET_FLAG_TO_RESULT(Z, result == 0)
+      setN(cpu);
+      SET_FLAG_TO_RESULT(H, (result & 0xF) < 0x0)
+      SET_FLAG_TO_RESULT(C, (result & 0xFF) < 0x00)
       cycles += 8;
       break;
     }
@@ -1470,9 +1488,9 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       uint8_t old = readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
       uint16_t new = old + 1;
       writeByte(m, (cpu->registers.h << 8) | cpu->registers.l, (uint8_t)new);
-      cpu->registers.f |= ((uint8_t)new == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= (((old & 0xF) + (1 & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
+      SET_FLAG_TO_RESULT(Z, (uint8_t)new == 0)
+      resetN(cpu);
+      SET_FLAG_TO_RESULT(H, ((old & 0xF) + (1 & 0xF)) > 0xF)
       cycles += 12;
       break;
     }
@@ -1503,9 +1521,9 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       uint8_t old = readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
       int16_t new = old - 1;
       writeByte(m, (cpu->registers.h << 8) | cpu->registers.l, (uint8_t)new);
-      cpu->registers.f |= ((uint8_t)new == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-      cpu->registers.f |= 1 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= ((new & 0xF) < 0x0) << FLAG_REGISTER_H_BIT_SHIFT;
+      SET_FLAG_TO_RESULT(Z, (uint8_t)new == 0)
+      setN(cpu);
+      SET_FLAG_TO_RESULT(H, (new & 0xF) < 0x0)
       cycles += 12;
       break;
     }
@@ -1527,9 +1545,9 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       uint16_t result = old + value;
       cpu->registers.h = (result & 0xFF00) >> 8;
       cpu->registers.l = (result & 0x00FF);
-      cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= (((old & 0xFFF) + (value & 0xFFF)) > 0xFFF) << FLAG_REGISTER_H_BIT_SHIFT;
-      cpu->registers.f |= (((old & 0xFFFF) + (value & 0xFFFF)) > 0xFFFF) << FLAG_REGISTER_C_BIT_SHIFT;
+      resetN(cpu);
+      SET_FLAG_TO_RESULT(H, ((old & 0xFFF) + (value & 0xFFF)) > 0xFFF)
+      SET_FLAG_TO_RESULT(C, ((old & 0xFFFF) + (value & 0xFFFF)) > 0xFFFF)
       cycles += 8;
       break;
     }
@@ -1542,14 +1560,14 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       uint16_t old = cpu->registers.sp;
       int32_t new = old + value;
       cpu->registers.sp = new;
-      cpu->registers.f |= 0 << FLAG_REGISTER_Z_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
+      resetZ(cpu);
+      resetN(cpu);
       if (value >= 0) {
-        cpu->registers.f |= (((old & 0xF) + (value & 0xF)) > 0xF) << FLAG_REGISTER_H_BIT_SHIFT;
-        cpu->registers.f |= (((old & 0xFF) + (value & 0xFF)) > 0xFF) << FLAG_REGISTER_C_BIT_SHIFT;
+        SET_FLAG_TO_RESULT(H, ((old & 0xF) + (value & 0xF)) > 0xF)
+        SET_FLAG_TO_RESULT(C, ((old & 0xFF) + (value & 0xFF)) > 0xFF)
       } else {
-        cpu->registers.f |= ((new & 0xF) <= (old & 0xF)) << FLAG_REGISTER_H_BIT_SHIFT;
-        cpu->registers.f |= ((new & 0xFF) <= (old & 0xFF)) << FLAG_REGISTER_C_BIT_SHIFT;
+        SET_FLAG_TO_RESULT(H, (new & 0xF) <= (old & 0xF))
+        SET_FLAG_TO_RESULT(C, (new & 0xFF) <= (old & 0xFF))
       }
       cycles += 16;
       break;
@@ -1599,22 +1617,22 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
         if (c == 0) {
           if ((upperDigit <= 0x9) && (h == 0) && (lowerDigit <= 0x9)) {
             cpu->registers.a += 0x00; // Adding 0 simply for consistency and awareness that there is no change here - this could be removed (if it's not optimised out)
-            cpu->registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT;
+            resetC(cpu);
           } else if (
             ((upperDigit <= 0x8) && (h == 0) && (lowerDigit >= 0xA) && (lowerDigit <= 0xF)) ||
             ((upperDigit <= 0x9) && (h == 1) && (lowerDigit <= 0x3))
             ) {
             cpu->registers.a += 0x06;
-            cpu->registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT;
+            resetC(cpu);
           } else if ((upperDigit >= 0xA) && (upperDigit <= 0xF) && (h == 0) && (lowerDigit <= 0x9)) {
             cpu->registers.a += 0x60;
-            cpu->registers.f |= 1 << FLAG_REGISTER_C_BIT_SHIFT;
+            setC(cpu);
           } else if (
             ((upperDigit >= 0x9) && (upperDigit <= 0xF) && (h == 0) && (lowerDigit >= 0xA) && (lowerDigit <= 0xF)) ||
             ((upperDigit >= 0xA) && (upperDigit <= 0xF) && (h == 1) && (lowerDigit <= 0x3))
             ) {
             cpu->registers.a += 0x66;
-            cpu->registers.f |= 1 << FLAG_REGISTER_C_BIT_SHIFT;
+            setC(cpu);
           } else {
             fprintf(stderr, "FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 1)\n", n, c, h, upperDigit, lowerDigit);
             exit(EXIT_FAILURE);
@@ -1622,13 +1640,13 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
         } else { // (c == 1)
           if ((upperDigit <= 0x2) && (h == 0) && (lowerDigit <= 0x9)) {
             cpu->registers.a += 0x60;
-            cpu->registers.f |= 1 << FLAG_REGISTER_C_BIT_SHIFT;
+            setC(cpu);
           } else if (
             ((upperDigit <= 0x2) && (h == 0) && (lowerDigit >= 0xA) && (lowerDigit <= 0xF)) ||
             ((upperDigit <= 0x3) && (h == 1) && (lowerDigit <= 0x3))
             ) {
             cpu->registers.a += 0x66;
-            cpu->registers.f |= 1 << FLAG_REGISTER_C_BIT_SHIFT;
+            setC(cpu);
           } else {
             fprintf(stderr, "FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 2)\n", n, c, h, upperDigit, lowerDigit);
             exit(EXIT_FAILURE);
@@ -1638,10 +1656,10 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
         if (c == 0) {
           if ((upperDigit <= 0x9) && (h == 0) && (lowerDigit <= 0x9)) {
             cpu->registers.a += 0x00; // Adding 0 simply for consistency and awareness that there is no change here - this could be removed (if it's not optimised out)
-            cpu->registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT;
+            resetC(cpu);
           } else if ((upperDigit <= 0x8) && (h == 1) && (lowerDigit >= 0x6) && (lowerDigit <= 0xF)) {
             cpu->registers.a += 0xFA;
-            cpu->registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT;
+            resetC(cpu);
           } else {
             fprintf(stderr, "FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 3)\n", n, c, h, upperDigit, lowerDigit);
             exit(EXIT_FAILURE);
@@ -1649,18 +1667,18 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
         } else { // (c == 1)
           if ((upperDigit >= 0x7) && (upperDigit <= 0xF) && (h == 0) && (lowerDigit <= 0x9)) {
             cpu->registers.a += 0xA0;
-            cpu->registers.f |= 1 << FLAG_REGISTER_C_BIT_SHIFT;
+            setC(cpu);
           } else if ((upperDigit >= 0x6) && (upperDigit <= 0xF) && (h == 1) && (lowerDigit >= 0x6) && (lowerDigit <= 0xF)) {
             cpu->registers.a += 0x9A;
-            cpu->registers.f |= 1 << FLAG_REGISTER_C_BIT_SHIFT;
+            setC(cpu);
           } else {
             fprintf(stderr, "FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 4)\n", n, c, h, upperDigit, lowerDigit);
             exit(EXIT_FAILURE);
           }
         }
       }
-      cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
+      SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
+      resetH(cpu);
       cycles += 4;
       break;
     }
@@ -1668,26 +1686,26 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
     /* CPL -----------------------------------------------------------------------------------*/
     case 0x2F: { // CPL
       cpu->registers.a = ~cpu->registers.a;
-      cpu->registers.f |= 1 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= 1 << FLAG_REGISTER_H_BIT_SHIFT;
+      setN(cpu);
+      setH(cpu);
       cycles += 4;
       break;
     }
 
     /* CCF -----------------------------------------------------------------------------------*/
     case 0x3F: { // CCF
-      cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
-      cpu->registers.f ^= 1 << FLAG_REGISTER_C_BIT_SHIFT;
+      cpu->registers.f ^= (1 << FLAG_REGISTER_C_BIT_SHIFT);
+      resetN(cpu);
+      resetH(cpu);
       cycles += 4;
       break;
     }
 
     /* SCF -----------------------------------------------------------------------------------*/
     case 0x37: { // SCF
-      cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
-      cpu->registers.f |= 1 << FLAG_REGISTER_C_BIT_SHIFT;
+      setC(cpu);
+      resetN(cpu);
+      resetH(cpu);
       cycles += 4;
       break;
     }
@@ -1731,11 +1749,11 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
     /* Rotates and Shifts *********************************************************************/
     /* RLCA ----------------------------------------------------------------------------------*/
     case 0x07: { // RLCA
-      cpu->registers.f |= (cpu->registers.a & BIT_7) >> (BIT_7_SHIFT - FLAG_REGISTER_C_BIT_SHIFT); // NOTE: Set the C bit of F before we modify A
+      SET_FLAG_TO_RESULT(C, cpu->registers.a & BIT_7) // NOTE: Set the C bit of F before we modify A
       cpu->registers.a = (cpu->registers.a << 1) | ((cpu->registers.a & BIT_7) >> BIT_7_SHIFT);
-      cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
+      SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
+      resetN(cpu);
+      resetH(cpu);
       cycles += 4;
       break;
     }
@@ -1743,22 +1761,22 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
     /* RLA -----------------------------------------------------------------------------------*/
     case 0x17: { // RLA
       uint8_t oldCarryBit = (cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT;
-      cpu->registers.f |= (cpu->registers.a & BIT_7) >> (BIT_7_SHIFT - FLAG_REGISTER_C_BIT_SHIFT); // NOTE: Set the C bit of F before we modify A
+      SET_FLAG_TO_RESULT(C, cpu->registers.a & BIT_7) // NOTE: Set the C bit of F before we modify A
       cpu->registers.a = (cpu->registers.a << 1) | oldCarryBit;
-      cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
+      SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
+      resetN(cpu);
+      resetH(cpu);
       cycles += 4;
       break;
     }
 
     /* RRCA ----------------------------------------------------------------------------------*/
     case 0x0F: { // RRCA
-      cpu->registers.f |= (cpu->registers.a & BIT_0) << FLAG_REGISTER_C_BIT_SHIFT; // NOTE: Set the C bit of F before we modify A
+      SET_FLAG_TO_RESULT(C, cpu->registers.a & BIT_0) // NOTE: Set the C bit of F before we modify A
       cpu->registers.a = ((cpu->registers.a & BIT_0) << BIT_7_SHIFT) | (cpu->registers.a >> 1);
-      cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
+      SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
+      resetN(cpu);
+      resetH(cpu);
       cycles += 4;
       break;
     }
@@ -1766,11 +1784,11 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
     /* RRA -----------------------------------------------------------------------------------*/
     case 0x1F: { // RRA
       uint8_t oldCarryBit = (cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT;
-      cpu->registers.f |= (cpu->registers.a & BIT_0) << FLAG_REGISTER_C_BIT_SHIFT; // NOTE: Set the C bit of F before we modify A
+      SET_FLAG_TO_RESULT(C, cpu->registers.a & BIT_0) // NOTE: Set the C bit of F before we modify A
       cpu->registers.a = (oldCarryBit << BIT_7_SHIFT) | (cpu->registers.a >> 1);
-      cpu->registers.f |= (cpu->registers.a == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-      cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
+      SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
+      resetN(cpu);
+      resetH(cpu);
       cycles += 4;
       break;
     }
@@ -1996,10 +2014,10 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
           uint8_t value = readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
           value = ((value & 0xF0) >> 4) | ((value & 0x0F) << 4);
           writeByte(m, (cpu->registers.h << 8) | cpu->registers.l, value);
-          cpu->registers.f |= (value == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-          cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-          cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
-          cpu->registers.f |= 0 << FLAG_REGISTER_C_BIT_SHIFT;
+          SET_FLAG_TO_RESULT(Z, value == 0)
+          resetN(cpu);
+          resetH(cpu);
+          resetC(cpu);
           cycles += 16;
           break;
         }
@@ -2029,12 +2047,12 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
         }
         case 0x06: { // RLC (HL)
           uint8_t value = readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
-          cpu->registers.f |= (value & BIT_7) >> (BIT_7_SHIFT - FLAG_REGISTER_C_BIT_SHIFT); // NOTE: Set the C bit of F before we modify A
+          SET_FLAG_TO_RESULT(C, value & BIT_7); // NOTE: Set the C bit of F BEFORE we modify the value
           value = (value << 1) | ((value & BIT_7) >> BIT_7_SHIFT);
           writeByte(m, (cpu->registers.h << 8) | cpu->registers.l, value);
-          cpu->registers.f |= (value == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-          cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-          cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
+          SET_FLAG_TO_RESULT(Z, value == 0)
+          resetN(cpu);
+          resetH(cpu);
           cycles += 16;
           break;
         }
@@ -2064,12 +2082,12 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
         case 0x16: { // RL (HL)
           uint8_t value = readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
           uint8_t oldCarryBit = (cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT;
-          cpu->registers.f |= (value & BIT_7) >> (BIT_7_SHIFT - FLAG_REGISTER_C_BIT_SHIFT); // NOTE: Set the C bit of F before we modify A
+          SET_FLAG_TO_RESULT(C, value & BIT_7) // NOTE: Set the C bit of F BEFORE we modify the value
           value = (value << 1) | oldCarryBit;
           writeByte(m, (cpu->registers.h << 8) | cpu->registers.l, value);
-          cpu->registers.f |= (value == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-          cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-          cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
+          SET_FLAG_TO_RESULT(Z, value == 0)
+          resetN(cpu);
+          resetH(cpu);
           cycles += 16;
           break;
         }
@@ -2098,12 +2116,12 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
         }
         case 0x0E: { // RRC (HL)
           uint8_t value = readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
-          cpu->registers.f |= (value & BIT_0) << FLAG_REGISTER_C_BIT_SHIFT; // NOTE: Set the C bit of F before we modify A
+          SET_FLAG_TO_RESULT(C, value & BIT_0) // NOTE: Set the C bit of F BEFORE we modify the value
           value = ((value & BIT_0) << BIT_7_SHIFT) | (value >> 1);
           writeByte(m, (cpu->registers.h << 8) | cpu->registers.l, value);
-          cpu->registers.f |= (value == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-          cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-          cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
+          SET_FLAG_TO_RESULT(Z, value == 0)
+          resetN(cpu);
+          resetH(cpu);
           cycles += 16;
           break;
         }
@@ -2133,12 +2151,12 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
         case 0x1E: { // RR (HL)
           uint8_t value = readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
           uint8_t oldCarryBit = (cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT;
-          cpu->registers.f |= (value & BIT_0) << FLAG_REGISTER_C_BIT_SHIFT; // NOTE: Set the C bit of F before we modify A
+          SET_FLAG_TO_RESULT(C, value & BIT_0) // NOTE: Set the C bit of F BEFORE we modify the value
           value = (oldCarryBit << BIT_7_SHIFT) | (value >> 1);
           writeByte(m, (cpu->registers.h << 8) | cpu->registers.l, value);
-          cpu->registers.f |= (value == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-          cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-          cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
+          SET_FLAG_TO_RESULT(Z, value == 0)
+          resetN(cpu);
+          resetH(cpu);
           cycles += 16;
           break;
         }
@@ -2167,12 +2185,12 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
         }
         case 0x26: { // SLA (HL)
           uint8_t value = readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
-          cpu->registers.f |= (value & BIT_7) >> (BIT_7_SHIFT - FLAG_REGISTER_C_BIT_SHIFT);
+          SET_FLAG_TO_RESULT(C, value & BIT_7) // NOTE: Set the C bit of F BEFORE we modify the value
           value <<= 1;
           writeByte(m, (cpu->registers.h << 8) | cpu->registers.l, value);
-          cpu->registers.f |= (value == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-          cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-          cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
+          SET_FLAG_TO_RESULT(Z, value == 0)
+          resetN(cpu);
+          resetH(cpu);
           cycles += 16;
           break;
         }
@@ -2201,12 +2219,12 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
         }
         case 0x2E: { // SRA (HL)
           uint8_t value = readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
-          cpu->registers.f |= (value & BIT_0) << FLAG_REGISTER_C_BIT_SHIFT;
+          SET_FLAG_TO_RESULT(C, value & BIT_0) // NOTE: Set the C bit of F BEFORE we modify the value
           value = (value & BIT_7) | (value >> 1);
           writeByte(m, (cpu->registers.h << 8) | cpu->registers.l, value);
-          cpu->registers.f |= (value == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-          cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-          cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
+          SET_FLAG_TO_RESULT(Z, value == 0)
+          resetN(cpu);
+          resetH(cpu);
           cycles += 16;
           break;
         }
@@ -2235,12 +2253,12 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
         }
         case 0x3E: { // SRL (HL)
           uint8_t value = readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
-          cpu->registers.f |= (value & BIT_0) << FLAG_REGISTER_C_BIT_SHIFT;
+          SET_FLAG_TO_RESULT(C, value & BIT_0) // NOTE: Set the C bit of F BEFORE we modify the value
           value = value >> 1;
           writeByte(m, (cpu->registers.h << 8) | cpu->registers.l, value);
-          cpu->registers.f |= (value == 0) << FLAG_REGISTER_Z_BIT_SHIFT;
-          cpu->registers.f |= 0 << FLAG_REGISTER_N_BIT_SHIFT;
-          cpu->registers.f |= 0 << FLAG_REGISTER_H_BIT_SHIFT;
+          SET_FLAG_TO_RESULT(Z, value == 0)
+          resetN(cpu);
+          resetH(cpu);
           cycles += 16;
           break;
         }

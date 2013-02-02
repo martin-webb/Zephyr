@@ -77,4 +77,44 @@ void cpuUpdateIME(CPU* cpu);
 void cpuFlagInterrupt(MemoryController* m, uint8_t interruptBit);
 void cpuHandleInterrupts(CPU* cpu, MemoryController* m);
 
+inline void setZ(CPU* cpu)
+{
+  cpu->registers.f |= (1 << FLAG_REGISTER_Z_BIT_SHIFT);
+}
+
+inline void setN(CPU* cpu)
+{
+  cpu->registers.f |= (1 << FLAG_REGISTER_N_BIT_SHIFT);
+}
+
+inline void setH(CPU* cpu)
+{
+  cpu->registers.f |= (1 << FLAG_REGISTER_H_BIT_SHIFT);
+}
+
+inline void setC(CPU* cpu)
+{
+  cpu->registers.f |= (1 << FLAG_REGISTER_C_BIT_SHIFT);
+}
+
+inline void resetZ(CPU* cpu)
+{
+  cpu->registers.f &= ~(1 << FLAG_REGISTER_Z_BIT_SHIFT);
+}
+
+inline void resetN(CPU* cpu)
+{
+  cpu->registers.f &= ~(1 << FLAG_REGISTER_N_BIT_SHIFT);
+}
+
+inline void resetH(CPU* cpu)
+{
+  cpu->registers.f &= ~(1 << FLAG_REGISTER_H_BIT_SHIFT);
+}
+
+inline void resetC(CPU* cpu)
+{
+  cpu->registers.f &= ~(1 << FLAG_REGISTER_C_BIT_SHIFT);
+}
+
 #endif // CPU_H_
