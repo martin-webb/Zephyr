@@ -4,6 +4,7 @@
 #include "cpu.h"
 #include "memory.h"
 #include "speed.h"
+#include "timercontroller.h"
 
 #define IO_REG_ADDRESS_DIV 0xFF04
 #define IO_REG_ADDRESS_TIMA 0xFF05
@@ -24,12 +25,7 @@
 
 #define TIMER_OVERFLOW_INTERRUPT_BIT (1 << 2)
 
-typedef struct {
-  uint32_t dividerCounter;
-  uint32_t timerCounter;
-} TimerState;
-
-void timerUpdateDivider(TimerState* t, MemoryController* m, uint8_t cyclesExecuted);
-void timerUpdateTimer(TimerState* t, MemoryController* m, SpeedMode speedMode, uint8_t cyclesExecuted);
+void timerUpdateDivider(TimerController* timerController, uint8_t cyclesExecuted);
+void timerUpdateTimer(TimerController* timerController, MemoryController* memoryController, SpeedMode speedMode, uint8_t cyclesExecuted);
 
 #endif // TIMER_H_

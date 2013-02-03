@@ -28,11 +28,11 @@ int main(int argc, char* argv[])
   printf("Cartridge Type: 0x%02X - %s\n", cartridgeType, CartridgeTypeToString(cartridgeType));
   
   CPU cpu;
-  MemoryController m = InitMemoryController(cartridgeType, memory, cartridgeData);
-  TimerState t = {
+  TimerController timerController = {
     .dividerCounter = 0,
     .timerCounter = 0
   };
+  MemoryController m = InitMemoryController(cartridgeType, memory, cartridgeData, &timerController);
   GameBoyType gameBoyType = GB;
   SpeedMode speedMode = NORMAL;
   GameBoyType gameType = gbGetGameType(cartridgeData);
@@ -58,7 +58,7 @@ int main(int argc, char* argv[])
   cpuPrintState(&cpu);
   
   while (1) {
-    gbRunAtLeastNCycles(&cpu, &m, &t, gameBoyType, speedMode, CPU_MIN_CYCLES_PER_SET);
+    gbRunAtLeastNCycles(&cpu, &m, &timerController, gameBoyType, speedMode, CPU_MIN_CYCLES_PER_SET);
   }
   
   free(cartridgeData);

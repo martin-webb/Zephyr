@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "timercontroller.h"
+
 typedef struct MemoryController MemoryController;
 
 struct MemoryController {
@@ -15,6 +17,7 @@ struct MemoryController {
   bool ramEnabled; // TODO: Store a bool value or the actual value written to 0x0000-0x1FFFF?
   uint8_t (*readByteImpl)(MemoryController* memoryController, uint16_t address);
   void (*writeByteImpl)(MemoryController* memoryController, uint16_t address, uint8_t value);
+  TimerController* timerController;
 };
 
 uint8_t readByte(MemoryController* memoryController, uint16_t address);
@@ -24,20 +27,20 @@ void writeWord(MemoryController* memoryController, uint16_t address, uint16_t va
 
 void incrementByte(MemoryController* memoryController, uint16_t address);
 
-MemoryController InitMemoryController(uint8_t cartridgeType, uint8_t* memory, uint8_t* cartridge);
+MemoryController InitMemoryController(uint8_t cartridgeType, uint8_t* memory, uint8_t* cartridge, TimerController* timerController);
 
 /****************************************************************************/
 
 uint8_t ROMOnlyReadByte(MemoryController* memoryController, uint16_t address);
 void ROMOnlyWriteByte(MemoryController* memoryController, uint16_t address, uint8_t value);
 
-MemoryController InitROMOnlyMemoryController(uint8_t* memory, uint8_t* cartridge);
+MemoryController InitROMOnlyMemoryController(uint8_t* memory, uint8_t* cartridge, TimerController* timerController);
 
 /****************************************************************************/
 
 uint8_t ROMOnlyReadByte(MemoryController* memoryController, uint16_t address);
 void ROMOnlyWriteByte(MemoryController* memoryController, uint16_t address, uint8_t value);
 
-MemoryController InitMBC1MemoryController(uint8_t* memory, uint8_t* cartridge);
+MemoryController InitMBC1MemoryController(uint8_t* memory, uint8_t* cartridge, TimerController* timerController);
 
 #endif // MEMORY_H_

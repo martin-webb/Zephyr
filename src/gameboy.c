@@ -18,7 +18,7 @@ GameBoyType gbGetGameType(uint8_t* cartridgeData)
   }
 }
 
-uint32_t gbRunAtLeastNCycles(CPU* cpu, MemoryController* m, TimerState* t, GameBoyType gameBoyType, SpeedMode speedMode, uint32_t targetCycles)
+uint32_t gbRunAtLeastNCycles(CPU* cpu, MemoryController* m, TimerController* timerController, GameBoyType gameBoyType, SpeedMode speedMode, uint32_t targetCycles)
 {
   uint32_t totalCyclesExecuted = 0;
   uint32_t totalOpsExecuted = 0;
@@ -33,8 +33,8 @@ uint32_t gbRunAtLeastNCycles(CPU* cpu, MemoryController* m, TimerState* t, GameB
     totalCyclesExecuted += cyclesExecuted;
     totalOpsExecuted++;
     cpuUpdateIME(cpu);
-    timerUpdateDivider(t, m, cyclesExecuted);
-    timerUpdateTimer(t, m, speedMode, cyclesExecuted);
+    timerUpdateDivider(timerController, cyclesExecuted);
+    timerUpdateTimer(timerController, m, speedMode, cyclesExecuted);
     cpuHandleInterrupts(cpu, m);
   }
   

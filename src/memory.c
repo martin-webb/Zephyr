@@ -37,16 +37,16 @@ void incrementByte(MemoryController* memoryController, uint16_t address)
   }
 }
 
-MemoryController InitMemoryController(uint8_t cartridgeType, uint8_t* memory, uint8_t* cartridge)
+MemoryController InitMemoryController(uint8_t cartridgeType, uint8_t* memory, uint8_t* cartridge, TimerController* timerController)
 {
   switch (cartridgeType) {
     case CARTRIDGE_TYPE_ROM_ONLY:
-      return InitROMOnlyMemoryController(memory, cartridge);
+      return InitROMOnlyMemoryController(memory, cartridge, timerController);
       break;
     case CARTRIDGE_TYPE_MBC1:
     case CARTRIDGE_TYPE_MBC1_PLUS_RAM:
     case CARTRIDGE_TYPE_MBC1_PLUS_RAM_PLUS_BATTERY:
-      return InitMBC1MemoryController(memory, cartridge);
+      return InitMBC1MemoryController(memory, cartridge, timerController);
       break;
     case CARTRIDGE_TYPE_MBC2:
     case CARTRIDGE_TYPE_MBC2_PLUS_BATTERY:
@@ -85,23 +85,61 @@ MemoryController InitMemoryController(uint8_t cartridgeType, uint8_t* memory, ui
 
 uint8_t CommonReadByte(MemoryController* memoryController, uint16_t address)
 {
-  return memoryController->memory[address - CARTRIDGE_SIZE];
+  if (address == IO_REG_ADDRESS_DIV)
+  {
+    return memoryController->timerController->div;
+  }
+  else if (address == IO_REG_ADDRESS_TIMA)
+  {
+    return memoryController->timerController->tima;
+  }
+  else if (address == IO_REG_ADDRESS_TMA)
+  {
+    return memoryController->timerController->tma;
+  }
+  else if (address == IO_REG_ADDRESS_TAC)
+  {
+    return memoryController->timerController->tac;
+  }
+  else
+  {
+    return memoryController->memory[address - CARTRIDGE_SIZE];
+  }
 }
 
 void CommonWriteByte(MemoryController* memoryController, uint16_t address, uint8_t value)
 {
-  memoryController->memory[address - CARTRIDGE_SIZE] = value;
+  if (address == IO_REG_ADDRESS_DIV)
+  {
+    memoryController->timerController->div = 0x00;
+  }
+  else if (address == IO_REG_ADDRESS_TIMA)
+  {
+    memoryController->timerController->tima = value;
+  }
+  else if (address == IO_REG_ADDRESS_TMA)
+  {
+    memoryController->timerController->tma = value;
+  }
+  else if (address == IO_REG_ADDRESS_TAC)
+  {
+    memoryController->timerController->tac = value;
+  }
+  else
+  {
+    memoryController->memory[address - CARTRIDGE_SIZE] = value;
+    
+    // Additional write to support the echo of 7.5KB of internal RAM
+    if (address >= 0xC000 && address < 0xDE00) {
+      memoryController->memory[address - CARTRIDGE_SIZE + 0x2000] = value;
+    } else if (address >= 0xE000 && address < 0xFE00) {
+      memoryController->memory[address - CARTRIDGE_SIZE - 0x2000] = value;
+    }
+  }
   
   // TODO: Add to formal logging strategy that can be removed for release builds (for example)
   if (address >= 0xFF00 && address < 0xFF4C) {
     printf("[MEMORYLOG]: Write to I/O reg - address=0x%04X value=0x%02X\n", address, value);
-  }
-  
-  // Additional write to support the echo of 7.5KB of internal RAM
-  if (address >= 0xC000 && address < 0xDE00) {
-    memoryController->memory[address - CARTRIDGE_SIZE + 0x2000] = value;
-  } else if (address >= 0xE000 && address < 0xFE00) {
-    memoryController->memory[address - CARTRIDGE_SIZE - 0x2000] = value;
   }
 }
 
@@ -120,14 +158,12 @@ void ROMOnlyWriteByte(MemoryController* memoryController, uint16_t address, uint
 {
   if (address < CARTRIDGE_SIZE) {
     printf("[WARNING]: Write of value 0x%02X to address 0x%04X in ROM space (0x%04X-0x%04X) on ROM Only cartridge\n", value, address, 0, CARTRIDGE_SIZE);
-  } else if (address == IO_REG_ADDRESS_DIV) {
-    memoryController->memory[address - CARTRIDGE_SIZE] = 0x00; // Writes to DIV are always 0, regardless of the actual value
   } else {
     CommonWriteByte(memoryController, address, value);
   }
 }
 
-MemoryController InitROMOnlyMemoryController(uint8_t* memory, uint8_t* cartridge)
+MemoryController InitROMOnlyMemoryController(uint8_t* memory, uint8_t* cartridge, TimerController* timerController)
 {
   MemoryController memoryController = {
     memory,
@@ -137,7 +173,8 @@ MemoryController InitROMOnlyMemoryController(uint8_t* memory, uint8_t* cartridge
     0x01, // NOTE: Unused in ROM Only cartridges
     false, // NOTE: Unused in ROM Only cartridges
     &ROMOnlyReadByte,
-    &ROMOnlyWriteByte
+    &ROMOnlyWriteByte,
+    timerController
   };
   return memoryController;
 }
@@ -188,14 +225,12 @@ void MBC1WriteByte(MemoryController* memoryController, uint16_t address, uint8_t
   } else if (address >= 0xA000 && address <= 0xBFFF) { // External RAM Write
     // TODO: DO THIS
     printf("[WARNING]: %s - write of value 0x%02X to external RAM (0xA000-0xBFFF) at address 0x%04X (RAM Status: %s)\n", __func__, value, address, (memoryController->ramEnabled) ? "ENABLED" : "DISABLED");
-  } else if (address == IO_REG_ADDRESS_DIV) {
-    memoryController->memory[address - CARTRIDGE_SIZE] = 0x00; // Writes to DIV are always 0, regardless of the actual value
   } else {
     CommonWriteByte(memoryController, address, value);
   }
 }
 
-MemoryController InitMBC1MemoryController(uint8_t* memory, uint8_t* cartridge)
+MemoryController InitMBC1MemoryController(uint8_t* memory, uint8_t* cartridge, TimerController* timerController)
 {
   MemoryController memoryController = {
     memory,
@@ -205,7 +240,8 @@ MemoryController InitMBC1MemoryController(uint8_t* memory, uint8_t* cartridge)
     0x01,
     false,
     &MBC1ReadByte,
-    &MBC1WriteByte
+    &MBC1WriteByte,
+    timerController
   };
   return memoryController;
 }
