@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#define CARTRIDGE_SIZE 0x8000
+
 #define NINTENDO_GRAPHIC_START_ADDRESS 0x104
 #define NINTENDO_GRAPHIC_END_ADDRESS 0x133
 

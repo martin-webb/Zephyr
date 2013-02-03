@@ -5,8 +5,6 @@
 #include "memory.h"
 #include "timer.h"
 
-#define CARTRIDGE_SIZE 0x8000
-
 uint8_t readByte(MemoryController* memoryController, uint16_t address)
 {
   return memoryController->readByteImpl(memoryController, address);
