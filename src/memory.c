@@ -85,6 +85,28 @@ MemoryController InitMemoryController(uint8_t cartridgeType, uint8_t* memory, ui
   }
 }
 
+uint8_t CommonReadByte(MemoryController* memoryController, uint16_t address)
+{
+  return memoryController->memory[address - CARTRIDGE_SIZE];
+}
+
+void CommonWriteByte(MemoryController* memoryController, uint16_t address, uint8_t value)
+{
+  memoryController->memory[address - CARTRIDGE_SIZE] = value;
+  
+  // TODO: Add to formal logging strategy that can be removed for release builds (for example)
+  if (address >= 0xFF00 && address < 0xFF4C) {
+    printf("[MEMORYLOG]: Write to I/O reg - address=0x%04X value=0x%02X\n", address, value);
+  }
+  
+  // Additional write to support the echo of 7.5KB of internal RAM
+  if (address >= 0xC000 && address < 0xDE00) {
+    memoryController->memory[address - CARTRIDGE_SIZE + 0x2000] = value;
+  } else if (address >= 0xE000 && address < 0xFE00) {
+    memoryController->memory[address - CARTRIDGE_SIZE - 0x2000] = value;
+  }
+}
+
 /****************************************************************************/
 
 uint8_t ROMOnlyReadByte(MemoryController* memoryController, uint16_t address)
@@ -92,7 +114,7 @@ uint8_t ROMOnlyReadByte(MemoryController* memoryController, uint16_t address)
   if (address < CARTRIDGE_SIZE) {
     return memoryController->cartridge[address];
   } else {
-    return memoryController->memory[address - CARTRIDGE_SIZE];
+    return CommonReadByte(memoryController, address);
   }
 }
 
@@ -103,19 +125,7 @@ void ROMOnlyWriteByte(MemoryController* memoryController, uint16_t address, uint
   } else if (address == IO_REG_ADDRESS_DIV) {
     memoryController->memory[address - CARTRIDGE_SIZE] = 0x00; // Writes to DIV are always 0, regardless of the actual value
   } else {
-    memoryController->memory[address - CARTRIDGE_SIZE] = value;
-    
-    // TODO: Add to formal logging strategy that can be removed for release builds (for example)
-    if (address >= 0xFF00 && address < 0xFF4C) {
-      printf("[MEMORYLOG]: Write to I/O reg - address=0x%04X value=0x%02X\n", address, value);
-    }
-    
-    // Additional write to support the echo of 7.5KB of internal RAM
-    if (address >= 0xC000 && address < 0xDE00) {
-      memoryController->memory[address - CARTRIDGE_SIZE + 0x2000] = value;
-    } else if (address >= 0xE000 && address < 0xFE00) {
-      memoryController->memory[address - CARTRIDGE_SIZE - 0x2000] = value;
-    }
+    CommonWriteByte(memoryController, address, value);
   }
 }
 
@@ -153,8 +163,8 @@ uint8_t MBC1ReadByte(MemoryController* memoryController, uint16_t address)
     // TODO: DO THIS
     printf("[WARNING]: %s - read from external RAM (0xA000-0xBFFF) at 0x%04X\n", __func__, address);
     return 0; // TODO: Remove this with full implementation
-  } else { // Reads from remaining addresses are standard
-    return memoryController->memory[address - CARTRIDGE_SIZE];
+  } else {
+    return CommonReadByte(memoryController, address);
   }
 }
 
@@ -183,19 +193,7 @@ void MBC1WriteByte(MemoryController* memoryController, uint16_t address, uint8_t
   } else if (address == IO_REG_ADDRESS_DIV) {
     memoryController->memory[address - CARTRIDGE_SIZE] = 0x00; // Writes to DIV are always 0, regardless of the actual value
   } else {
-    memoryController->memory[address - CARTRIDGE_SIZE] = value;
-    
-    // TODO: Add to formal logging strategy that can be removed for release builds (for example)
-    if (address >= 0xFF00 && address < 0xFF4C) {
-      printf("[MEMORYLOG]: Write to I/O reg - address=0x%04X value=0x%02X\n", address, value);
-    }
-    
-    // Additional write to support the echo of 7.5KB of internal RAM
-    if (address >= 0xC000 && address < 0xDE00) {
-      memoryController->memory[address - CARTRIDGE_SIZE + 0x2000] = value;
-    } else if (address >= 0xE000 && address < 0xFE00) {
-      memoryController->memory[address - CARTRIDGE_SIZE - 0x2000] = value;
-    }
+    CommonWriteByte(memoryController, address, value);
   }
 }
 
