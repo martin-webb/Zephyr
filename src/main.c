@@ -6,7 +6,7 @@
 #include "cpu.h"
 #include "gameboy.h"
 #include "speed.h"
-#include "timer.h"
+#include "timercontroller.h"
 
 int main(int argc, char* argv[])
 {
