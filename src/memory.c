@@ -28,15 +28,6 @@ void writeWord(MemoryController* memoryController, uint16_t address, uint16_t va
   memoryController->writeByteImpl(memoryController, address + 1, (value & 0xFF00) >> 8);
 }
 
-void incrementByte(MemoryController* memoryController, uint16_t address)
-{
-  if (address < CARTRIDGE_SIZE) {
-    memoryController->cartridge[address]++;
-  } else {
-    memoryController->memory[address - CARTRIDGE_SIZE]++;
-  }
-}
-
 MemoryController InitMemoryController(uint8_t cartridgeType, uint8_t* memory, uint8_t* cartridge, TimerController* timerController)
 {
   switch (cartridgeType) {

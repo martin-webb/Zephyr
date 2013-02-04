@@ -25,8 +25,6 @@ uint16_t readWord(MemoryController* memoryController, uint16_t address);
 void writeByte(MemoryController* memoryController, uint16_t address, uint8_t value);
 void writeWord(MemoryController* memoryController, uint16_t address, uint16_t value);
 
-void incrementByte(MemoryController* memoryController, uint16_t address);
-
 MemoryController InitMemoryController(uint8_t cartridgeType, uint8_t* memory, uint8_t* cartridge, TimerController* timerController);
 
 /****************************************************************************/
