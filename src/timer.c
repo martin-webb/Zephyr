@@ -14,10 +14,8 @@ void timerUpdateDivider(TimerController* timerController, uint8_t cyclesExecuted
   // so the same number of clock cycles are executed before the register is incremented, so we don't have to do anything special here.
   if (timerController->dividerCounter + cyclesExecuted >= DIV_INCREMENT_CLOCK_CYCLES) {
     timerController->div++;
-    timerController->dividerCounter = DIV_INCREMENT_CLOCK_CYCLES - timerController->dividerCounter;
-  } else {
-    timerController->dividerCounter += cyclesExecuted;
   }
+  timerController->dividerCounter = (timerController->dividerCounter + cyclesExecuted) % DIV_INCREMENT_CLOCK_CYCLES;
 }
 
 void timerUpdateTimer(TimerController* timerController, InterruptController* interruptController, SpeedMode speedMode, uint8_t cyclesExecuted)
@@ -36,19 +34,14 @@ void timerUpdateTimer(TimerController* timerController, InterruptController* int
     
     // Check for updates
     if (timerController->timerCounter + cyclesExecuted >= timerIncrementClockCycles) {
-      
       // Increment TIMA and trigger an interrupt and load of TMA if an overflow occurred
       timerController->tima++;
       if (timerController->tima == 0) {
         timerController->tima = timerController->tma;
         interruptFlag(interruptController, TIMER_OVERFLOW_INTERRUPT_BIT);
       }
-      
-      // Set the clock cycles counter to the unused number of cycles actually executed, as if the update had been triggered at exactly the right clock pulse
-      timerController->timerCounter = timerIncrementClockCycles - timerController->timerCounter;
-    } else {
-      timerController->timerCounter += cyclesExecuted;
     }
+    timerController->timerCounter = (timerController->timerCounter + cyclesExecuted) % timerIncrementClockCycles;
     
   }
 }
