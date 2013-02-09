@@ -20,7 +20,7 @@ void timerUpdateDivider(TimerController* timerController, uint8_t cyclesExecuted
   }
 }
 
-void timerUpdateTimer(TimerController* timerController, MemoryController* memoryController, SpeedMode speedMode, uint8_t cyclesExecuted)
+void timerUpdateTimer(TimerController* timerController, InterruptController* interruptController, SpeedMode speedMode, uint8_t cyclesExecuted)
 {
   // Only update the timer if the enable bit is set in the TAC I/O register
   if (timerController->tac & TAC_TIMER_STOP_BIT) {
@@ -41,7 +41,7 @@ void timerUpdateTimer(TimerController* timerController, MemoryController* memory
       timerController->tima++;
       if (timerController->tima == 0) {
         timerController->tima = timerController->tma;
-        cpuFlagInterrupt(memoryController, TIMER_OVERFLOW_INTERRUPT_BIT);
+        interruptFlag(interruptController, TIMER_OVERFLOW_INTERRUPT_BIT);
       }
       
       // Set the clock cycles counter to the unused number of cycles actually executed, as if the update had been triggered at exactly the right clock pulse

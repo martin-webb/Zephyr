@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "gbtype.h"
+#include "interrupts.h"
 #include "memory.h"
 
 #define CLOCK_CYCLE_FREQUENCY_NORMAL_SPEED 4194304
@@ -45,9 +46,6 @@
 #define CPU_MIN_CYCLES_PER_SET 100
 #define SECONDS_TO_NANOSECONDS 1000000000
 
-#define IO_REG_ADDRESS_IF 0xFF0F
-#define IO_REG_ADDRESS_IE 0xFFFF
-
 typedef struct {
   uint8_t a;
   uint8_t f;
@@ -74,8 +72,7 @@ void cpuReset(CPU* cpu, MemoryController* m, GameBoyType gameBoyType);
 void cpuPrintState(CPU* cpu);
 uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m);
 void cpuUpdateIME(CPU* cpu);
-void cpuFlagInterrupt(MemoryController* m, uint8_t interruptBit);
-void cpuHandleInterrupts(CPU* cpu, MemoryController* m);
+void cpuHandleInterrupts(CPU* cpu, InterruptController* interruptController, MemoryController* memoryController);
 
 inline void setZ(CPU* cpu)
 {

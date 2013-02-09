@@ -4,6 +4,7 @@ env.Program("gbemu1", [
   "cartridge.c",
   "cpu.c",
   "gameboy.c",
+  "interrupts.c",
   "main.c",
   "memory.c",
   "timer.c"

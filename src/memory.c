@@ -28,16 +28,22 @@ void writeWord(MemoryController* memoryController, uint16_t address, uint16_t va
   memoryController->writeByteImpl(memoryController, address + 1, (value & 0xFF00) >> 8);
 }
 
-MemoryController InitMemoryController(uint8_t cartridgeType, uint8_t* memory, uint8_t* cartridge, TimerController* timerController)
+MemoryController InitMemoryController(
+  uint8_t cartridgeType,
+  uint8_t* memory,
+  uint8_t* cartridge,
+  TimerController* timerController,
+  InterruptController* interruptController
+)
 {
   switch (cartridgeType) {
     case CARTRIDGE_TYPE_ROM_ONLY:
-      return InitROMOnlyMemoryController(memory, cartridge, timerController);
+      return InitROMOnlyMemoryController(memory, cartridge, timerController, interruptController);
       break;
     case CARTRIDGE_TYPE_MBC1:
     case CARTRIDGE_TYPE_MBC1_PLUS_RAM:
     case CARTRIDGE_TYPE_MBC1_PLUS_RAM_PLUS_BATTERY:
-      return InitMBC1MemoryController(memory, cartridge, timerController);
+      return InitMBC1MemoryController(memory, cartridge, timerController, interruptController);
       break;
     case CARTRIDGE_TYPE_MBC2:
     case CARTRIDGE_TYPE_MBC2_PLUS_BATTERY:
@@ -92,6 +98,14 @@ uint8_t CommonReadByte(MemoryController* memoryController, uint16_t address)
   {
     return memoryController->timerController->tac;
   }
+  else if (address == IO_REG_ADDRESS_IF)
+  {
+    return memoryController->interruptController->f;
+  }
+  else if (address == IO_REG_ADDRESS_IE)
+  {
+    return memoryController->interruptController->e;
+  }
   else
   {
     return memoryController->memory[address - CARTRIDGE_SIZE];
@@ -115,6 +129,14 @@ void CommonWriteByte(MemoryController* memoryController, uint16_t address, uint8
   else if (address == IO_REG_ADDRESS_TAC)
   {
     memoryController->timerController->tac = value;
+  }
+  else if (address == IO_REG_ADDRESS_IF)
+  {
+    memoryController->interruptController->f = value;
+  }
+  else if (address == IO_REG_ADDRESS_IE)
+  {
+    memoryController->interruptController->e = value;
   }
   else
   {
@@ -154,7 +176,12 @@ void ROMOnlyWriteByte(MemoryController* memoryController, uint16_t address, uint
   }
 }
 
-MemoryController InitROMOnlyMemoryController(uint8_t* memory, uint8_t* cartridge, TimerController* timerController)
+MemoryController InitROMOnlyMemoryController(
+  uint8_t* memory,
+  uint8_t* cartridge,
+  TimerController* timerController,
+  InterruptController* interruptController
+)
 {
   MemoryController memoryController = {
     memory,
@@ -165,7 +192,8 @@ MemoryController InitROMOnlyMemoryController(uint8_t* memory, uint8_t* cartridge
     false, // NOTE: Unused in ROM Only cartridges
     &ROMOnlyReadByte,
     &ROMOnlyWriteByte,
-    timerController
+    timerController,
+    interruptController
   };
   return memoryController;
 }
@@ -221,7 +249,12 @@ void MBC1WriteByte(MemoryController* memoryController, uint16_t address, uint8_t
   }
 }
 
-MemoryController InitMBC1MemoryController(uint8_t* memory, uint8_t* cartridge, TimerController* timerController)
+MemoryController InitMBC1MemoryController(
+  uint8_t* memory,
+  uint8_t* cartridge,
+  TimerController* timerController,
+  InterruptController* interruptController
+)
 {
   MemoryController memoryController = {
     memory,
@@ -232,7 +265,8 @@ MemoryController InitMBC1MemoryController(uint8_t* memory, uint8_t* cartridge, T
     false,
     &MBC1ReadByte,
     &MBC1WriteByte,
-    timerController
+    timerController,
+    interruptController
   };
   return memoryController;
 }

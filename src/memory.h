@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include "timercontroller.h"
+#include "interrupts.h"
 
 typedef struct MemoryController MemoryController;
 
@@ -18,6 +19,7 @@ struct MemoryController {
   uint8_t (*readByteImpl)(MemoryController* memoryController, uint16_t address);
   void (*writeByteImpl)(MemoryController* memoryController, uint16_t address, uint8_t value);
   TimerController* timerController;
+  InterruptController* interruptController;
 };
 
 uint8_t readByte(MemoryController* memoryController, uint16_t address);
@@ -25,20 +27,36 @@ uint16_t readWord(MemoryController* memoryController, uint16_t address);
 void writeByte(MemoryController* memoryController, uint16_t address, uint8_t value);
 void writeWord(MemoryController* memoryController, uint16_t address, uint16_t value);
 
-MemoryController InitMemoryController(uint8_t cartridgeType, uint8_t* memory, uint8_t* cartridge, TimerController* timerController);
+MemoryController InitMemoryController(
+  uint8_t cartridgeType,
+  uint8_t* memory,
+  uint8_t* cartridge,
+  TimerController* timerController,
+  InterruptController* interruptController
+);
 
 /****************************************************************************/
 
 uint8_t ROMOnlyReadByte(MemoryController* memoryController, uint16_t address);
 void ROMOnlyWriteByte(MemoryController* memoryController, uint16_t address, uint8_t value);
 
-MemoryController InitROMOnlyMemoryController(uint8_t* memory, uint8_t* cartridge, TimerController* timerController);
+MemoryController InitROMOnlyMemoryController(
+  uint8_t* memory,
+  uint8_t* cartridge,
+  TimerController* timerController,
+  InterruptController* interruptController
+);
 
 /****************************************************************************/
 
 uint8_t ROMOnlyReadByte(MemoryController* memoryController, uint16_t address);
 void ROMOnlyWriteByte(MemoryController* memoryController, uint16_t address, uint8_t value);
 
-MemoryController InitMBC1MemoryController(uint8_t* memory, uint8_t* cartridge, TimerController* timerController);
+MemoryController InitMBC1MemoryController(
+  uint8_t* memory,
+  uint8_t* cartridge,
+  TimerController* timerController,
+  InterruptController* interruptController
+);
 
 #endif // MEMORY_H_

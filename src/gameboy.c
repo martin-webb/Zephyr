@@ -18,7 +18,15 @@ GameBoyType gbGetGameType(uint8_t* cartridgeData)
   }
 }
 
-uint32_t gbRunAtLeastNCycles(CPU* cpu, MemoryController* m, TimerController* timerController, GameBoyType gameBoyType, SpeedMode speedMode, uint32_t targetCycles)
+uint32_t gbRunAtLeastNCycles(
+  CPU* cpu,
+  MemoryController* memoryController,
+  TimerController* timerController,
+  InterruptController* interruptController,
+  GameBoyType gameBoyType,
+  SpeedMode speedMode,
+  uint32_t targetCycles
+)
 {
   uint32_t totalCyclesExecuted = 0;
   uint32_t totalOpsExecuted = 0;
@@ -29,13 +37,13 @@ uint32_t gbRunAtLeastNCycles(CPU* cpu, MemoryController* m, TimerController* tim
   
   // Execute instructions until we have reached the minimum required number of cycles that would have occurred
   while (totalCyclesExecuted < targetCycles) {
-    uint8_t cyclesExecuted = cpuRunSingleOp(cpu, m);
+    uint8_t cyclesExecuted = cpuRunSingleOp(cpu, memoryController);
     totalCyclesExecuted += cyclesExecuted;
     totalOpsExecuted++;
     cpuUpdateIME(cpu);
     timerUpdateDivider(timerController, cyclesExecuted);
-    timerUpdateTimer(timerController, m, speedMode, cyclesExecuted);
-    cpuHandleInterrupts(cpu, m);
+    timerUpdateTimer(timerController, interruptController, speedMode, cyclesExecuted);
+    cpuHandleInterrupts(cpu, interruptController, memoryController);
   }
   
   // Determine the correct amount of time to sleep for based on the Game Boy type and (for CGB) the speed mode

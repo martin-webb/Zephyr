@@ -2333,36 +2333,19 @@ void cpuUpdateIME(CPU* cpu)
   }
 }
 
-void cpuFlagInterrupt(MemoryController* m, uint8_t interruptBit)
-{
-  uint8_t interruptsFlagged = readByte(m, IO_REG_ADDRESS_IF);
-  interruptsFlagged |= interruptBit;
-  writeByte(m, IO_REG_ADDRESS_IF, interruptsFlagged);
-}
-
-void cpuUnflagInterrupt(MemoryController* m, uint8_t interruptBit)
-{
-  uint8_t interruptsFlagged = readByte(m, IO_REG_ADDRESS_IF);
-  interruptsFlagged ^= interruptBit; // TODO: Check this use of XOR to reset a single bit under the assumption that "interruptBit" is the correct value for the single bit being reset
-  writeByte(m, IO_REG_ADDRESS_IF, interruptsFlagged);
-}
-
-void cpuHandleInterrupts(CPU* cpu, MemoryController* m)
+void cpuHandleInterrupts(CPU* cpu, InterruptController* interruptController, MemoryController* memoryController)
 {
   if (cpu->ime) {
-    uint8_t interruptsFlagged = readByte(m, IO_REG_ADDRESS_IF);
-    uint8_t interruptsEnabled = readByte(m, IO_REG_ADDRESS_IE);
-    
     // Test each bit in order of interrupt priority (which, handily, is in the order of least- to most-significant bits)
     for (uint8_t bitOffset = 0; bitOffset < 5; bitOffset++) {
       
-      if ((interruptsFlagged & interruptsEnabled) & (1 << bitOffset)) {
+      if ((interruptController->f & interruptController->e) & (1 << bitOffset)) {
         // Disable ALL interrupts during the interrupt
         cpu->ime = false;
         
         // Push the program counter onto the stack
-        writeByte(m, --cpu->registers.sp, ((cpu->registers.pc & 0xFF00) >> 8));
-        writeByte(m, --cpu->registers.sp, (cpu->registers.pc & 0x00FF));
+        writeByte(memoryController, --cpu->registers.sp, ((cpu->registers.pc & 0xFF00) >> 8));
+        writeByte(memoryController, --cpu->registers.sp, (cpu->registers.pc & 0x00FF));
         
         // Jump to the starting address of the interrupt - here the interrupt address is at the offset of the matching bit location in the IE register
         const uint16_t interruptAddresses[] = {
@@ -2375,7 +2358,7 @@ void cpuHandleInterrupts(CPU* cpu, MemoryController* m)
         cpu->registers.pc = interruptAddresses[bitOffset];
         
         // Reset the IF register bit of the interrupt being handled
-        cpuUnflagInterrupt(m, 1 << bitOffset);
+        interruptReset(interruptController, 1 << bitOffset);
         
         break;
       }

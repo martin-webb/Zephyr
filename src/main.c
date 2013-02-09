@@ -5,6 +5,7 @@
 #include "cartridge.h"
 #include "cpu.h"
 #include "gameboy.h"
+#include "interrupts.h"
 #include "speed.h"
 #include "timercontroller.h"
 
@@ -32,7 +33,17 @@ int main(int argc, char* argv[])
     .dividerCounter = 0,
     .timerCounter = 0
   };
-  MemoryController m = InitMemoryController(cartridgeType, memory, cartridgeData, &timerController);
+  InterruptController interruptController = {
+    .f = 0,
+    .e = 0
+  };
+  MemoryController memoryController = InitMemoryController(
+    cartridgeType,
+    memory,
+    cartridgeData,
+    &timerController,
+    &interruptController
+  );
   GameBoyType gameBoyType = GB;
   SpeedMode speedMode = NORMAL;
   GameBoyType gameType = gbGetGameType(cartridgeData);
@@ -54,11 +65,19 @@ int main(int argc, char* argv[])
   uint8_t destinationCode = cartridgeData[DESTINATION_CODE_ADDRESS];
   printf("Destination Code: 0x%02X - %s\n", destinationCode, DestinationCodeToString(destinationCode));
   
-  cpuReset(&cpu, &m, GB);
+  cpuReset(&cpu, &memoryController, GB);
   cpuPrintState(&cpu);
   
   while (1) {
-    gbRunAtLeastNCycles(&cpu, &m, &timerController, gameBoyType, speedMode, CPU_MIN_CYCLES_PER_SET);
+    gbRunAtLeastNCycles(
+      &cpu,
+      &memoryController,
+      &timerController,
+      &interruptController,
+      gameBoyType,
+      speedMode,
+      CPU_MIN_CYCLES_PER_SET
+    );
   }
   
   free(cartridgeData);
