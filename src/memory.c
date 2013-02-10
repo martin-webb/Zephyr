@@ -1,7 +1,7 @@
-#include <stdio.h>
 #include <stdlib.h>
 
 #include "cartridge.h"
+#include "logging.h"
 #include "memory.h"
 #include "timer.h"
 
@@ -70,11 +70,11 @@ MemoryController InitMemoryController(
     case CARTRIDGE_TYPE_BANDAI_TAMA5:
     case CARTRIDGE_TYPE_HuC3:
     case CARTRIDGE_TYPE_HuC1_PLUS_RAM_PLUS_BATTERY:
-      fprintf(stderr, "[FATAL]: Error in %s - cartridge type UNSUPPORTED\n", __func__);
+      critical("Error in %s - cartridge type UNSUPPORTED\n", __func__);
       exit(EXIT_FAILURE);
       break;
     default:
-      fprintf(stderr, "[FATAL]: Error in %s - cartridge type UNKNOWN\n", __func__);
+      critical("Error in %s - cartridge type UNKNOWN\n", __func__);
       exit(EXIT_FAILURE);
       break;
   }
@@ -151,8 +151,12 @@ void CommonWriteByte(MemoryController* memoryController, uint16_t address, uint8
   }
   
   // TODO: Add to formal logging strategy that can be removed for release builds (for example)
-  if (address >= 0xFF00 && address < 0xFF4C) {
-    printf("[MEMORYLOG]: Write to I/O reg - address=0x%04X value=0x%02X\n", address, value);
+  if (address >= 0x8000 && address < 0xA000) {
+    // debug("\b[MEMORY] Write to VRAM address=0x%04X value=0x%02X\n", address, value);
+  } else if (address >= 0xFE00 && address < 0xFEA0) {
+    // debug("\b[MEMORY] Write to OAM address=0x%04X value=0x%02X\n", address, value);
+  } else if (address >= 0xFF00 && address < 0xFF4C) {
+    // debug("\b[MEMORY] Write to I/O reg - address=0x%04X value=0x%02X\n", address, value);
   }
 }
 
@@ -170,7 +174,7 @@ uint8_t ROMOnlyReadByte(MemoryController* memoryController, uint16_t address)
 void ROMOnlyWriteByte(MemoryController* memoryController, uint16_t address, uint8_t value)
 {
   if (address < CARTRIDGE_SIZE) {
-    printf("[WARNING]: Write of value 0x%02X to address 0x%04X in ROM space (0x%04X-0x%04X) on ROM Only cartridge\n", value, address, 0, CARTRIDGE_SIZE);
+    warning("Write of value 0x%02X to address 0x%04X in ROM space (0x%04X-0x%04X) on ROM Only cartridge\n", value, address, 0, CARTRIDGE_SIZE);
   } else {
     CommonWriteByte(memoryController, address, value);
   }
@@ -215,7 +219,7 @@ uint8_t MBC1ReadByte(MemoryController* memoryController, uint16_t address)
     return memoryController->cartridge[romAddress];
   } else if (address >= 0xA000 && address <= 0xBFFF) { // External RAM Read
     // TODO: DO THIS
-    printf("[WARNING]: %s - read from external RAM (0xA000-0xBFFF) at 0x%04X\n", __func__, address);
+    warning("%s - read from external RAM (0xA000-0xBFFF) at 0x%04X\n", __func__, address);
     return 0; // TODO: Remove this with full implementation
   } else {
     return CommonReadByte(memoryController, address);
@@ -226,9 +230,9 @@ void MBC1WriteByte(MemoryController* memoryController, uint16_t address, uint8_t
 {
   if (address <= 0x1FFF) { // External RAM Enable/Disable    
     if ((value & 0xF) == 0xA) {
-      printf("[INFO]: External RAM was ENABLED by value 0x%02X written to address 0x%04X\n", value, address);
+      info("External RAM was ENABLED by value 0x%02X written to address 0x%04X\n", value, address);
     } else {
-      printf("[INFO]: External RAM was DISABLED by value 0x%02X written to address 0x%04X\n", value, address);
+      info("External RAM was DISABLED by value 0x%02X written to address 0x%04X\n", value, address);
     }
   } else if (address >= 0x2000 && address <= 0x3FFF) { // ROM Bank Number
     if (value == 0x00) {
@@ -243,7 +247,7 @@ void MBC1WriteByte(MemoryController* memoryController, uint16_t address, uint8_t
     // TODO: Add cycle cost here??
   } else if (address >= 0xA000 && address <= 0xBFFF) { // External RAM Write
     // TODO: DO THIS
-    printf("[WARNING]: %s - write of value 0x%02X to external RAM (0xA000-0xBFFF) at address 0x%04X (RAM Status: %s)\n", __func__, value, address, (memoryController->ramEnabled) ? "ENABLED" : "DISABLED");
+    warning("%s - write of value 0x%02X to external RAM (0xA000-0xBFFF) at address 0x%04X (RAM Status: %s)\n", __func__, value, address, (memoryController->ramEnabled) ? "ENABLED" : "DISABLED");
   } else {
     CommonWriteByte(memoryController, address, value);
   }
