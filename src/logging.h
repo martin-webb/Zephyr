@@ -16,6 +16,4 @@ int warning(const char* format, ...);
 int error(const char* format, ...);
 int critical(const char* format, ...);
 
-int log(enum LogLevel logLevel, const char* format, ...);
-
 #endif LOGGING_H_

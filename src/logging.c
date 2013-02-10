@@ -6,6 +6,15 @@
 
 #include "logging.h"
 
+const char* const LOG_LEVEL_NAMES[] =
+{
+  "DEBUG",
+  "INFO",
+  "WARNING",
+  "ERROR",
+  "CRITICAL"
+};
+
 int logImpl(enum LogLevel logLevel, const char* format, va_list args)
 {
   struct timeval t;
@@ -22,12 +31,12 @@ int logImpl(enum LogLevel logLevel, const char* format, va_list args)
     case LogLevelDebug:
     case LogLevelInfo:
     case LogLevelWarning:
-      printf("[%s.%03u] ", timeStringBuffer, milliseconds);
+      printf("[%s.%03u][%s] ", timeStringBuffer, milliseconds, LOG_LEVEL_NAMES[logLevel]);
       return vprintf(format, args);
       break;
     case LogLevelError:
     case LogLevelCritical:
-      fprintf(stderr, "[%s.%03u] ", timeStringBuffer, milliseconds);
+      fprintf(stderr, "[%s.%03u][%s] ", timeStringBuffer, milliseconds, LOG_LEVEL_NAMES[logLevel]);
       return vfprintf(stderr, format, args);
       break;
     default:
@@ -81,16 +90,6 @@ int critical(const char* format, ...)
   va_list args;
   va_start(args, format);
   int chars = logImpl(LogLevelCritical, format, args);
-  va_end(args);
-  
-  return chars;
-}
-
-int log(enum LogLevel logLevel, const char* format, ...)
-{
-  va_list args;
-  va_start(args, format);
-  int chars = logImpl(logLevel, format, args);
   va_end(args);
   
   return chars;
