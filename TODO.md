@@ -68,6 +68,8 @@
 
 * Scanline Rendering: Should I consider some kind of tile data caching system? i.e. read all tile data locally, and if it doesn't change between pixel, don't re-read? With the current system of always drawing as many possible pixels for each tile line data read, this seems unlikely
 
+* LCD to RGB Colour Translation
+
 ## Coding Issues
 
 * Const correctness?
