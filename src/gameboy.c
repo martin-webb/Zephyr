@@ -73,7 +73,7 @@ uint32_t gbRunAtLeastNCycles(
   struct timespec sleepRemaining;
   nanosleep(&sleepRequested, &sleepRemaining);
   
-  // printf("Executed: %u ops in %u cycles - slept for %luns\n", totalCyclesExecuted, totalOpsExecuted, sleepRequested.tv_nsec);
+  // debug("Executed %u ops in %u cycles - sleeping for %luns\n", totalOpsExecuted, totalCyclesExecuted, sleepRequested.tv_nsec);
   
   return totalCyclesExecuted; 
 }
