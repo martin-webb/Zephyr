@@ -21,6 +21,7 @@ GameBoyType gbGetGameType(uint8_t* cartridgeData)
 uint32_t gbRunAtLeastNCycles(
   CPU* cpu,
   MemoryController* memoryController,
+  LCDController* lcdController,
   TimerController* timerController,
   InterruptController* interruptController,
   GameBoyType gameBoyType,
@@ -43,6 +44,7 @@ uint32_t gbRunAtLeastNCycles(
     cpuUpdateIME(cpu);
     timerUpdateDivider(timerController, cyclesExecuted);
     timerUpdateTimer(timerController, interruptController, speedMode, cyclesExecuted);
+    lcdUpdate(lcdController, interruptController, cyclesExecuted);
     cpuHandleInterrupts(cpu, interruptController, memoryController);
   }
   

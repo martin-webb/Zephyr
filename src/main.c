@@ -2,12 +2,99 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <GLUT/glut.h>
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+
 #include "cartridge.h"
 #include "cpu.h"
 #include "gameboy.h"
 #include "interrupts.h"
+#include "lcd.h"
+#include "logging.h"
 #include "speed.h"
 #include "timercontroller.h"
+
+#define TARGET_WINDOW_WIDTH_DEFAULT 768
+#define WINDOW_SCALE_FACTOR (TARGET_WINDOW_WIDTH_DEFAULT * 1.0 / LCD_WIDTH)
+
+CPU cpu;
+LCDController lcdController;
+TimerController timerController;
+InterruptController interruptController;
+MemoryController memoryController;
+GameBoyType gameBoyType;
+SpeedMode speedMode;
+
+uint8_t frameBuffer[LCD_WIDTH * LCD_HEIGHT];
+
+void initGL()
+{
+  glClearColor(0.0, 0.0, 0.0, 0.0);
+  glEnable(GL_DEPTH_TEST);
+  glShadeModel(GL_SMOOTH);
+}
+
+void drawGBScreen()
+{ 
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glLoadIdentity();
+  
+  for (int y = 0; y < LCD_HEIGHT; y++) {
+    for (int x = 0; x < LCD_WIDTH; x++) {
+      switch (frameBuffer[y * LCD_WIDTH + x]) {
+        case 0:
+          glColor3f(1.0, 1.0, 1.0);
+          break;
+        case 1:
+          glColor3f(0.66, 0.66, 0.66);
+          break;
+        case 2:
+          glColor3f(0.33, 0.33, 0.33);
+          break;
+        case 3:
+          glColor3f(0.0, 0.0, 0.0);
+          break;
+      }
+      glBegin(GL_QUADS);
+        glVertex2f(x, LCD_HEIGHT - y);
+        glVertex2f(x, LCD_HEIGHT - y - 1);
+        glVertex2f(x + 1, LCD_HEIGHT - y - 1);
+        glVertex2f(x + 1, LCD_HEIGHT - y);
+      glEnd();
+    }
+  }
+  
+  glutSwapBuffers();
+}
+
+void runGBWithGLUT()
+{  
+  gbRunAtLeastNCycles(
+    &cpu,
+    &memoryController,
+    &lcdController,
+    &timerController,
+    &interruptController,
+    gameBoyType,
+    speedMode,
+    CPU_MIN_CYCLES_PER_SET
+  );
+  
+  glutPostRedisplay();
+}
+
+void reshape(int width, int height)
+{
+  glViewport(0, 0, width, height);
+  
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  gluOrtho2D(0, LCD_WIDTH, 0, LCD_HEIGHT);
+  
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+}
 
 int main(int argc, char* argv[])
 {
@@ -28,7 +115,12 @@ int main(int argc, char* argv[])
   uint8_t cartridgeType = cartridgeGetType(cartridgeData);
   printf("Cartridge Type: 0x%02X - %s\n", cartridgeType, CartridgeTypeToString(cartridgeType));
   
+  /*
   CPU cpu;
+  LCDController lcdController = {
+    .stat = 0,
+    .clockCycles = 0
+  };
   TimerController timerController = {
     .dividerCounter = 0,
     .timerCounter = 0
@@ -41,11 +133,42 @@ int main(int argc, char* argv[])
     cartridgeType,
     memory,
     cartridgeData,
+    &lcdController,
     &timerController,
     &interruptController
   );
   GameBoyType gameBoyType = GB;
   SpeedMode speedMode = NORMAL;
+  */
+  
+  
+  lcdController.stat = 0;
+  lcdController.vram = &(memory[0]);
+  // lcdController.ly = 255; // This must be set to a non-zero value to prevent multiple generations
+  
+  lcdController.frameBuffer = &(frameBuffer[0]);
+  lcdController.clockCycles = 0;
+  
+  lcdController.vblankCounter = 0;
+  
+  timerController.dividerCounter = 0;
+  timerController.timerCounter = 0;
+  
+  interruptController.f = 0;
+  interruptController.e = 0;
+  
+  memoryController = InitMemoryController(
+    cartridgeType,
+    memory,
+    cartridgeData,
+    &lcdController,
+    &timerController,
+    &interruptController
+  );
+  
+  gameBoyType = GB;
+  speedMode = NORMAL;
+  
   GameBoyType gameType = gbGetGameType(cartridgeData);
   
   printf("Title: ");
@@ -68,17 +191,40 @@ int main(int argc, char* argv[])
   cpuReset(&cpu, &memoryController, GB);
   cpuPrintState(&cpu);
   
+  glutInit(&argc, argv);
+  glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGBA);
+  glutInitWindowSize(LCD_WIDTH * WINDOW_SCALE_FACTOR, LCD_HEIGHT * WINDOW_SCALE_FACTOR);
+  glutInitWindowPosition(
+    (glutGet(GLUT_SCREEN_WIDTH) - (LCD_WIDTH * WINDOW_SCALE_FACTOR)) / 2 - 100,
+    (glutGet(GLUT_SCREEN_HEIGHT) - (LCD_HEIGHT * WINDOW_SCALE_FACTOR)) / 2
+  );
+  
+  glutCreateWindow("GBEmu1");
+  
+  glutReshapeFunc(reshape);
+  glutDisplayFunc(drawGBScreen);
+  glutIdleFunc(runGBWithGLUT);
+  
+  initGL();
+  
+  glutMainLoop();
+  
+  /*
   while (1) {
     gbRunAtLeastNCycles(
       &cpu,
       &memoryController,
+      &lcdController,
       &timerController,
       &interruptController,
+      vram,
+      frameBuffer,
       gameBoyType,
       speedMode,
       CPU_MIN_CYCLES_PER_SET
     );
   }
+  */
   
   free(cartridgeData);
   

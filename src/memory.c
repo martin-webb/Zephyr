@@ -32,18 +32,19 @@ MemoryController InitMemoryController(
   uint8_t cartridgeType,
   uint8_t* memory,
   uint8_t* cartridge,
+  LCDController* lcdController,
   TimerController* timerController,
   InterruptController* interruptController
 )
 {
   switch (cartridgeType) {
     case CARTRIDGE_TYPE_ROM_ONLY:
-      return InitROMOnlyMemoryController(memory, cartridge, timerController, interruptController);
+      return InitROMOnlyMemoryController(memory, cartridge, lcdController, timerController, interruptController);
       break;
     case CARTRIDGE_TYPE_MBC1:
     case CARTRIDGE_TYPE_MBC1_PLUS_RAM:
     case CARTRIDGE_TYPE_MBC1_PLUS_RAM_PLUS_BATTERY:
-      return InitMBC1MemoryController(memory, cartridge, timerController, interruptController);
+      return InitMBC1MemoryController(memory, cartridge, lcdController, timerController, interruptController);
       break;
     case CARTRIDGE_TYPE_MBC2:
     case CARTRIDGE_TYPE_MBC2_PLUS_BATTERY:
@@ -82,7 +83,69 @@ MemoryController InitMemoryController(
 
 uint8_t CommonReadByte(MemoryController* memoryController, uint16_t address)
 {
-  if (address == IO_REG_ADDRESS_DIV)
+  if (address >= 0x8000 && address < 0xA000) // Read from VRAM
+  {
+    uint8_t lcdMode = memoryController->lcdController->stat & STAT_MODE_FLAG_BITS;
+    if (lcdMode != 3) { // LCD Controller is not reading from VRAM and OAM so read access is okay
+      return memoryController->memory[address - CARTRIDGE_SIZE];
+    } else {
+      return 0xFF;
+    }
+  }
+  else if (address >= 0xFE00 && address < 0xFEA0) // Read from OAM
+  {
+    uint8_t lcdMode = memoryController->lcdController->stat & STAT_MODE_FLAG_BITS;
+    if (lcdMode == 0 || lcdMode == 1) { // LCD Controller is in HBLANK or VBLANK so read access is okay
+      return memoryController->memory[address - CARTRIDGE_SIZE];
+    } else {
+      return 0xFF;
+    }
+  }
+  else if (address == IO_REG_ADDRESS_LCDC)
+  {
+    return memoryController->lcdController->lcdc;
+  }
+  else if (address == IO_REG_ADDRESS_STAT)
+  {
+    return memoryController->lcdController->stat;
+  }
+  else if (address == IO_REG_ADDRESS_SCY)
+  {
+    return memoryController->lcdController->scy;
+  }
+  else if (address == IO_REG_ADDRESS_SCX)
+  {
+    return memoryController->lcdController->scx;
+  }
+  else if (address == IO_REG_ADDRESS_LY)
+  {
+    return memoryController->lcdController->ly;
+  }
+  else if (address == IO_REG_ADDRESS_LYC)
+  {
+    return memoryController->lcdController->lyc;
+  }
+  else if (address == IO_REG_ADDRESS_BGP)
+  {
+    return memoryController->lcdController->bgp;
+  }
+  else if (address == IO_REG_ADDRESS_OBP0)
+  {
+    return memoryController->lcdController->obp0;
+  }
+  else if (address == IO_REG_ADDRESS_OBP1)
+  {
+    return memoryController->lcdController->obp1;
+  }
+  else if (address == IO_REG_ADDRESS_WY)
+  {
+    return memoryController->lcdController->wy;
+  }
+  else if (address == IO_REG_ADDRESS_WX)
+  {
+    return memoryController->lcdController->wx;
+  }
+  else if (address == IO_REG_ADDRESS_DIV)
   {
     return memoryController->timerController->div;
   }
@@ -114,7 +177,83 @@ uint8_t CommonReadByte(MemoryController* memoryController, uint16_t address)
 
 void CommonWriteByte(MemoryController* memoryController, uint16_t address, uint8_t value)
 {
-  if (address == IO_REG_ADDRESS_DIV)
+  if (address >= 0x8000 && address < 0xA000) // Write to VRAM
+  {
+    uint8_t lcdMode = memoryController->lcdController->stat & STAT_MODE_FLAG_BITS;
+    if (lcdMode != 3) { // LCD Controller is not reading from VRAM and OAM so write access is okay
+      memoryController->memory[address - CARTRIDGE_SIZE] = value;
+    }
+  }
+  else if (address >= 0xFE00 && address < 0xFEA0) // Write to OAM
+  {
+    uint8_t lcdMode = memoryController->lcdController->stat & STAT_MODE_FLAG_BITS;
+    if (lcdMode == 0 || lcdMode == 1) { // LCD Controller is in HBLANK or VBLANK so write access is okay
+      memoryController->memory[address - CARTRIDGE_SIZE] = value;
+    }
+  }
+  else if (address == IO_REG_ADDRESS_LCDC)
+  {
+    memoryController->lcdController->lcdc = value;
+
+    // Handle enable and disable of LCD
+    if (value & LCD_DISPLAY_ENABLE_BIT) {
+      // TODO: What to do here?
+      // memoryController->lcdController->stat = 0x02;
+      // memoryController->lcdController->clockCycles = 0; // This must be reset on enable otherwise invalid mode transitions can occur falsely
+    } else {
+      // Stopping LCD operation outside of the VBLANK period can damage the display hardware
+      // Nintendo is reported to reject any games that didn't follow this rule.
+      // TODO: Make this a warning? Or a runtime option (e.g. "strict-lcd-disable-rule")? 
+      uint8_t lcdMode = memoryController->lcdController->stat & STAT_MODE_FLAG_BITS;
+      if (lcdMode != 0x01) {
+        critical("Attempt to disable LCD outside of VBLANK period!\n");
+        exit(EXIT_FAILURE);
+      }
+      memoryController->lcdController->stat = 0x01;
+    }
+  }
+  else if (address == IO_REG_ADDRESS_STAT)
+  {
+    memoryController->lcdController->stat = (value & 0xFC) | (memoryController->lcdController->stat & 0x03);
+  }
+  else if (address == IO_REG_ADDRESS_SCY)
+  {
+    memoryController->lcdController->scy = value;
+  }
+  else if (address == IO_REG_ADDRESS_SCX)
+  {
+    memoryController->lcdController->scx = value;
+  }
+  else if (address == IO_REG_ADDRESS_LY)
+  {
+    memoryController->lcdController->ly = 0;
+    debug("[MEMORY LOG]: WRITE TO LY!\n");
+  }
+  else if (address == IO_REG_ADDRESS_LYC)
+  {
+    memoryController->lcdController->lyc = value;
+  }
+  else if (address == IO_REG_ADDRESS_BGP)
+  {
+    memoryController->lcdController->bgp = value;
+  }
+  else if (address == IO_REG_ADDRESS_OBP0)
+  {
+    memoryController->lcdController->obp0 = value;
+  }
+  else if (address == IO_REG_ADDRESS_OBP1)
+  {
+    memoryController->lcdController->obp1 = value;
+  }
+  else if (address == IO_REG_ADDRESS_WY)
+  {
+    memoryController->lcdController->wy = value;
+  }
+  else if (address == IO_REG_ADDRESS_WX)
+  {
+    memoryController->lcdController->wx = value;
+  }
+  else if (address == IO_REG_ADDRESS_DIV)
   {
     memoryController->timerController->div = 0x00;
   }
@@ -183,6 +322,7 @@ void ROMOnlyWriteByte(MemoryController* memoryController, uint16_t address, uint
 MemoryController InitROMOnlyMemoryController(
   uint8_t* memory,
   uint8_t* cartridge,
+  LCDController* lcdController,
   TimerController* timerController,
   InterruptController* interruptController
 )
@@ -196,6 +336,7 @@ MemoryController InitROMOnlyMemoryController(
     false, // NOTE: Unused in ROM Only cartridges
     &ROMOnlyReadByte,
     &ROMOnlyWriteByte,
+    lcdController,
     timerController,
     interruptController
   };
@@ -256,6 +397,7 @@ void MBC1WriteByte(MemoryController* memoryController, uint16_t address, uint8_t
 MemoryController InitMBC1MemoryController(
   uint8_t* memory,
   uint8_t* cartridge,
+  LCDController* lcdController,
   TimerController* timerController,
   InterruptController* interruptController
 )
@@ -269,6 +411,7 @@ MemoryController InitMBC1MemoryController(
     false,
     &MBC1ReadByte,
     &MBC1WriteByte,
+    lcdController,
     timerController,
     interruptController
   };

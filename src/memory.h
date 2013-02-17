@@ -6,6 +6,7 @@
 
 #include "timercontroller.h"
 #include "interrupts.h"
+#include "lcd.h"
 
 typedef struct MemoryController MemoryController;
 
@@ -18,6 +19,7 @@ struct MemoryController {
   bool ramEnabled; // TODO: Store a bool value or the actual value written to 0x0000-0x1FFFF?
   uint8_t (*readByteImpl)(MemoryController* memoryController, uint16_t address);
   void (*writeByteImpl)(MemoryController* memoryController, uint16_t address, uint8_t value);
+  LCDController* lcdController;
   TimerController* timerController;
   InterruptController* interruptController;
 };
@@ -31,6 +33,7 @@ MemoryController InitMemoryController(
   uint8_t cartridgeType,
   uint8_t* memory,
   uint8_t* cartridge,
+  LCDController* lcdController,
   TimerController* timerController,
   InterruptController* interruptController
 );
@@ -43,6 +46,7 @@ void ROMOnlyWriteByte(MemoryController* memoryController, uint16_t address, uint
 MemoryController InitROMOnlyMemoryController(
   uint8_t* memory,
   uint8_t* cartridge,
+  LCDController* lcdController,
   TimerController* timerController,
   InterruptController* interruptController
 );
@@ -55,6 +59,7 @@ void ROMOnlyWriteByte(MemoryController* memoryController, uint16_t address, uint
 MemoryController InitMBC1MemoryController(
   uint8_t* memory,
   uint8_t* cartridge,
+  LCDController* lcdController,
   TimerController* timerController,
   InterruptController* interruptController
 );
