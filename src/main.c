@@ -1,10 +1,9 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
 
 #include <GLUT/glut.h>
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
 
 #include "cartridge.h"
 #include "cpu.h"
@@ -14,6 +13,7 @@
 #include "logging.h"
 #include "speed.h"
 #include "timercontroller.h"
+#include "timing.h"
 
 #define TARGET_WINDOW_WIDTH_DEFAULT 768
 #define WINDOW_SCALE_FACTOR (TARGET_WINDOW_WIDTH_DEFAULT * 1.0 / LCD_WIDTH)
@@ -27,6 +27,8 @@ GameBoyType gameBoyType;
 SpeedMode speedMode;
 
 uint8_t frameBuffer[LCD_WIDTH * LCD_HEIGHT];
+
+uint64_t lastRunTimeUSecs;
 
 void initGL()
 {
@@ -69,19 +71,29 @@ void drawGBScreen()
 }
 
 void runGBWithGLUT()
-{  
-  gbRunAtLeastNCycles(
-    &cpu,
-    &memoryController,
-    &lcdController,
-    &timerController,
-    &interruptController,
-    gameBoyType,
-    speedMode,
-    CPU_MIN_CYCLES_PER_SET
-  );
+{
+  uint64_t currentTimeUSecs = currentTimeMicros();
   
-  glutPostRedisplay();
+  // NOTE: 16750 = (1 / 59.7) * 1e6 - the time available between VBlanks for a target of ~59.7 FPS
+  if (currentTimeUSecs - lastRunTimeUSecs > 16750) {
+    gbRunAtLeastNCycles(
+      &cpu,
+      &memoryController,
+      &lcdController,
+      &timerController,
+      &interruptController,
+      gameBoyType,
+      speedMode,
+      CPU_MIN_CYCLES_PER_SET
+    );
+    lastRunTimeUSecs = currentTimeUSecs;
+    
+    glutPostRedisplay();
+  }
+  
+  struct timespec sleepRequested = {0, .25 * 1e6}; // 0.25ms sleep
+  struct timespec sleepRemaining;
+  nanosleep(&sleepRequested, &sleepRemaining);
 }
 
 void reshape(int width, int height)
@@ -115,36 +127,8 @@ int main(int argc, char* argv[])
   uint8_t cartridgeType = cartridgeGetType(cartridgeData);
   printf("Cartridge Type: 0x%02X - %s\n", cartridgeType, CartridgeTypeToString(cartridgeType));
   
-  /*
-  CPU cpu;
-  LCDController lcdController = {
-    .stat = 0,
-    .clockCycles = 0
-  };
-  TimerController timerController = {
-    .dividerCounter = 0,
-    .timerCounter = 0
-  };
-  InterruptController interruptController = {
-    .f = 0,
-    .e = 0
-  };
-  MemoryController memoryController = InitMemoryController(
-    cartridgeType,
-    memory,
-    cartridgeData,
-    &lcdController,
-    &timerController,
-    &interruptController
-  );
-  GameBoyType gameBoyType = GB;
-  SpeedMode speedMode = NORMAL;
-  */
-  
-  
   lcdController.stat = 0;
   lcdController.vram = &(memory[0]);
-  // lcdController.ly = 255; // This must be set to a non-zero value to prevent multiple generations
   
   lcdController.frameBuffer = &(frameBuffer[0]);
   lcdController.clockCycles = 0;
@@ -207,24 +191,9 @@ int main(int argc, char* argv[])
   
   initGL();
   
-  glutMainLoop();
+  lastRunTimeUSecs = currentTimeMicros();
   
-  /*
-  while (1) {
-    gbRunAtLeastNCycles(
-      &cpu,
-      &memoryController,
-      &lcdController,
-      &timerController,
-      &interruptController,
-      vram,
-      frameBuffer,
-      gameBoyType,
-      speedMode,
-      CPU_MIN_CYCLES_PER_SET
-    );
-  }
-  */
+  glutMainLoop();
   
   free(cartridgeData);
   

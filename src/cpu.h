@@ -44,7 +44,6 @@
 #define HIGH_TO_LOW_P10_TO_P13_INTERRUPT_BIT (1 << 4)
 
 #define CPU_MIN_CYCLES_PER_SET 70224
-#define SECONDS_TO_NANOSECONDS 1000000000
 
 typedef struct {
   uint8_t a;

@@ -11,5 +11,6 @@ env.Program("gbemu1", [
   "logging.c",
   "main.c",
   "memory.c",
-  "timer.c"
+  "timer.c",
+  "timing.c"
 ])

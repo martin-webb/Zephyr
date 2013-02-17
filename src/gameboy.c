@@ -1,6 +1,3 @@
-#include <stdlib.h>
-#include <sys/time.h>
-
 #include "gameboy.h"
 
 #include "cartridge.h"
@@ -47,33 +44,6 @@ uint32_t gbRunAtLeastNCycles(
     lcdUpdate(lcdController, interruptController, cyclesExecuted);
     cpuHandleInterrupts(cpu, interruptController, memoryController);
   }
-  
-  // Determine the correct amount of time to sleep for based on the Game Boy type and (for CGB) the speed mode
-  float clockCycleTimeSecs;
-  if (gameBoyType == GB || gameBoyType == GBP) {
-    clockCycleTimeSecs = CLOCK_CYCLE_TIME_SECS_NORMAL_SPEED;
-  } else if (gameBoyType == CGB) {
-    if (speedMode == NORMAL) {
-      clockCycleTimeSecs = CLOCK_CYCLE_TIME_SECS_NORMAL_SPEED;
-    } else if (speedMode == DOUBLE) {
-      clockCycleTimeSecs = CLOCK_CYCLE_TIME_SECS_DOUBLE_SPEED;
-    } else {
-      fprintf(stderr, "%s: Unknown value for speedMode '%i'", __func__, speedMode);
-      exit(EXIT_FAILURE);
-    }
-  } else if (gameBoyType == SGB) {
-    clockCycleTimeSecs = CLOCK_CYCLE_TIME_SECS_SGB;
-  } else {
-    fprintf(stderr, "%s: Unknown value for gameBoyType '%i'", __func__, gameBoyType);
-    exit(EXIT_FAILURE);
-  }
-  
-  // Sleep for the amount of time needed to approximate the operating speed of the Game Boy
-  struct timespec sleepRequested = {0, totalCyclesExecuted * clockCycleTimeSecs * SECONDS_TO_NANOSECONDS};
-  struct timespec sleepRemaining;
-  nanosleep(&sleepRequested, &sleepRemaining);
-  
-  // debug("Executed %u ops in %u cycles - sleeping for %luns\n", totalOpsExecuted, totalCyclesExecuted, sleepRequested.tv_nsec);
   
   return totalCyclesExecuted; 
 }
