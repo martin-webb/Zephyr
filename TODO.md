@@ -7,6 +7,7 @@
 	* How is this affected by the CGB double-speed mode?
 
 * Video
+	* Variable length LCDC Mode 3
 
 * Input
 
@@ -63,6 +64,10 @@
 * I/O Register Read/Write Correctness
 	* IME is Write Only
 
+* Move responsibility for handling the read/write-ability of I/O registers into the components they belong to, instead of the memory controller
+
+* Scanline Rendering: Should I consider some kind of tile data caching system? i.e. read all tile data locally, and if it doesn't change between pixel, don't re-read? With the current system of always drawing as many possible pixels for each tile line data read, this seems unlikely
+
 ## Coding Issues
 
 * Const correctness?
@@ -74,6 +79,14 @@
 ## Questions
 
 * RETI instruction - is there a single instruction delay before interrupts are actually enabled as with EI and DI?
+
+* When is LY/FF44 updated? When the new scanline is being rendered (at the beginning of mode 2 (unless in VBLANK)) or when the data is being transferred to the LCD (in mode 3 (unless in VBLANK))?
+
+* What happens in a write to LY? The value of the register is set to 0, but does this reset the rendering timings of the display? That is, does the LCD controller revert to mode 2 (the start of a scanline render) and have an (in my implementation) internal clock cycle count of 0?
+
+* What happens when the LCD is disabled then re-enabled? What mode is it in? What interrupts are triggered?
+
+* LCDC Status interrupt is not generated for the very first frame drawn because we use a separate old and new value of LY (i.e. what is the new value of LY for this update? Is it the same as the old one? Store new value as old value.) to ensure that an LCDC Status interrupt for LY=LYC is only generated once per coincidence, and for the very first run, unless the stored value of LY is set to a non-zero value, then the extra comparison that old LY != new LY will never be true. Considering that the LY=LYC interrupt has to be enabled by the game first, and the LCDC is on by default, this may not be an issue because the GB will never actually need to generate an LCDC Status interrupt for the very first LY=LYC event (assuming both are 0 on startup).
 
 ## Things of General Interest
 
