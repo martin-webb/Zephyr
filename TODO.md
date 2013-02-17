@@ -90,4 +90,8 @@
 
 ## Things of General Interest
 
-* Plot a graph of the average ns delay achieved per single clock cycle and the % CPU utilisation while varying the CPU_MIN_CYCLES_PER_SET parameter
+* Plot a graph of the average ns delay achieved per single clock cycle and the % CPU utilisation while varying the CPU_MIN_CYCLES_PER_SET parameter.
+
+* Emulator Timing (Dynamic Sleep Model based on Clock Cycles Executed): For negative sleep values, where there is a time deficit to recover, include this value on the next run of the emulator?
+
+* Emulator Timing (Dynamic Sleep Model based on Clock Cycles Executed): For small sleep values, consider including these on the next run of the emulator, to ensure that we are always attempting to sleep for a time greater than the expected granularity of the system timer.
