@@ -58,8 +58,8 @@ extern inline void resetC(CPU* cpu);
   cpu->registers.a = new; \
   SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0) \
   setN(cpu); \
-  SET_FLAG_TO_RESULT(H, (new & 0xF) < 0x0) \
-  SET_FLAG_TO_RESULT(C, (new & 0xFF) < 0x00) \
+  SET_FLAG_TO_RESULT(H, new < 0) \
+  SET_FLAG_TO_RESULT(C, new < 0) \
   cycles += 4; \
   break;
   
@@ -69,8 +69,8 @@ extern inline void resetC(CPU* cpu);
   cpu->registers.a = new; \
   SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0) \
   setN(cpu); \
-  SET_FLAG_TO_RESULT(H, (new & 0xF) < 0x0) \
-  SET_FLAG_TO_RESULT(C, (new & 0xFF) < 0x00) \
+  SET_FLAG_TO_RESULT(H, new < 0) \
+  SET_FLAG_TO_RESULT(C, new < 0) \
   cycles += 4; \
   break;
 
@@ -126,7 +126,7 @@ extern inline void resetC(CPU* cpu);
   cpu->registers.REGISTER = new; \
   SET_FLAG_TO_RESULT(Z, cpu->registers.REGISTER == 0) \
   setN(cpu); \
-  SET_FLAG_TO_RESULT(H, (new & 0xF) < 0x0) \
+  SET_FLAG_TO_RESULT(H, new < 0) \
   cycles += 4; \
   break;
 
@@ -1235,8 +1235,8 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       cpu->registers.a = new;
       SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
       setN(cpu);
-      SET_FLAG_TO_RESULT(H, (new & 0xF) < 0x0)
-      SET_FLAG_TO_RESULT(C, (new & 0xFF) < 0x00)
+      SET_FLAG_TO_RESULT(H, new < 0)
+      SET_FLAG_TO_RESULT(C, new < 0)
       cycles += 8;
       break;
     }
@@ -1246,8 +1246,8 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       cpu->registers.a = new;
       SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
       setN(cpu);
-      SET_FLAG_TO_RESULT(H, (new & 0xF) < 0x0)
-      SET_FLAG_TO_RESULT(C, (new & 0xFF) < 0x00)
+      SET_FLAG_TO_RESULT(H, new < 0)
+      SET_FLAG_TO_RESULT(C, new < 0)
       cycles += 8;
       break;
     }
@@ -1281,8 +1281,8 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       cpu->registers.a = new;
       SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
       setN(cpu);
-      SET_FLAG_TO_RESULT(H, (new & 0xF) < 0x0)
-      SET_FLAG_TO_RESULT(C, (new & 0xFF) < 0x00)
+      SET_FLAG_TO_RESULT(H, new < 0)
+      SET_FLAG_TO_RESULT(C, new < 0)
       cycles += 8;
       break;
     }
@@ -1292,8 +1292,8 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       cpu->registers.a = new;
       SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
       setN(cpu);
-      SET_FLAG_TO_RESULT(H, (new & 0xF) < 0x0)
-      SET_FLAG_TO_RESULT(C, (new & 0xFF) < 0x00)
+      SET_FLAG_TO_RESULT(H, new < 0)
+      SET_FLAG_TO_RESULT(C, new < 0)
       cycles += 8;
       break;
     }
@@ -1523,7 +1523,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       writeByte(m, (cpu->registers.h << 8) | cpu->registers.l, (uint8_t)new);
       SET_FLAG_TO_RESULT(Z, (uint8_t)new == 0)
       setN(cpu);
-      SET_FLAG_TO_RESULT(H, (new & 0xF) < 0x0)
+      SET_FLAG_TO_RESULT(H, new < 0)
       cycles += 12;
       break;
     }
