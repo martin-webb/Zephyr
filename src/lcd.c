@@ -15,69 +15,83 @@ void lcdStatSetMode(LCDController* lcdController, uint8_t mode)
   lcdController->stat = (lcdController->stat & 0xFC) | mode;
 }
 
-void lcdDrawScanline(LCDController* lcdController)
+void lcdDrawScanlineBackground(LCDController* lcdController)
 {
-  uint16_t bgAndWindowTileMapOffset = ((lcdController->lcdc & LCD_BG_TILE_MAP_DISPLAY_SELECT_BIT) ? 0x9C00 : 0x9800);
-  uint16_t bgAndWindowTileTableOffset = ((lcdController->lcdc & LCD_BG_AND_WINDOW_TILE_DATA_SELECT_BIT) ? 0x8000 : 0x8800);
-  
-  for (int scanlineX = 0; scanlineX < LCD_WIDTH; scanlineX++) {
-    // Determine map tile for pixel based on the LCD controller LY, scanline X and SCX and SCY background offsets
-    uint8_t backgroundX = (scanlineX + lcdController->scx) % 256;
-    uint8_t backgroundY = (lcdController->ly + lcdController->scy) % 256;
-    
-    uint16_t backgroundMapTileIndex = ((backgroundY / 8) * 32) + (backgroundX / 8);
-    uint16_t backgroundMapTileOffset = lcdController->vram[bgAndWindowTileMapOffset - 0x8000 + backgroundMapTileIndex];
-    
-    uint16_t backgroundTileDataAddress = bgAndWindowTileTableOffset - 0x8000;
-    if (bgAndWindowTileTableOffset == 0x8000) {
-      backgroundTileDataAddress += backgroundMapTileOffset * 16;
-    } else {
-      backgroundTileDataAddress = 0x9000 - 0x8000 + (int8_t)backgroundMapTileOffset * 16;
-    }
-    
-    uint16_t lineOffset = backgroundTileDataAddress + ((backgroundY % 8) * 2);
-    
-    uint8_t backgroundTileData[2] = {
-      lcdController->vram[lineOffset],
-      lcdController->vram[lineOffset + 1]
-    };
-    
-    // Draw all pixels from the current tile, starting at the offset in the tile determined by the x location in the complete background
-    for (uint8_t pixelX = backgroundX % 8; pixelX < 8; pixelX++) {
-      uint8_t colourNumber;
-      switch (pixelX) {
-        // High Bit Shifts for Pixel Colour Number Extraction:
-        //   Pixels 0 - 5: Right by (6 - Pixel#)
-        //   Pixel 6: No Shift
-        //   Pixel 7: Left by 1
-        // Low Bit Shifts for Pixel Colour Number Extraction:
-        //   Pixels 0 - 6: Right by (7 - Pixel#)
-        //   Pixel 7: No Shift
-        case 7:
-          colourNumber = ((backgroundTileData[1] << 1) & 2) | (backgroundTileData[0] & 1);
-          break;
-        case 6:
-          colourNumber = ((backgroundTileData[1]) & 2) | ((backgroundTileData[0] >> (7 - pixelX)) & 1);
-          break;
-        default: // Pixels 0 - 5
-          colourNumber = ((backgroundTileData[1] >> (6 - pixelX)) & 2) | ((backgroundTileData[0] >> (7 - pixelX)) & 1);
-          break;
+  if (lcdController->lcdc & LCD_BG_DISPLAY_BIT)
+  {
+    uint16_t bgAndWindowTileMapOffset = ((lcdController->lcdc & LCD_BG_TILE_MAP_DISPLAY_SELECT_BIT) ? 0x9C00 : 0x9800);
+    uint16_t bgAndWindowTileTableOffset = ((lcdController->lcdc & LCD_BG_AND_WINDOW_TILE_DATA_SELECT_BIT) ? 0x8000 : 0x8800);
+
+    for (int scanlineX = 0; scanlineX < LCD_WIDTH; scanlineX++) {
+      // Determine map tile for pixel based on the LCD controller LY, scanline X and SCX and SCY background offsets
+      uint8_t backgroundX = (scanlineX + lcdController->scx) % 256;
+      uint8_t backgroundY = (lcdController->ly + lcdController->scy) % 256;
+
+      uint16_t backgroundMapTileIndex = ((backgroundY / 8) * 32) + (backgroundX / 8);
+      uint16_t backgroundMapTileOffset = lcdController->vram[bgAndWindowTileMapOffset - 0x8000 + backgroundMapTileIndex];
+
+      uint16_t backgroundTileDataAddress = bgAndWindowTileTableOffset - 0x8000;
+      if (bgAndWindowTileTableOffset == 0x8000) {
+        backgroundTileDataAddress += backgroundMapTileOffset * 16;
+      } else {
+        backgroundTileDataAddress = 0x9000 - 0x8000 + (int8_t)backgroundMapTileOffset * 16;
       }
-      
-      // Palette lookup
-      // TODO: Check GB/GBC mode
-      uint8_t shade = (lcdController->bgp >> (colourNumber * 2)) & 3;
-      
-      // Draw a pixel!
-      lcdController->frameBuffer[lcdController->ly * LCD_WIDTH + scanlineX] = shade;
-      
-      // Don't increment this for the last pixel of the current tile, the increment in the outer loop will do this for us
-      if (pixelX != 7) {
-        scanlineX++;
+
+      uint16_t lineOffset = backgroundTileDataAddress + ((backgroundY % 8) * 2);
+
+      uint8_t backgroundTileData[2] = {
+        lcdController->vram[lineOffset],
+        lcdController->vram[lineOffset + 1]
+      };
+
+      // Draw all pixels from the current tile, starting at the offset in the tile determined by the x location in the complete background
+      for (uint8_t pixelX = backgroundX % 8; pixelX < 8; pixelX++) {
+        uint8_t colourNumber;
+        switch (pixelX) {
+          // High Bit Shifts for Pixel Colour Number Extraction:
+          //   Pixels 0 - 5: Right by (6 - Pixel#)
+          //   Pixel 6: No Shift
+          //   Pixel 7: Left by 1
+          // Low Bit Shifts for Pixel Colour Number Extraction:
+          //   Pixels 0 - 6: Right by (7 - Pixel#)
+          //   Pixel 7: No Shift
+          case 7:
+            colourNumber = ((backgroundTileData[1] << 1) & 2) | (backgroundTileData[0] & 1);
+            break;
+          case 6:
+            colourNumber = ((backgroundTileData[1]) & 2) | ((backgroundTileData[0] >> (7 - pixelX)) & 1);
+            break;
+          default: // Pixels 0 - 5
+            colourNumber = ((backgroundTileData[1] >> (6 - pixelX)) & 2) | ((backgroundTileData[0] >> (7 - pixelX)) & 1);
+            break;
+        }
+
+        // Palette lookup
+        // TODO: Check GB/GBC mode
+        uint8_t shade = (lcdController->bgp >> (colourNumber * 2)) & 3;
+
+        // Draw a pixel!
+        lcdController->frameBuffer[lcdController->ly * LCD_WIDTH + scanlineX] = shade;
+
+        // Don't increment this for the last pixel of the current tile, the increment in the outer loop will do this for us
+        if (pixelX != 7) {
+          scanlineX++;
+        }
       }
+
     }
-    
   }
+  else // The background is disabled so with a monochrome Game Boy every pixel is white
+  {
+    for (int scanlineX = 0; scanlineX < LCD_WIDTH; scanlineX++) {
+      lcdController->frameBuffer[lcdController->ly * LCD_WIDTH + scanlineX] = 0;
+    }
+  }
+}
+
+void lcdDrawScanline(LCDController* lcdController)
+{ 
+  lcdDrawScanlineBackground(lcdController);
 }
 
 void lcdUpdate(LCDController* lcdController, InterruptController* interruptController, uint8_t cyclesExecuted)
