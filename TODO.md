@@ -70,6 +70,8 @@
 
 * LCD to RGB Colour Translation
 
+* Non ROM Only memory controllers - free extra memory allocated for external cartridge RAM
+
 ## Coding Issues
 
 * Const correctness?
