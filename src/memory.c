@@ -361,10 +361,13 @@ uint8_t MBC1ReadByte(MemoryController* memoryController, uint16_t address)
     uint16_t offsetInBank = address - 0x4000;
     uint32_t romAddress = (bankNum * 1024 * 16) + offsetInBank;
     return memoryController->cartridge[romAddress];
-  } else if (address >= 0xA000 && address <= 0xBFFF) { // External RAM Read
-    // TODO: DO THIS
-    warning("%s - read from external RAM (0xA000-0xBFFF) at 0x%04X\n", __func__, address);
-    return 0; // TODO: Remove this with full implementation
+  } else if (address >= 0xA000 && address <= 0xBFFF) { // Read from external cartridge RAM
+    if (memoryController->ramEnabled) {
+      return memoryController->externalRAM[address - 0xA000];
+    } else {
+      warning("MBC1: Read from external RAM at address 0x%04X failed because RAM is DISABLED.\n", address);
+      return 0; // TODO: What value should be returned here?
+    }
   } else {
     return CommonReadByte(memoryController, address);
   }
@@ -374,9 +377,15 @@ void MBC1WriteByte(MemoryController* memoryController, uint16_t address, uint8_t
 {
   if (address <= 0x1FFF) { // External RAM Enable/Disable    
     if ((value & 0xF) == 0xA) {
-      info("External RAM was ENABLED by value 0x%02X written to address 0x%04X\n", value, address);
+      if (!memoryController->ramEnabled) {
+        info("External RAM was ENABLED by value 0x%02X written to address 0x%04X\n", value, address);
+      }
+      memoryController->ramEnabled = true;
     } else {
-      info("External RAM was DISABLED by value 0x%02X written to address 0x%04X\n", value, address);
+      if (memoryController->ramEnabled) {
+        info("External RAM was DISABLED by value 0x%02X written to address 0x%04X\n", value, address);
+      }
+      memoryController->ramEnabled = false;
     }
   } else if (address >= 0x2000 && address <= 0x3FFF) { // ROM Bank Number
     if (value == 0x00) {
@@ -389,9 +398,12 @@ void MBC1WriteByte(MemoryController* memoryController, uint16_t address, uint8_t
   } else if (address >= 0x6000 && address <= 0x7FFF) { // ROM/RAM Mode Select
     memoryController->modeSelect = (address & 0x1);
     // TODO: Add cycle cost here??
-  } else if (address >= 0xA000 && address <= 0xBFFF) { // External RAM Write
-    // TODO: DO THIS
-    warning("%s - write of value 0x%02X to external RAM (0xA000-0xBFFF) at address 0x%04X (RAM Status: %s)\n", __func__, value, address, (memoryController->ramEnabled) ? "ENABLED" : "DISABLED");
+  } else if (address >= 0xA000 && address <= 0xBFFF) { // Write to external cartridge RAM
+    if (memoryController->ramEnabled) {
+      memoryController->externalRAM[address - 0xA000] = value;
+    } else {
+      warning("MBC1: Write of value 0x%02X to external RAM at address 0x%04X failed because RAM is DISABLED.\n", value, address);
+    }
   } else {
     CommonWriteByte(memoryController, address, value);
   }
@@ -420,5 +432,14 @@ MemoryController InitMBC1MemoryController(
     timerController,
     interruptController
   };
+  
+  // Allocate external RAM
+  uint8_t* externalRAM = (uint8_t*)malloc(externalRAMSizeBytes * sizeof(uint8_t));
+  if (!externalRAM) {
+    critical("Failed to allocate %u bytes of external RAM for MBC1 cartridge.\n", externalRAMSizeBytes);
+    exit(EXIT_FAILURE);
+  }
+  memoryController.externalRAM = externalRAM;
+  
   return memoryController;
 }
