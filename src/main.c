@@ -127,6 +127,10 @@ int main(int argc, char* argv[])
   uint8_t cartridgeType = cartridgeGetType(cartridgeData);
   printf("Cartridge Type: 0x%02X - %s\n", cartridgeType, CartridgeTypeToString(cartridgeType));
   
+  uint8_t ramSize = cartridgeData[RAM_SIZE_ADDRESS];
+  uint32_t externalRAMSizeBytes = RAMSizeInBytes(ramSize);
+  printf("RAM size: 0x%02X - %s\n", ramSize, RAMSizeToString(ramSize));
+  
   lcdController.stat = 0;
   lcdController.vram = &(memory[0]);
   
@@ -147,7 +151,8 @@ int main(int argc, char* argv[])
     cartridgeData,
     &lcdController,
     &timerController,
-    &interruptController
+    &interruptController,
+    externalRAMSizeBytes
   );
   
   gameBoyType = GB;
@@ -165,9 +170,6 @@ int main(int argc, char* argv[])
   
   uint8_t romSize = cartridgeData[ROM_SIZE_ADDRESS];
   printf("ROM size: 0x%02X - %s\n", romSize, ROMSizeToString(romSize));
-  
-  uint8_t ramSize = cartridgeData[RAM_SIZE_ADDRESS];
-  printf("RAM size: 0x%02X - %s\n", ramSize, RAMSizeToString(ramSize));
   
   uint8_t destinationCode = cartridgeData[DESTINATION_CODE_ADDRESS];
   printf("Destination Code: 0x%02X - %s\n", destinationCode, DestinationCodeToString(destinationCode));

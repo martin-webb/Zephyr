@@ -34,17 +34,18 @@ MemoryController InitMemoryController(
   uint8_t* cartridge,
   LCDController* lcdController,
   TimerController* timerController,
-  InterruptController* interruptController
+  InterruptController* interruptController,
+  uint32_t externalRAMSizeBytes
 )
 {
   switch (cartridgeType) {
     case CARTRIDGE_TYPE_ROM_ONLY:
-      return InitROMOnlyMemoryController(memory, cartridge, lcdController, timerController, interruptController);
+      return InitROMOnlyMemoryController(memory, cartridge, lcdController, timerController, interruptController, externalRAMSizeBytes);
       break;
     case CARTRIDGE_TYPE_MBC1:
     case CARTRIDGE_TYPE_MBC1_PLUS_RAM:
     case CARTRIDGE_TYPE_MBC1_PLUS_RAM_PLUS_BATTERY:
-      return InitMBC1MemoryController(memory, cartridge, lcdController, timerController, interruptController);
+      return InitMBC1MemoryController(memory, cartridge, lcdController, timerController, interruptController, externalRAMSizeBytes);
       break;
     case CARTRIDGE_TYPE_MBC2:
     case CARTRIDGE_TYPE_MBC2_PLUS_BATTERY:
@@ -324,12 +325,14 @@ MemoryController InitROMOnlyMemoryController(
   uint8_t* cartridge,
   LCDController* lcdController,
   TimerController* timerController,
-  InterruptController* interruptController
+  InterruptController* interruptController,
+  uint32_t externalRAMSizeBytes
 )
 {
   MemoryController memoryController = {
     memory,
     cartridge,
+    NULL,
     0x00, // NOTE: Unused in ROM Only cartridges
     0x00, // NOTE: Unused in ROM Only cartridges
     0x01, // NOTE: Unused in ROM Only cartridges
@@ -399,12 +402,14 @@ MemoryController InitMBC1MemoryController(
   uint8_t* cartridge,
   LCDController* lcdController,
   TimerController* timerController,
-  InterruptController* interruptController
+  InterruptController* interruptController,
+  uint32_t externalRAMSizeBytes
 )
 {
   MemoryController memoryController = {
     memory,
     cartridge,
+    NULL,
     0x00, // TODO: Correct default?
     0x00, // TODO: Correct default?
     0x01,
