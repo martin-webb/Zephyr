@@ -172,9 +172,12 @@ void lcdUpdate(LCDController* lcdController, InterruptController* interruptContr
     {
       lcdStatSetMode(lcdController, 1);
       
-      // Trigger VBLANK interrupt
+      // Trigger a VBLANK interrupt
+      interruptFlag(interruptController, VBLANK_INTERRUPT_BIT);
+      
+      // Optionally trigger an LCDC Status interrupt
       if (lcdController->stat & STAT_MODE_1_VBLANK_INTERRUPT_ENABLE_BIT) {
-        interruptFlag(interruptController, VBLANK_INTERRUPT_BIT);
+        interruptFlag(interruptController, LCDC_STATUS_INTERRUPT_BIT);
       }
       
       // Debug
