@@ -19,7 +19,7 @@ void lcdDrawScanlineBackground(LCDController* lcdController)
 {
   if (lcdController->lcdc & LCD_BG_DISPLAY_BIT)
   {
-    uint16_t bgAndWindowTileMapOffset = ((lcdController->lcdc & LCD_BG_TILE_MAP_DISPLAY_SELECT_BIT) ? 0x9C00 : 0x9800);
+    uint16_t bgTileMapOffset = ((lcdController->lcdc & LCD_BG_TILE_MAP_DISPLAY_SELECT_BIT) ? 0x9C00 : 0x9800);
     uint16_t bgAndWindowTileTableOffset = ((lcdController->lcdc & LCD_BG_AND_WINDOW_TILE_DATA_SELECT_BIT) ? 0x8000 : 0x8800);
 
     for (int scanlineX = 0; scanlineX < LCD_WIDTH; scanlineX++) {
@@ -28,7 +28,7 @@ void lcdDrawScanlineBackground(LCDController* lcdController)
       uint8_t backgroundY = (lcdController->ly + lcdController->scy) % 256;
 
       uint16_t backgroundMapTileIndex = ((backgroundY / 8) * 32) + (backgroundX / 8);
-      uint16_t backgroundMapTileOffset = lcdController->vram[bgAndWindowTileMapOffset - 0x8000 + backgroundMapTileIndex];
+      uint16_t backgroundMapTileOffset = lcdController->vram[bgTileMapOffset - 0x8000 + backgroundMapTileIndex];
 
       uint16_t backgroundTileDataAddress = bgAndWindowTileTableOffset - 0x8000;
       if (bgAndWindowTileTableOffset == 0x8000) {
