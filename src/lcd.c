@@ -28,12 +28,18 @@ void lcdDrawScanline(LCDController* lcdController)
     uint16_t backgroundMapTileIndex = ((backgroundY / 8) * 32) + (backgroundX / 8);
     uint16_t backgroundMapTileOffset = lcdController->vram[bgAndWindowTileMapOffset - 0x8000 + backgroundMapTileIndex];
     
-    uint16_t backgroundTileDataAddress = bgAndWindowTileTableOffset + ((bgAndWindowTileTableOffset == 0x8000) ? (backgroundMapTileOffset * 16) : ((int8_t)backgroundMapTileOffset * 16));
+    uint16_t backgroundTileDataAddress = bgAndWindowTileTableOffset - 0x8000;
+    if (bgAndWindowTileTableOffset == 0x8000) {
+      backgroundTileDataAddress += backgroundMapTileOffset * 16;
+    } else {
+      backgroundTileDataAddress = 0x9000 - 0x8000 + (int8_t)backgroundMapTileOffset * 16;
+    }
+    
     uint16_t lineOffset = backgroundTileDataAddress + ((backgroundY % 8) * 2);
     
     uint8_t backgroundTileData[2] = {
-      lcdController->vram[lineOffset - 0x8000],
-      lcdController->vram[lineOffset - 0x8000 + 1]
+      lcdController->vram[lineOffset],
+      lcdController->vram[lineOffset + 1]
     };
     
     // Draw all pixels from the current tile, starting at the offset in the tile determined by the x location in the complete background
