@@ -15,6 +15,28 @@ void lcdStatSetMode(LCDController* lcdController, uint8_t mode)
   lcdController->stat = (lcdController->stat & 0xFC) | mode;
 }
 
+uint8_t lcdMonochromeColourForPixel(uint8_t pixelX, uint8_t lowByte, uint8_t highByte)
+{
+  switch (pixelX) {
+    // High bit shifts for pixel monochrome colour number extraction:
+    //   Pixels 0 - 5: Right by (6 - Pixel#)
+    //   Pixel 6: No Shift
+    //   Pixel 7: Left by 1
+    // Low bit shifts for pixel monochrome colour number extraction:
+    //   Pixels 0 - 6: Right by (7 - Pixel#)
+    //   Pixel 7: No Shift
+    case 7:
+      return ((highByte << 1) & 2) | (lowByte & 1);
+      break;
+    case 6:
+      return ((highByte) & 2) | ((lowByte >> (7 - pixelX)) & 1);
+      break;
+    default: // Pixels 0 - 5
+      return ((highByte >> (6 - pixelX)) & 2) | ((lowByte >> (7 - pixelX)) & 1);
+      break;
+  }
+}
+
 void lcdDrawScanlineBackground(LCDController* lcdController)
 {
   if (lcdController->lcdc & LCD_BG_DISPLAY_BIT)
@@ -46,26 +68,8 @@ void lcdDrawScanlineBackground(LCDController* lcdController)
 
       // Draw all pixels from the current tile, starting at the offset in the tile determined by the x location in the complete background
       for (uint8_t pixelX = backgroundX % 8; pixelX < 8; pixelX++) {
-        uint8_t colourNumber;
-        switch (pixelX) {
-          // High Bit Shifts for Pixel Colour Number Extraction:
-          //   Pixels 0 - 5: Right by (6 - Pixel#)
-          //   Pixel 6: No Shift
-          //   Pixel 7: Left by 1
-          // Low Bit Shifts for Pixel Colour Number Extraction:
-          //   Pixels 0 - 6: Right by (7 - Pixel#)
-          //   Pixel 7: No Shift
-          case 7:
-            colourNumber = ((backgroundTileData[1] << 1) & 2) | (backgroundTileData[0] & 1);
-            break;
-          case 6:
-            colourNumber = ((backgroundTileData[1]) & 2) | ((backgroundTileData[0] >> (7 - pixelX)) & 1);
-            break;
-          default: // Pixels 0 - 5
-            colourNumber = ((backgroundTileData[1] >> (6 - pixelX)) & 2) | ((backgroundTileData[0] >> (7 - pixelX)) & 1);
-            break;
-        }
-
+        uint8_t colourNumber = lcdMonochromeColourForPixel(pixelX, backgroundTileData[0], backgroundTileData[1]);
+        
         // Palette lookup
         // TODO: Check GB/GBC mode
         uint8_t shade = (lcdController->bgp >> (colourNumber * 2)) & 3;
