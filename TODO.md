@@ -72,6 +72,8 @@
 
 * Non ROM Only memory controllers - free extra memory allocated for external cartridge RAM
 
+* CGB Background and Window display options
+
 ## Coding Issues
 
 * Const correctness?
