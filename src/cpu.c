@@ -2365,7 +2365,7 @@ void cpuUpdateIME(CPU* cpu)
 
 void cpuHandleInterrupts(CPU* cpu, InterruptController* interruptController, MemoryController* memoryController)
 {
-  if (cpu->ime) {
+  if (cpu->ime && interruptController->e != 0 && interruptController->f != 0) {
     // Test each bit in order of interrupt priority (which, handily, is in the order of least- to most-significant bits)
     for (uint8_t bitOffset = 0; bitOffset < 5; bitOffset++) {
       
