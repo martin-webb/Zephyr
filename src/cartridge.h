@@ -61,6 +61,8 @@ int cartridgeGetSize(FILE* cartridgeFile);
 uint8_t* cartridgeLoadData(char* pathToROM);
 uint8_t cartridgeGetType(uint8_t* cartridgeData);
 
+uint32_t RAMSizeInBytes(uint8_t ramSize);
+
 char* ROMSizeToString(uint8_t romSize);
 char* RAMSizeToString(uint8_t ramSize);
 char* DestinationCodeToString(uint8_t destinationCode);

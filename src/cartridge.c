@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "cartridge.h"
+#include "logging.h"
 
 int cartridgeGetSize(FILE* cartridgeFile)
 {
@@ -36,6 +37,31 @@ uint8_t* cartridgeLoadData(char* pathToROM)
 uint8_t cartridgeGetType(uint8_t* cartridgeData)
 {
   return cartridgeData[CARTRIDGE_TYPE_ADDRESS];
+}
+
+uint32_t RAMSizeInBytes(uint8_t ramSize)
+{
+  switch (ramSize) {
+    case 0x0:
+      return 0;
+      break;
+    case 0x1:
+      return 2 * 1024;
+      break;
+    case 0x2:
+      return 8 * 1024;
+      break;
+    case 0x3:
+      return 32 * 1024;
+      break;
+    case 0x4:
+      return 128 * 1024;
+      break;
+    default:
+      critical("Unsupported RAM size byte %u", ramSize);
+      exit(EXIT_FAILURE);
+      break;
+  }
 }
 
 char* ROMSizeToString(uint8_t romSize)
