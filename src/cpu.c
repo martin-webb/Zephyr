@@ -7,16 +7,6 @@
 
 #include "mnemonics.h"
 
-extern inline void setZ(CPU* cpu);
-extern inline void setN(CPU* cpu);
-extern inline void setH(CPU* cpu);
-extern inline void setC(CPU* cpu);
-
-extern inline void resetZ(CPU* cpu);
-extern inline void resetN(CPU* cpu);
-extern inline void resetH(CPU* cpu);
-extern inline void resetC(CPU* cpu);
-
 /* Flag Set/Reset Generation Macros *************************************************************/
 #define SET_FLAG_TO_RESULT(FLAG, TEST) \
   if (TEST) { \
@@ -386,6 +376,46 @@ extern inline void resetC(CPU* cpu);
   break;
 
 /* End Opcode Generation Macros *****************************************************************/
+
+void setZ(CPU* cpu)
+{
+  cpu->registers.f |= (1 << FLAG_REGISTER_Z_BIT_SHIFT);
+}
+
+void setN(CPU* cpu)
+{
+  cpu->registers.f |= (1 << FLAG_REGISTER_N_BIT_SHIFT);
+}
+
+void setH(CPU* cpu)
+{
+  cpu->registers.f |= (1 << FLAG_REGISTER_H_BIT_SHIFT);
+}
+
+void setC(CPU* cpu)
+{
+  cpu->registers.f |= (1 << FLAG_REGISTER_C_BIT_SHIFT);
+}
+
+void resetZ(CPU* cpu)
+{
+  cpu->registers.f &= ~(1 << FLAG_REGISTER_Z_BIT_SHIFT);
+}
+
+void resetN(CPU* cpu)
+{
+  cpu->registers.f &= ~(1 << FLAG_REGISTER_N_BIT_SHIFT);
+}
+
+void resetH(CPU* cpu)
+{
+  cpu->registers.f &= ~(1 << FLAG_REGISTER_H_BIT_SHIFT);
+}
+
+void resetC(CPU* cpu)
+{
+  cpu->registers.f &= ~(1 << FLAG_REGISTER_C_BIT_SHIFT);
+}
 
 void cpuReset(CPU* cpu, MemoryController* m, GameBoyType gameBoyType)
 {
