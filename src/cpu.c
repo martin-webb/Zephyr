@@ -347,6 +347,7 @@
     writeByte(m, --cpu->registers.sp, ((cpu->registers.pc & 0xFF00) >> 8)); \
     writeByte(m, --cpu->registers.sp, (cpu->registers.pc & 0x00FF)); \
     cpu->registers.pc = address; \
+    cycles += 12; \
   } \
   cycles += 12; \
   break;
@@ -371,6 +372,7 @@
     uint8_t addressLow = readByte(m, cpu->registers.sp++); \
     uint8_t addressHigh = readByte(m, cpu->registers.sp++); \
     cpu->registers.pc = (addressHigh << 8) | addressLow; \
+    cycles += 12; \
   } \
   cycles += 8; \
   break;
@@ -1839,6 +1841,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       cpu->registers.pc += 2;
       if (((cpu->registers.f & FLAG_REGISTER_Z_BIT) >> FLAG_REGISTER_Z_BIT_SHIFT) == 0) {
         cpu->registers.pc = address;
+        cycles += 4;
       }
       cycles += 12;
       break;
@@ -1848,6 +1851,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       cpu->registers.pc += 2;
       if (((cpu->registers.f & FLAG_REGISTER_Z_BIT) >> FLAG_REGISTER_Z_BIT_SHIFT) == 1) {
         cpu->registers.pc = address;
+        cycles += 4;
       }
       cycles += 12;
       break;
@@ -1857,6 +1861,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       cpu->registers.pc += 2;
       if (((cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT) == 0) {
         cpu->registers.pc = address;
+        cycles += 4;
       }
       cycles += 12;
       break;
@@ -1866,6 +1871,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       cpu->registers.pc += 2;
       if (((cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT) == 1) {
         cpu->registers.pc = address;
+        cycles += 4;
       }
       cycles += 12;
       break;
@@ -1891,6 +1897,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       int8_t value = (int8_t)readByte(m, cpu->registers.pc++);
       if (((cpu->registers.f & FLAG_REGISTER_Z_BIT) >> FLAG_REGISTER_Z_BIT_SHIFT) == 0) {
         cpu->registers.pc += value;
+        cycles += 4;
       }
       cycles += 8;
       break;
@@ -1899,6 +1906,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       int8_t value = (int8_t)readByte(m, cpu->registers.pc++);
       if (((cpu->registers.f & FLAG_REGISTER_Z_BIT) >> FLAG_REGISTER_Z_BIT_SHIFT) == 1) {
         cpu->registers.pc += value;
+        cycles += 4;
       }
       cycles += 8;
       break;
@@ -1907,6 +1915,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       int8_t value = (int8_t)readByte(m, cpu->registers.pc++);
       if (((cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT) == 0) {
         cpu->registers.pc += value;
+        cycles += 4;
       }
       cycles += 8;
       break;
@@ -1915,6 +1924,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       int8_t value = (int8_t)readByte(m, cpu->registers.pc++);
       if (((cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT) == 1) {
         cpu->registers.pc += value;
+        cycles += 4;
       }
       cycles += 8;
       break;
