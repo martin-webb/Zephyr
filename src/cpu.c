@@ -1113,6 +1113,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       // TODO: Check clock cycles compared to PUSH nn
       cpu->registers.f = readByte(m, cpu->registers.sp++);
       cpu->registers.a = readByte(m, cpu->registers.sp++);
+      cpu->registers.f &= 0xF0;
       cycles += 12;
       break;
     }
