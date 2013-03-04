@@ -67,7 +67,7 @@ void lcdDrawScanlineBackground(LCDController* lcdController)
       };
 
       // Draw all pixels from the current tile, starting at the offset in the tile determined by the x location in the complete background
-      for (uint8_t pixelX = backgroundX % 8; pixelX < 8; pixelX++) {
+      for (uint8_t pixelX = backgroundX % 8; pixelX < 8 && scanlineX < LCD_WIDTH; pixelX++) {
         uint8_t colourNumber = lcdMonochromeColourForPixel(pixelX, backgroundTileData[0], backgroundTileData[1]);
         
         // Palette lookup
