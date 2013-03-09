@@ -443,6 +443,7 @@ void cpuReset(CPU* cpu, MemoryController* m, GameBoyType gameBoyType)
   cpu->registers.f = 0xB0;
   cpu->registers.sp = 0xFFFE;
   cpu->registers.pc = 0x100;
+  cpu->_pcFrozen = false;
 
   writeByte(m, IO_REG_ADDRESS_TIMA, 0x00);
   writeByte(m, IO_REG_ADDRESS_TMA, 0x00);
@@ -513,7 +514,15 @@ void cpuPrintState(CPU* cpu)
 
 uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
 {
+  if (cpu->halt) {
+    return 1;
+  }
+
   uint8_t opcode = readByte(m, cpu->registers.pc++);
+  if (cpu->_pcFrozen) {
+    cpu->registers.pc--;
+    cpu->_pcFrozen = false;
+  }
   // printf("[0x%04X][0x%02X] %s\n", cpu->registers.pc - 1, opcode, OPCODE_MNEMONICS[opcode]);
 
   // TODO: Check for overflow of opcode here?
@@ -2374,15 +2383,16 @@ void cpuUpdateIME(CPU* cpu)
   }
 }
 
-void cpuHandleInterrupts(CPU* cpu, InterruptController* interruptController, MemoryController* memoryController)
+void cpuHandleInterrupts(CPU* cpu, InterruptController* interruptController, MemoryController* memoryController, GameBoyType gameBoyType)
 {
   if (cpu->ime && interruptController->e != 0 && interruptController->f != 0) {
     // Test each bit in order of interrupt priority (which, handily, is in the order of least- to most-significant bits)
     for (uint8_t bitOffset = 0; bitOffset < 5; bitOffset++) {
       
       if ((interruptController->f & interruptController->e) & (1 << bitOffset)) {
-        // Disable ALL interrupts during the interrupt
+        // Disable ALL interrupts during the interrupt, and cancel low-power (HALT) mode
         cpu->ime = false;
+        cpu->halt = false;
         
         // Push the program counter onto the stack
         writeByte(memoryController, --cpu->registers.sp, ((cpu->registers.pc & 0xFF00) >> 8));
@@ -2403,6 +2413,11 @@ void cpuHandleInterrupts(CPU* cpu, InterruptController* interruptController, Mem
         
         break;
       }
+    }
+  } else if (!cpu->ime && cpu->halt) {
+    cpu->halt = false;
+    if (gameBoyType != CGB) {
+      cpu->_pcFrozen = true;
     }
   }
 }

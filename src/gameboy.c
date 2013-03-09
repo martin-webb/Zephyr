@@ -42,7 +42,7 @@ uint32_t gbRunAtLeastNCycles(
     timerUpdateDivider(timerController, cyclesExecuted);
     timerUpdateTimer(timerController, interruptController, speedMode, cyclesExecuted);
     lcdUpdate(lcdController, interruptController, cyclesExecuted);
-    cpuHandleInterrupts(cpu, interruptController, memoryController);
+    cpuHandleInterrupts(cpu, interruptController, memoryController, gameBoyType);
   }
   
   return totalCyclesExecuted; 
