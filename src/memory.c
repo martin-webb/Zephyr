@@ -7,6 +7,10 @@
 
 uint8_t readByte(MemoryController* memoryController, uint16_t address)
 {
+  if (memoryController->dmaIsActive && (address < 0xFF80 || address > 0xFFFE)) {
+    critical("Read from non-HRAM address 0x%04X while DMA is active.\n", address);
+    exit(EXIT_FAILURE);
+  }
   return memoryController->readByteImpl(memoryController, address);
 }
 
@@ -19,6 +23,10 @@ uint16_t readWord(MemoryController* memoryController, uint16_t address)
 
 void writeByte(MemoryController* memoryController, uint16_t address, uint8_t value)
 {
+  if (memoryController->dmaIsActive && (address < 0xFF80 || address > 0xFFFE)) {
+    critical("Write of value 0x%02X to non-HRAM address 0x%04X while DMA is active.\n", value, address);
+    exit(EXIT_FAILURE);
+  }
   memoryController->writeByteImpl(memoryController, address, value);
 }
 
@@ -26,6 +34,38 @@ void writeWord(MemoryController* memoryController, uint16_t address, uint16_t va
 {
   memoryController->writeByteImpl(memoryController, address, value & 0x00FF);
   memoryController->writeByteImpl(memoryController, address + 1, (value & 0xFF00) >> 8);
+}
+
+void dmaUpdate(MemoryController* memoryController, uint8_t cyclesExecuted)
+{
+  if (memoryController->dmaIsActive) {
+    if (cyclesExecuted % 4 != 0) {
+      critical("%s called with cycle count not divisible by four.", __func__);
+      exit(EXIT_FAILURE);
+    }
+
+    for (int i = 0; i < cyclesExecuted / 4; i++) {
+      uint16_t sourceAddress = memoryController->dmaNextAddress;
+      uint16_t destinationAddress = 0xFE00 + (sourceAddress & 0x00FF);
+
+      // Memory can be transferred from ROM or RAM, so we need to use the MBC readByte() implementations (NOT the "public" CPU methods) to handle ROM banking.
+      uint8_t value;
+      if (sourceAddress < CARTRIDGE_SIZE) {
+        value = memoryController->readByteImpl(memoryController, sourceAddress);
+      } else {
+        value = memoryController->memory[sourceAddress - CARTRIDGE_SIZE];
+      }
+      memoryController->memory[destinationAddress - CARTRIDGE_SIZE] = value;
+
+      memoryController->dmaNextAddress++;
+
+      if ((destinationAddress + 1) == 0xFEA0) {
+        memoryController->dmaIsActive = false;
+        break;
+      }
+
+    }
+  }
 }
 
 MemoryController InitMemoryController(
@@ -125,6 +165,11 @@ uint8_t CommonReadByte(MemoryController* memoryController, uint16_t address)
   else if (address == IO_REG_ADDRESS_LYC)
   {
     return memoryController->lcdController->lyc;
+  }
+  else if (address == IO_REG_ADDRESS_DMA)
+  {
+    warning("Read from DMA I/O register.\n");
+    return memoryController->memory[address - CARTRIDGE_SIZE];
   }
   else if (address == IO_REG_ADDRESS_BGP)
   {
@@ -234,6 +279,12 @@ void CommonWriteByte(MemoryController* memoryController, uint16_t address, uint8
   {
     memoryController->lcdController->lyc = value;
   }
+  else if (address == IO_REG_ADDRESS_DMA)
+  {
+    memoryController->memory[address - CARTRIDGE_SIZE] = value;
+    memoryController->dmaIsActive = true;
+    memoryController->dmaNextAddress = value * 0x100;
+  }
   else if (address == IO_REG_ADDRESS_BGP)
   {
     memoryController->lcdController->bgp = value;
@@ -337,6 +388,8 @@ MemoryController InitROMOnlyMemoryController(
     0x00, // NOTE: Unused in ROM Only cartridges
     0x01, // NOTE: Unused in ROM Only cartridges
     false, // NOTE: Unused in ROM Only cartridges
+    false,
+    0x0000,
     &ROMOnlyReadByte,
     &ROMOnlyWriteByte,
     lcdController,
@@ -426,6 +479,8 @@ MemoryController InitMBC1MemoryController(
     0x00, // TODO: Correct default?
     0x01,
     false,
+    false,
+    0x0000,
     &MBC1ReadByte,
     &MBC1WriteByte,
     lcdController,

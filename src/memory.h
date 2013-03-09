@@ -8,6 +8,8 @@
 #include "interrupts.h"
 #include "lcd.h"
 
+#define IO_REG_ADDRESS_DMA 0xFF46
+
 typedef struct MemoryController MemoryController;
 
 struct MemoryController {
@@ -18,6 +20,8 @@ struct MemoryController {
   uint8_t modeSelect; // 1-bit register to select whether the above 2-bit applies to ROM/RAM bank selection
   uint8_t romBank;
   bool ramEnabled; // TODO: Store a bool value or the actual value written to 0x0000-0x1FFFF?
+  bool dmaIsActive;
+  uint16_t dmaNextAddress;
   uint8_t (*readByteImpl)(MemoryController* memoryController, uint16_t address);
   void (*writeByteImpl)(MemoryController* memoryController, uint16_t address, uint8_t value);
   LCDController* lcdController;
@@ -29,6 +33,8 @@ uint8_t readByte(MemoryController* memoryController, uint16_t address);
 uint16_t readWord(MemoryController* memoryController, uint16_t address);
 void writeByte(MemoryController* memoryController, uint16_t address, uint8_t value);
 void writeWord(MemoryController* memoryController, uint16_t address, uint16_t value);
+
+void dmaUpdate(MemoryController* memoryController, uint8_t cyclesExecuted);
 
 MemoryController InitMemoryController(
   uint8_t cartridgeType,

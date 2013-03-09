@@ -39,6 +39,7 @@ uint32_t gbRunAtLeastNCycles(
     totalCyclesExecuted += cyclesExecuted;
     totalOpsExecuted++;
     cpuUpdateIME(cpu);
+    dmaUpdate(memoryController, cyclesExecuted);
     timerUpdateDivider(timerController, cyclesExecuted);
     timerUpdateTimer(timerController, interruptController, speedMode, cyclesExecuted);
     lcdUpdate(lcdController, interruptController, cyclesExecuted);
