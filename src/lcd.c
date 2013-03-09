@@ -72,7 +72,7 @@ void lcdDrawScanlineBackground(LCDController* lcdController)
         
         // Palette lookup
         // TODO: Check GB/GBC mode
-        uint8_t shade = (lcdController->bgp >> (colourNumber * 2)) & 3;
+        uint8_t shade = (lcdController->_bgp >> (colourNumber * 2)) & 3;
 
         // Draw a pixel!
         lcdController->frameBuffer[lcdController->ly * LCD_WIDTH + scanlineX] = shade;
@@ -137,7 +137,7 @@ void lcdDrawScanlineWindow(LCDController* lcdController)
 
       // Palette lookup
       // TODO: Check GB/GBC mode
-      uint8_t shade = (lcdController->bgp >> (colourNumber * 2)) & 3;
+      uint8_t shade = (lcdController->_bgp >> (colourNumber * 2)) & 3;
 
       // Draw a pixel!
       lcdController->frameBuffer[lcdController->ly * LCD_WIDTH + scanlineX] = shade;
@@ -194,6 +194,13 @@ void lcdUpdate(LCDController* lcdController, InterruptController* interruptContr
         if (lcdController->stat & STAT_MODE_2_OAM_INTERRUPT_ENABLE_BIT) {
           interruptFlag(interruptController, LCDC_STATUS_INTERRUPT_BIT);
         }
+
+        // NOTE: This is an experimental change that implements BGP as a non-dynamic value where
+        // changes are only registered once per complete screen refresh.
+        if (ly == 0) {
+          lcdController->_bgp = lcdController->bgp;
+        }
+
       }
       else if (mode == 2) {} // No mode change
       else
