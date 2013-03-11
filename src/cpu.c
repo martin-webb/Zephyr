@@ -95,8 +95,8 @@
   int16_t result = cpu->registers.a - cpu->registers.SOURCE_REGISTER; \
   SET_FLAG_TO_RESULT(Z, result == 0) \
   setN(cpu); \
-  SET_FLAG_TO_RESULT(H, (result & 0xF) < 0x0) \
-  SET_FLAG_TO_RESULT(C, (result & 0xFF) < 0x00) \
+  SET_FLAG_TO_RESULT(H, result < 0) \
+  SET_FLAG_TO_RESULT(C, result < 0) \
   cycles += 4; \
   break;
 
@@ -1489,8 +1489,8 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       int16_t result = cpu->registers.a - readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
       SET_FLAG_TO_RESULT(Z, result == 0)
       setN(cpu);
-      SET_FLAG_TO_RESULT(H, (result & 0xF) < 0x0)
-      SET_FLAG_TO_RESULT(C, (result & 0xFF) < 0x00)
+      SET_FLAG_TO_RESULT(H, result < 0)
+      SET_FLAG_TO_RESULT(C, result < 0)
       cycles += 8;
       break;
     }
@@ -1498,8 +1498,8 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       int16_t result = cpu->registers.a - readByte(m, cpu->registers.pc++);
       SET_FLAG_TO_RESULT(Z, result == 0)
       setN(cpu);
-      SET_FLAG_TO_RESULT(H, (result & 0xF) < 0x0)
-      SET_FLAG_TO_RESULT(C, (result & 0xFF) < 0x00)
+      SET_FLAG_TO_RESULT(H, result < 0)
+      SET_FLAG_TO_RESULT(C, result < 0)
       cycles += 8;
       break;
     }
