@@ -364,7 +364,7 @@
   writeByte(m, --cpu->registers.sp, ((cpu->registers.pc & 0xFF00) >> 8)); \
   writeByte(m, --cpu->registers.sp, (cpu->registers.pc & 0x00FF)); \
   cpu->registers.pc = N; \
-  cycles += 32; \
+  cycles += 16; \
   break;
 
 #define MAKE_RET_CC_OPCODE_IMPL(FLAG_REGISTER_BIT_MASK, FLAG_REGISTER_BIT_SHIFT, CONDITION_VALUE) \
@@ -1948,7 +1948,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       writeByte(m, --cpu->registers.sp, ((cpu->registers.pc & 0xFF00) >> 8));
       writeByte(m, --cpu->registers.sp, (cpu->registers.pc & 0x00FF));
       cpu->registers.pc = address;
-      cycles += 12;
+      cycles += 24;
       break;
     }
 
@@ -1999,7 +1999,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       uint8_t addressLow = readByte(m, cpu->registers.sp++);
       uint8_t addressHigh = readByte(m, cpu->registers.sp++);
       cpu->registers.pc = (addressHigh << 8) | addressLow;
-      cycles += 8;
+      cycles += 16;
       break;
     }
 
@@ -2027,7 +2027,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       uint8_t addressHigh = readByte(m, cpu->registers.sp++);
       cpu->registers.pc = (addressHigh << 8) | addressLow;
       cpu->ime = true;
-      cycles += 8;
+      cycles += 16;
       break;
     }
 
