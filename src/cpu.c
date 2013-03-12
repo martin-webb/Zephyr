@@ -1651,76 +1651,39 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
     /* DAA -----------------------------------------------------------------------------------*/
     case 0x27: { // DAA
       uint8_t n = (cpu->registers.f & FLAG_REGISTER_N_BIT) >> FLAG_REGISTER_N_BIT_SHIFT;
-      uint8_t c = (cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT;
       uint8_t h = (cpu->registers.f & FLAG_REGISTER_H_BIT) >> FLAG_REGISTER_H_BIT_SHIFT;
-      uint8_t upperDigit = (cpu->registers.a & 0xF0) >> 4;
-      uint8_t lowerDigit = cpu->registers.a & 0x0F;
-      if (n == 0) {
-        if (c == 0) {
-          if ((upperDigit <= 0x9) && (h == 0) && (lowerDigit <= 0x9)) {
-            cpu->registers.a += 0x00; // Adding 0 simply for consistency and awareness that there is no change here - this could be removed (if it's not optimised out)
-            resetC(cpu);
-          } else if (
-            ((upperDigit <= 0x8) && (h == 0) && (lowerDigit >= 0xA) && (lowerDigit <= 0xF)) ||
-            ((upperDigit <= 0x9) && (h == 1) && (lowerDigit <= 0x3))
-            ) {
-            cpu->registers.a += 0x06;
-            resetC(cpu);
-          } else if ((upperDigit >= 0xA) && (upperDigit <= 0xF) && (h == 0) && (lowerDigit <= 0x9)) {
-            cpu->registers.a += 0x60;
-            setC(cpu);
-          } else if (
-            ((upperDigit >= 0x9) && (upperDigit <= 0xF) && (h == 0) && (lowerDigit >= 0xA) && (lowerDigit <= 0xF)) ||
-            ((upperDigit >= 0xA) && (upperDigit <= 0xF) && (h == 1) && (lowerDigit <= 0x3))
-            ) {
-            cpu->registers.a += 0x66;
-            setC(cpu);
-          } else {
-            fprintf(stderr, "FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 1)\n", n, c, h, upperDigit, lowerDigit);
-            exit(EXIT_FAILURE);
-          }
-        } else { // (c == 1)
-          if ((upperDigit <= 0x2) && (h == 0) && (lowerDigit <= 0x9)) {
-            cpu->registers.a += 0x60;
-            setC(cpu);
-          } else if (
-            ((upperDigit <= 0x2) && (h == 0) && (lowerDigit >= 0xA) && (lowerDigit <= 0xF)) ||
-            ((upperDigit <= 0x3) && (h == 1) && (lowerDigit <= 0x3))
-            ) {
-            cpu->registers.a += 0x66;
-            setC(cpu);
-          } else {
-            fprintf(stderr, "FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 2)\n", n, c, h, upperDigit, lowerDigit);
-            exit(EXIT_FAILURE);
-          }
+      uint8_t c = (cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT;
+      uint16_t a = cpu->registers.a;
+
+      if (!n) {
+        if (h || (a & 0x0F) > 9) {
+          a += 0x06;
         }
-      } else { // (n == 1)
-        if (c == 0) {
-          if ((upperDigit <= 0x9) && (h == 0) && (lowerDigit <= 0x9)) {
-            cpu->registers.a += 0x00; // Adding 0 simply for consistency and awareness that there is no change here - this could be removed (if it's not optimised out)
-            resetC(cpu);
-          } else if ((upperDigit <= 0x8) && (h == 1) && (lowerDigit >= 0x6) && (lowerDigit <= 0xF)) {
-            cpu->registers.a += 0xFA;
-            resetC(cpu);
-          } else {
-            fprintf(stderr, "FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 3)\n", n, c, h, upperDigit, lowerDigit);
-            exit(EXIT_FAILURE);
-          }
-        } else { // (c == 1)
-          if ((upperDigit >= 0x7) && (upperDigit <= 0xF) && (h == 0) && (lowerDigit <= 0x9)) {
-            cpu->registers.a += 0xA0;
-            setC(cpu);
-          } else if ((upperDigit >= 0x6) && (upperDigit <= 0xF) && (h == 1) && (lowerDigit >= 0x6) && (lowerDigit <= 0xF)) {
-            cpu->registers.a += 0x9A;
-            setC(cpu);
-          } else {
-            fprintf(stderr, "FATAL ERROR: ERROR IN DAA - UNSUPPORTED CONDITIONS FOR OPERATION! n=%u c=%u h=%u upper=0x%X lower=0x%X (ERROR LOC. 4)\n", n, c, h, upperDigit, lowerDigit);
-            exit(EXIT_FAILURE);
-          }
+        if (c || (a > 0x9F)) {
+          a += 0x60;
+        }
+      } else {
+        if (h) {
+          a = (a - 6) & 0xFF;
+        }
+        if (c) {
+          a -= 0x60;
         }
       }
-      SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
+
+      resetZ(cpu);
       resetH(cpu);
+
+      if (a > 0xFF) {
+        setC(cpu);
+      }
+
+      cpu->registers.a = a;
+
+      if (cpu->registers.a == 0) {
+        setZ(cpu);
+      }
+
       cycles += 4;
       break;
     }
