@@ -43,24 +43,25 @@
   break;
 
 #define MAKE_SUB_N_OPCODE_IMPL(SOURCE_REGISTER) \
-  uint8_t old = cpu->registers.a; \
-  int32_t new = old - cpu->registers.SOURCE_REGISTER; \
-  cpu->registers.a = new; \
+  uint8_t oldA = cpu->registers.a; \
+  int32_t newA = oldA - cpu->registers.SOURCE_REGISTER; \
+  cpu->registers.a = newA; \
   SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0) \
   setN(cpu); \
-  SET_FLAG_TO_RESULT(H, new < 0) \
-  SET_FLAG_TO_RESULT(C, new < 0) \
+  SET_FLAG_TO_RESULT(H, (cpu->registers.SOURCE_REGISTER & 0x0F) > (oldA & 0x0F)) \
+  SET_FLAG_TO_RESULT(C, newA < 0) \
   cycles += 4; \
   break;
   
 #define MAKE_SBC_A_N_OPCODE_IMPL(SOURCE_REGISTER) \
-  uint8_t old = cpu->registers.a; \
-  int32_t new = old - (cpu->registers.SOURCE_REGISTER + ((cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT)); \
-  cpu->registers.a = new; \
+  uint8_t oldA = cpu->registers.a; \
+  uint8_t c = ((cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT); \
+  int32_t newA = oldA - (cpu->registers.SOURCE_REGISTER + c); \
+  cpu->registers.a = newA; \
   SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0) \
   setN(cpu); \
-  SET_FLAG_TO_RESULT(H, new < 0) \
-  SET_FLAG_TO_RESULT(C, new < 0) \
+  SET_FLAG_TO_RESULT(H, ((cpu->registers.SOURCE_REGISTER & 0x0F) + c) > (oldA & 0x0F)) \
+  SET_FLAG_TO_RESULT(C, newA < 0) \
   cycles += 4; \
   break;
 
@@ -95,7 +96,7 @@
   int16_t result = cpu->registers.a - cpu->registers.SOURCE_REGISTER; \
   SET_FLAG_TO_RESULT(Z, result == 0) \
   setN(cpu); \
-  SET_FLAG_TO_RESULT(H, result < 0) \
+  SET_FLAG_TO_RESULT(H, (cpu->registers.SOURCE_REGISTER & 0x0F) > (cpu->registers.a & 0x0F)) \
   SET_FLAG_TO_RESULT(C, result < 0) \
   cycles += 4; \
   break;
@@ -111,12 +112,12 @@
   break;
 
 #define MAKE_DEC_N_OPCODE_IMPL(REGISTER) \
-  uint8_t old = cpu->registers.REGISTER; \
-  int16_t new = old - 1; \
-  cpu->registers.REGISTER = new; \
+  uint8_t oldValue = cpu->registers.REGISTER; \
+  int16_t newValue = oldValue - 1; \
+  cpu->registers.REGISTER = (uint8_t)newValue; \
   SET_FLAG_TO_RESULT(Z, cpu->registers.REGISTER == 0) \
   setN(cpu); \
-  SET_FLAG_TO_RESULT(H, new < 0) \
+  SET_FLAG_TO_RESULT(H, 1 > (oldValue & 0x0F)) \
   cycles += 4; \
   break;
 
@@ -1266,13 +1267,14 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       MAKE_SUB_N_OPCODE_IMPL(l)
     }
     case 0x96: { // SUB (HL)
-      uint8_t old = cpu->registers.a;
-      int32_t new = old - readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
-      cpu->registers.a = new;
+      uint8_t oldA = cpu->registers.a;
+      uint8_t operand = readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
+      int32_t newA = oldA - operand;
+      cpu->registers.a = newA;
       SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
       setN(cpu);
-      SET_FLAG_TO_RESULT(H, new < 0)
-      SET_FLAG_TO_RESULT(C, new < 0)
+      SET_FLAG_TO_RESULT(H, (operand & 0x0F) > (oldA & 0x0F))
+      SET_FLAG_TO_RESULT(C, newA < 0)
       cycles += 8;
       break;
     }
@@ -1313,13 +1315,15 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       MAKE_SBC_A_N_OPCODE_IMPL(l)
     }
     case 0x9E: { // SBC A, (HL)
-      uint8_t old = cpu->registers.a;
-      int32_t new = old - (readByte(m, (cpu->registers.h << 8) | cpu->registers.l) + ((cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT));
-      cpu->registers.a = new;
+      uint8_t oldA = cpu->registers.a;
+      uint8_t operand = readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
+      uint8_t c = ((cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT);
+      int32_t newA = oldA - (operand + c);
+      cpu->registers.a = newA;
       SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
       setN(cpu);
-      SET_FLAG_TO_RESULT(H, new < 0)
-      SET_FLAG_TO_RESULT(C, new < 0)
+      SET_FLAG_TO_RESULT(H, ((operand & 0x0F) + c) > (oldA & 0x0F))
+      SET_FLAG_TO_RESULT(C, newA < 0)
       cycles += 8;
       break;
     }
@@ -1483,10 +1487,11 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       MAKE_CP_N_OPCODE_IMPL(l)
     }
     case 0xBE: { // CP (HL)
-      int16_t result = cpu->registers.a - readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
+      uint8_t operand = readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
+      int16_t result = cpu->registers.a - operand;
       SET_FLAG_TO_RESULT(Z, result == 0)
       setN(cpu);
-      SET_FLAG_TO_RESULT(H, result < 0)
+      SET_FLAG_TO_RESULT(H, (operand & 0x0F) > (cpu->registers.a & 0x0F))
       SET_FLAG_TO_RESULT(C, result < 0)
       cycles += 8;
       break;
@@ -1558,12 +1563,12 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       MAKE_DEC_N_OPCODE_IMPL(l)
     }
     case 0x35: { // DEC (HL)
-      uint8_t old = readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
-      int16_t new = old - 1;
-      writeByte(m, (cpu->registers.h << 8) | cpu->registers.l, (uint8_t)new);
-      SET_FLAG_TO_RESULT(Z, (uint8_t)new == 0)
+      uint8_t oldValue = readByte(m, (cpu->registers.h << 8) | cpu->registers.l);
+      int16_t newValue = oldValue - 1;
+      writeByte(m, (cpu->registers.h << 8) | cpu->registers.l, (uint8_t)newValue);
+      SET_FLAG_TO_RESULT(Z, (uint8_t)newValue == 0)
       setN(cpu);
-      SET_FLAG_TO_RESULT(H, new < 0)
+      SET_FLAG_TO_RESULT(H, 1 > (oldValue & 0x0F))
       cycles += 12;
       break;
     }
@@ -1748,7 +1753,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
     case 0x07: { // RLCA
       SET_FLAG_TO_RESULT(C, cpu->registers.a & BIT_7) // NOTE: Set the C bit of F before we modify A
       cpu->registers.a = (cpu->registers.a << 1) | ((cpu->registers.a & BIT_7) >> BIT_7_SHIFT);
-      SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
+      resetZ(cpu);
       resetN(cpu);
       resetH(cpu);
       cycles += 4;
@@ -1760,7 +1765,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       uint8_t oldCarryBit = (cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT;
       SET_FLAG_TO_RESULT(C, cpu->registers.a & BIT_7) // NOTE: Set the C bit of F before we modify A
       cpu->registers.a = (cpu->registers.a << 1) | oldCarryBit;
-      SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
+      resetZ(cpu);
       resetN(cpu);
       resetH(cpu);
       cycles += 4;
@@ -1771,7 +1776,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
     case 0x0F: { // RRCA
       SET_FLAG_TO_RESULT(C, cpu->registers.a & BIT_0) // NOTE: Set the C bit of F before we modify A
       cpu->registers.a = ((cpu->registers.a & BIT_0) << BIT_7_SHIFT) | (cpu->registers.a >> 1);
-      SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
+      resetZ(cpu);
       resetN(cpu);
       resetH(cpu);
       cycles += 4;
@@ -1783,7 +1788,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       uint8_t oldCarryBit = (cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT;
       SET_FLAG_TO_RESULT(C, cpu->registers.a & BIT_0) // NOTE: Set the C bit of F before we modify A
       cpu->registers.a = (oldCarryBit << BIT_7_SHIFT) | (cpu->registers.a >> 1);
-      SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
+      resetZ(cpu);
       resetN(cpu);
       resetH(cpu);
       cycles += 4;
