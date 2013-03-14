@@ -1058,21 +1058,15 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
     /* LD HL, SP + n - Same as LDHL SP, n ----------------------------------------------------*/
     /* LDHL SP, n ----------------------------------------------------------------------------*/
     case 0xF8: { // LD HL, SP + n and LDHL SP, n
-      // TODO: Check this - particularly the setting of register F for the H and C bits
-      int8_t signedValue = (int8_t)readByte(m, cpu->registers.pc++);
-      uint16_t oldAddress = (cpu->registers.h) | cpu->registers.l;
-      uint16_t newAddress = cpu->registers.sp + signedValue;
-      cpu->registers.h = (newAddress & 0xFF00) >> 8;
-      cpu->registers.l = newAddress & 0x00FF;      
+      uint8_t unsignedValue = readByte(m, cpu->registers.pc++);
+      int8_t signedValue = (int8_t)unsignedValue;
+      uint16_t newHL = cpu->registers.sp + signedValue;
+      cpu->registers.h = (newHL & 0xFF00) >> 8;
+      cpu->registers.l = (newHL & 0x00FF);
       resetZ(cpu);
       resetN(cpu);
-      if (signedValue >= 0) {
-        SET_FLAG_TO_RESULT(H, ((oldAddress & 0xF) + (signedValue & 0xF)) > 0xF)
-        SET_FLAG_TO_RESULT(C, ((oldAddress & 0xFF) + signedValue) > 0xFF)
-      } else {
-        SET_FLAG_TO_RESULT(H, (newAddress & 0xF) <= (oldAddress & 0xF))
-        SET_FLAG_TO_RESULT(C, (newAddress & 0xFF) <= (oldAddress & 0xFF))
-      }
+      SET_FLAG_TO_RESULT(H, ((cpu->registers.sp & 0x0F) + (unsignedValue & 0x0F)) > 0x0F)
+      SET_FLAG_TO_RESULT(C, ((cpu->registers.sp & 0xFF) + (unsignedValue & 0xFF)) > 0xFF)
       cycles += 12;
       break;
     }
@@ -1596,21 +1590,15 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
 
     /* ADD SP, n -----------------------------------------------------------------------------*/
     case 0xE8: { // ADD SP, n
-      // TODO: Check this for correctness, particularly the setting of the H and C flags of register F
-      // and the use of int32_t and conversion of int32_t to uint16_t
-      int8_t value = (int8_t)readByte(m, cpu->registers.pc++);
-      uint16_t old = cpu->registers.sp;
-      int32_t new = old + value;
-      cpu->registers.sp = new;
+      uint8_t unsignedValue = readByte(m, cpu->registers.pc++);
+      int8_t signedValue = (int8_t)unsignedValue;
+      uint16_t oldSP = cpu->registers.sp;
+      int32_t newSP = oldSP + signedValue;
+      cpu->registers.sp = newSP;
       resetZ(cpu);
       resetN(cpu);
-      if (value >= 0) {
-        SET_FLAG_TO_RESULT(H, ((old & 0xF) + (value & 0xF)) > 0xF)
-        SET_FLAG_TO_RESULT(C, ((old & 0xFF) + (value & 0xFF)) > 0xFF)
-      } else {
-        SET_FLAG_TO_RESULT(H, (new & 0xF) <= (old & 0xF))
-        SET_FLAG_TO_RESULT(C, (new & 0xFF) <= (old & 0xFF))
-      }
+      SET_FLAG_TO_RESULT(H, ((oldSP & 0x0F) + (unsignedValue & 0x0F)) > 0x0F)
+      SET_FLAG_TO_RESULT(C, ((oldSP & 0xFF) + (unsignedValue & 0xFF)) > 0xFF)
       cycles += 16;
       break;
     }
