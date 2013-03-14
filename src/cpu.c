@@ -1277,13 +1277,14 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       break;
     }
     case 0xD6: { // SUB #
-      uint8_t old = cpu->registers.a;
-      int32_t new = old - readByte(m, cpu->registers.pc++);
-      cpu->registers.a = new;
+      uint8_t oldA = cpu->registers.a;
+      uint8_t operand = readByte(m, cpu->registers.pc++);
+      int32_t newA = oldA - operand;
+      cpu->registers.a = newA;
       SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
       setN(cpu);
-      SET_FLAG_TO_RESULT(H, new < 0)
-      SET_FLAG_TO_RESULT(C, new < 0)
+      SET_FLAG_TO_RESULT(H, (operand & 0x0F) > (oldA & 0x0F))
+      SET_FLAG_TO_RESULT(C, newA < 0)
       cycles += 8;
       break;
     }
@@ -1323,13 +1324,15 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       break;
     }
     case 0xDE: { // SBC A, #
-      uint8_t old = cpu->registers.a;
-      int32_t new = old - (readByte(m, cpu->registers.pc++) + ((cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT));
-      cpu->registers.a = new;
+      uint8_t oldA = cpu->registers.a;
+      uint8_t operand = readByte(m, cpu->registers.pc++);
+      uint8_t c = ((cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT);
+      int32_t newA = oldA - (operand + c);
+      cpu->registers.a = newA;
       SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0)
       setN(cpu);
-      SET_FLAG_TO_RESULT(H, new < 0)
-      SET_FLAG_TO_RESULT(C, new < 0)
+      SET_FLAG_TO_RESULT(H, ((operand & 0x0F) + c) > (oldA & 0x0F))
+      SET_FLAG_TO_RESULT(C, newA < 0)
       cycles += 8;
       break;
     }
@@ -1489,10 +1492,11 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       break;
     }
     case 0xFE: { // CP #
-      int16_t result = cpu->registers.a - readByte(m, cpu->registers.pc++);
+      uint8_t operand = readByte(m, cpu->registers.pc++);
+      int16_t result = cpu->registers.a - operand;
       SET_FLAG_TO_RESULT(Z, result == 0)
       setN(cpu);
-      SET_FLAG_TO_RESULT(H, result < 0)
+      SET_FLAG_TO_RESULT(H, (operand & 0x0F) > (cpu->registers.a & 0x0F))
       SET_FLAG_TO_RESULT(C, result < 0)
       cycles += 8;
       break;
