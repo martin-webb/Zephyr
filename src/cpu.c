@@ -304,13 +304,13 @@
   }
 
 #define MAKE_RES_B_R_OPCODE_IMPL(B, REGISTER) \
-  cpu->registers.REGISTER &= ~(0x0 << B); \
+  cpu->registers.REGISTER &= ~(1 << B); \
   cycles += 8; \
   break;
 
 #define MAKE_RES_B_MEM_AT_HL_OPCODE_IMPL(B) \
   uint8_t value = readByte(m, (cpu->registers.h << 8) | cpu->registers.l); \
-  value &= ~(0x0 << B); \
+  value &= ~(1 << B); \
   writeByte(m, (cpu->registers.h << 8) | cpu->registers.l, value); \
   cycles += 16; \
   break;
@@ -2296,13 +2296,13 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
 
         /* RES b, r --------------------------------------------------------------------------*/
         MAKE_RES_B_R_OPCODE_GROUP(0, 0x87)
-        MAKE_RES_B_R_OPCODE_GROUP(0, 0x8F)
-        MAKE_RES_B_R_OPCODE_GROUP(0, 0x97)
-        MAKE_RES_B_R_OPCODE_GROUP(0, 0x9F)
-        MAKE_RES_B_R_OPCODE_GROUP(0, 0xA7)
-        MAKE_RES_B_R_OPCODE_GROUP(0, 0xAF)
-        MAKE_RES_B_R_OPCODE_GROUP(0, 0xB7)
-        MAKE_RES_B_R_OPCODE_GROUP(0, 0xBF)
+        MAKE_RES_B_R_OPCODE_GROUP(1, 0x8F)
+        MAKE_RES_B_R_OPCODE_GROUP(2, 0x97)
+        MAKE_RES_B_R_OPCODE_GROUP(3, 0x9F)
+        MAKE_RES_B_R_OPCODE_GROUP(4, 0xA7)
+        MAKE_RES_B_R_OPCODE_GROUP(5, 0xAF)
+        MAKE_RES_B_R_OPCODE_GROUP(6, 0xB7)
+        MAKE_RES_B_R_OPCODE_GROUP(7, 0xBF)
 
         /**************************************************************************************/
         default: {
