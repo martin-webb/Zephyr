@@ -515,7 +515,7 @@ void cpuPrintState(CPU* cpu)
 uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
 {
   if (cpu->halt) {
-    return 1;
+    return 4;
   }
 
   uint8_t opcode = readByte(m, cpu->registers.pc++);
@@ -2348,19 +2348,20 @@ void cpuUpdateIME(CPU* cpu)
 
 void cpuHandleInterrupts(CPU* cpu, InterruptController* interruptController, MemoryController* memoryController, GameBoyType gameBoyType)
 {
-  if (cpu->ime && interruptController->e != 0 && interruptController->f != 0) {
-    // Test each bit in order of interrupt priority (which, handily, is in the order of least- to most-significant bits)
-    for (uint8_t bitOffset = 0; bitOffset < 5; bitOffset++) {
-      
-      if ((interruptController->f & interruptController->e) & (1 << bitOffset)) {
-        // Disable ALL interrupts during the interrupt, and cancel low-power (HALT) mode
+  if (cpu->ime && interruptController->e != 0 && interruptController->f != 0)
+  {
+    for (uint8_t bitOffset = 0; bitOffset < 5; bitOffset++)
+    {
+      if (interruptController->e & interruptController->f & (1 << bitOffset))
+      {
+        // Disable all interrupts during the interrupt and cancel low-power (HALT) mode
         cpu->ime = false;
         cpu->halt = false;
-        
+
         // Push the program counter onto the stack
         writeByte(memoryController, --cpu->registers.sp, ((cpu->registers.pc & 0xFF00) >> 8));
         writeByte(memoryController, --cpu->registers.sp, (cpu->registers.pc & 0x00FF));
-        
+
         // Jump to the starting address of the interrupt - here the interrupt address is at the offset of the matching bit location in the IE register
         const uint16_t interruptAddresses[] = {
           VBLANK_INTERRUPT_START_ADDRESS,
@@ -2370,17 +2371,28 @@ void cpuHandleInterrupts(CPU* cpu, InterruptController* interruptController, Mem
           HIGH_TO_LOW_P10_TO_P13_INTERRUPT_START_ADDRESS
         };
         cpu->registers.pc = interruptAddresses[bitOffset];
-        
+
         // Reset the IF register bit of the interrupt being handled
         interruptReset(interruptController, 1 << bitOffset);
-        
+
         break;
       }
     }
-  } else if (!cpu->ime && cpu->halt) {
-    cpu->halt = false;
-    if (gameBoyType != CGB) {
-      cpu->_pcFrozen = true;
+  }
+  else if (cpu->halt && interruptController->f != 0)
+  {
+    for (uint8_t bitOffset = 0; bitOffset < 5; bitOffset++)
+    {
+      if (interruptController->f & (1 << bitOffset))
+      {
+        cpu->halt = false;
+
+        // The DI-HALT bug
+        if (gameBoyType != CGB) {
+          cpu->_pcFrozen = true;
+        }
+        break;
+      }
     }
   }
 }
