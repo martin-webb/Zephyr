@@ -519,11 +519,12 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
   }
 
   uint8_t opcode = readByte(m, cpu->registers.pc++);
+  // printf("[0x%04X][0x%02X] %s\n", cpu->registers.pc - 1, opcode, OPCODE_MNEMONICS[opcode]);
+
   if (cpu->_pcFrozen) {
     cpu->registers.pc--;
     cpu->_pcFrozen = false;
   }
-  // printf("[0x%04X][0x%02X] %s\n", cpu->registers.pc - 1, opcode, OPCODE_MNEMONICS[opcode]);
 
   // TODO: Check for overflow of opcode here?
 
