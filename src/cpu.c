@@ -230,13 +230,12 @@
   cycles += 8; \
   break;
 
-// TODO: Check this, with only one extra memory access (the byte read) I would expect this to be 12 clock cycles, not 16
 #define MAKE_BIT_B_MEM_AT_HL_OPCODE_IMPL(B) \
   uint8_t value = readByte(m, (cpu->registers.h << 8) | cpu->registers.l); \
   SET_FLAG_TO_RESULT(Z, ((value & (0x1 << B)) >> B) == 0) \
   resetN(cpu); \
   setH(cpu); \
-  cycles += 16; \
+  cycles += 12; \
   break;
 
 #define MAKE_BIT_B_R_OPCODE_GROUP(B, BEGINNING_OPCODE) \
@@ -1858,7 +1857,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
     case 0x18: { // JR n
       int8_t value = (int8_t)readByte(m, cpu->registers.pc++);
       cpu->registers.pc += value;
-      cycles += 8;
+      cycles += 12;
       break;
     }
 
