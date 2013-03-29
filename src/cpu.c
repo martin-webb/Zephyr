@@ -515,7 +515,7 @@ void cpuPrintState(CPU* cpu)
 uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
 {
   if (cpu->halt) {
-    return 4;
+    return 1;
   }
 
   uint8_t opcode = readByte(m, cpu->registers.pc++);
