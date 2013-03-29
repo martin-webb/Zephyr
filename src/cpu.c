@@ -1801,7 +1801,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       uint16_t address = readWord(m, cpu->registers.pc);
       cpu->registers.pc += 2;
       cpu->registers.pc = address;
-      cycles += 12;
+      cycles += 16;
       break;
     }
 
