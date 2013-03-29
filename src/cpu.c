@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "cpu.h"
+#include "logging.h"
 #include "timer.h"
 
 #include "mnemonics.h"
@@ -519,7 +520,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
   }
 
   uint8_t opcode = readByte(m, cpu->registers.pc++);
-  // printf("[0x%04X][0x%02X] %s\n", cpu->registers.pc - 1, opcode, OPCODE_MNEMONICS[opcode]);
+  // debug("\b[0x%04X][0x%02X] %s\n", cpu->registers.pc - 1, opcode, OPCODE_MNEMONICS[opcode]);
 
   if (cpu->_pcFrozen) {
     cpu->registers.pc--;
@@ -1994,7 +1995,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
     /* CB-Prefixed Opcodes ********************************************************************/
     case 0xCB: {
       uint8_t opcode2 = readByte(m, cpu->registers.pc++);
-      // printf("[0x%04X][0x%02X] %s\n", cpu->registers.pc - 1, opcode2, CB_OPCODE_MNEMONICS[opcode]);
+      // debug("\b[0x%04X][0x%02X] %s\n", cpu->registers.pc - 1, opcode2, CB_OPCODE_MNEMONICS[opcode]);
       
       switch (opcode2) {
         /* Miscellaneous **********************************************************************/
