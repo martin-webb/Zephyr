@@ -255,7 +255,6 @@ void CommonWriteByte(MemoryController* memoryController, uint16_t address, uint8
         critical("Attempt to disable LCD outside of VBLANK period!\n");
         exit(EXIT_FAILURE);
       }
-      memoryController->lcdController->stat = 0x01;
     }
   }
   else if (address == IO_REG_ADDRESS_STAT)
