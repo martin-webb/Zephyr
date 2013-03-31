@@ -54,7 +54,6 @@ typedef struct {
   uint8_t ly;   // FF44 - LCDC Y-Coordinate (R)
   uint8_t lyc;  // FF45 - LY Compare (R/W)
   uint8_t bgp;  // FF47 - BG Palette Data (R/W) - Non CGB Mode Only
-  uint8_t _bgp;
   uint8_t obp0; // FF48 - Object Palette 0 Data (R/W) - Non CGB Mode Only
   uint8_t obp1; // FF49 - Object Palette 1 Data (R/W) - Non CGB Mode Only
   uint8_t wy;   // FF4A - Window Y Position (R/W)
