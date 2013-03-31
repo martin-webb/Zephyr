@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include "memory.h"
+#include "speed.h"
 
 #define LCD_WIDTH 160
 #define LCD_HEIGHT 144
@@ -46,6 +47,13 @@
 #define VBLANK_CLOCK_CYCLES (SINGLE_HORIZONTAL_SCAN_CLOCK_CYCLES * 10)
 #define HORIZONTAL_SCANNING_CLOCK_CYCLES (FULL_FRAME_CLOCK_CYCLES - VBLANK_CLOCK_CYCLES)
 
+#define MAX_SPRITES 40
+#define MAX_SPRITES_PER_LINE 10
+
+#define MODE_3_CYCLES_MAX 272
+#define MODE_3_CYCLES_MIN 172
+#define MODE_3_CYCLES_PER_SPRITE ((MODE_3_CYCLES_MAX - MODE_3_CYCLES_MIN) / MAX_SPRITES_PER_LINE)
+
 typedef struct {
   uint8_t lcdc; // FF40 - LCD Control (R/W)
   uint8_t stat; // FF41 - LCDC Status (R/W)
@@ -60,14 +68,16 @@ typedef struct {
   uint8_t wx;   // FF4B - Window X Position - 7 (R/W)
   
   uint8_t* vram;
+  uint8_t* oam;
   uint8_t* frameBuffer;
-  
+
+  uint16_t mode3Cycles;
   uint32_t clockCycles;
-  
+
   // Values for debug/profiling statistics
   uint32_t vblankCounter;
 } LCDController;
 
-void lcdUpdate(LCDController* lcdController, InterruptController* interruptController, uint8_t cyclesExecuted);
+void lcdUpdate(LCDController* lcdController, InterruptController* interruptController, SpeedMode speedMode, uint8_t cyclesExecuted);
 
 #endif // LCD_H_

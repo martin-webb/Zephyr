@@ -42,7 +42,7 @@ uint32_t gbRunAtLeastNCycles(
     dmaUpdate(memoryController, cyclesExecuted);
     timerUpdateDivider(timerController, cyclesExecuted);
     timerUpdateTimer(timerController, interruptController, speedMode, cyclesExecuted);
-    lcdUpdate(lcdController, interruptController, cyclesExecuted);
+    lcdUpdate(lcdController, interruptController, speedMode, cyclesExecuted);
     cpuHandleInterrupts(cpu, interruptController, memoryController, gameBoyType);
   }
   

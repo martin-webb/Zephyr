@@ -133,6 +133,7 @@ int main(int argc, char* argv[])
   
   lcdController.stat = 0;
   lcdController.vram = &(memory[0]);
+  lcdController.oam = &(memory[0xFE00 - CARTRIDGE_SIZE]);
   
   lcdController.frameBuffer = &(frameBuffer[0]);
   lcdController.clockCycles = 0;

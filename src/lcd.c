@@ -4,6 +4,8 @@
 #include "cpu.h"
 #include "lcd.h"
 #include "logging.h"
+#include "speed.h"
+#include "sprites.h"
 
 bool lcdIsEnabled(LCDController* lcdController)
 {
@@ -151,15 +153,113 @@ void lcdDrawScanlineWindow(LCDController* lcdController)
   }
 }
 
-void lcdDrawScanline(LCDController* lcdController)
-{ 
+uint8_t lcdCopySpritesVisibleInScanline(LCDController* lcdController, Sprite* sprites, uint8_t spriteHeight)
+{
+  uint8_t spriteCount = 0;
+  for (uint8_t spriteIndex = 0; spriteIndex < MAX_SPRITES; spriteIndex++) {
+    // Does the sprite's Y position exclude it from appearing in the scanline?
+    // TODO: Check that "spriteY == 0 ||" and "|| spriteY >= 160" are implied here?
+    uint8_t spriteY = lcdController->oam[spriteIndex * 4];
+    if (spriteY <= lcdController->ly || spriteY > (lcdController->ly + spriteHeight)) {
+      continue;
+    }
+
+    // Does the sprite's X position exclude it from appearing in the scanline?
+    // NOTE: No checks possible for overlapping of sprites at this point because we cover all columns in the scanline
+    uint8_t spriteX = lcdController->oam[spriteIndex * 4 + 1];
+    if (spriteX == 0 || spriteX >= 168) {
+      continue;
+    }
+
+    // If we get here the sprite should be drawn, but we can't determine the draw priorities until
+    // we have scanned all the sprites in OAM, so store the sprite data for later.
+    sprites[spriteCount].yPosition = spriteY;
+    sprites[spriteCount].xPosition = spriteX;
+    sprites[spriteCount].tileNumber = lcdController->oam[spriteIndex * 4 + 2];
+    sprites[spriteCount].attributes = lcdController->oam[spriteIndex * 4 + 3];
+
+    spriteCount++;
+  }
+  return spriteCount;
+}
+
+void lcdDrawScanlineObjects(LCDController* lcdController, SpeedMode speedMode)
+{
+  Sprite sprites[MAX_SPRITES];
+
+  const uint8_t spriteHeight = ((lcdController->lcdc & LCD_OBJ_SIZE_BIT) ? 16 : 8);
+
+  // Fetch sprites that we know to be in the visible scanline
+  const uint8_t spriteCount = lcdCopySpritesVisibleInScanline(lcdController, sprites, spriteHeight);
+
+  // Now that we know how many sprites we're drawing we can adjust the Mode 3 timing accordingly
+  lcdController->mode3Cycles = MODE_3_CYCLES_MIN + (spriteCount * MODE_3_CYCLES_PER_SPRITE);
+
+  // For non CGB mode, order sprites that are in the scanline by X position and then order in the sprite table
+  if (speedMode == NORMAL) {
+    qsort((void*)sprites, spriteCount, sizeof(Sprite), spritesCompareByXPosition);
+  }
+
+  uint8_t spritesToRender = spriteCount;
+  if (spritesToRender > MAX_SPRITES_PER_LINE) {
+    spritesToRender = MAX_SPRITES_PER_LINE;
+  }
+
+  // Draw sprites from least to highest priority so higher priority sprites will be drawn over lower priority sprites
+  // TODO: This could be improved by moving across the scanline from left to right and not drawing
+  // overlapped parts of individual sprites and expecting them to be covered by drawing from right to left.
+  for (int sp = spritesToRender - 1; sp >= 0; sp--) {
+    Sprite sprite = sprites[sp];
+
+    uint8_t lineNumInSprite = lcdController->ly - sprite.yPosition + spriteHeight;
+
+    // Y flip
+    if (sprite.attributes & SPRITE_ATTR_BITS_Y_FLIP) {
+      lineNumInSprite = (spriteHeight - 1) - lineNumInSprite;
+    }
+
+    uint8_t lineBytes[2] = {
+      lcdController->vram[sprite.tileNumber * 16 + (lineNumInSprite * 2)],
+      lcdController->vram[sprite.tileNumber * 16 + (lineNumInSprite * 2) + 1]
+    };
+
+    for (uint8_t lineX = 0; lineX < 8; lineX++) {
+      if (lineX >= LCD_WIDTH) {
+        break;
+      }
+
+      uint8_t realX = lineX;
+
+      // X flip
+      if (sprite.attributes & SPRITE_ATTR_BITS_X_FLIP) {
+        realX = 7 - realX;
+      }
+
+      // Colour and shade lookup
+      // TODO: Check GB/GBC mode
+      uint8_t colourNumber = lcdMonochromeColourForPixel(realX, lineBytes[0], lineBytes[1]);
+      uint8_t palette = ((sprite.attributes & SPRITE_ATTR_BITS_MONOCHROME_PALETTE_NUMBER) ? lcdController->obp1 : lcdController->obp0);
+      uint8_t shade = (palette >> (colourNumber * 2)) & 3;
+
+      if (colourNumber != 0 && !(sprite.attributes & SPRITE_ATTR_BITS_OBJ_TO_BG_PRIORITY)) {
+        lcdController->frameBuffer[lcdController->ly * LCD_WIDTH + (sprite.xPosition - 8) + lineX] = shade;
+      }
+    }
+  }
+}
+
+void lcdDrawScanline(LCDController* lcdController, SpeedMode speedMode)
+{
   lcdDrawScanlineBackground(lcdController);
   if (lcdController->lcdc & LCD_WINDOW_DISPLAY_ENABLE_BIT) {
     lcdDrawScanlineWindow(lcdController);
   }
+  if (lcdController->lcdc & LCD_OBJ_DISPLAY_ENABLE_BIT) {
+    lcdDrawScanlineObjects(lcdController, speedMode);
+  }
 }
 
-void lcdUpdate(LCDController* lcdController, InterruptController* interruptController, uint8_t cyclesExecuted)
+void lcdUpdate(LCDController* lcdController, InterruptController* interruptController, SpeedMode speedMode, uint8_t cyclesExecuted)
 {
   if (!lcdIsEnabled(lcdController)) {
     return;
@@ -209,7 +309,7 @@ void lcdUpdate(LCDController* lcdController, InterruptController* interruptContr
         if (lcdController->stat & STAT_MODE_2_OAM_INTERRUPT_ENABLE_BIT) {
           interruptFlag(interruptController, LCDC_STATUS_INTERRUPT_BIT);
         }
-
+        lcdController->mode3Cycles = MODE_3_CYCLES_MAX;
       }
       else if (mode == 2) {} // No mode change
       else
@@ -218,13 +318,12 @@ void lcdUpdate(LCDController* lcdController, InterruptController* interruptContr
         exit(EXIT_FAILURE);
       }
     }
-    else if (horizontalScanClocks >= 80 && horizontalScanClocks < 252) // Mode 3
+    else if (horizontalScanClocks >= 80 && horizontalScanClocks < (80 + lcdController->mode3Cycles)) // Mode 3
     {
       if (mode == 2) // Handle mode change from mode 2
       {
         lcdStatSetMode(lcdController, 3);
-        lcdDrawScanline(lcdController);
-        
+        lcdDrawScanline(lcdController, speedMode);
       }
       else if (mode == 3) {} // No mode change
       else
@@ -233,7 +332,7 @@ void lcdUpdate(LCDController* lcdController, InterruptController* interruptContr
         exit(EXIT_FAILURE);
       }
     }
-    else if (horizontalScanClocks >= 252 && horizontalScanClocks < SINGLE_HORIZONTAL_SCAN_CLOCK_CYCLES) // Mode 0
+    else if (horizontalScanClocks >= (80 + lcdController->mode3Cycles) && horizontalScanClocks < SINGLE_HORIZONTAL_SCAN_CLOCK_CYCLES) // Mode 0
     {
       if (mode == 3) // Handle mode change from mode 3
       {
