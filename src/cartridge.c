@@ -16,7 +16,7 @@ int cartridgeGetSize(FILE* cartridgeFile)
 uint8_t* cartridgeLoadData(char* pathToROM)
 {
   uint8_t* cartridgeData = NULL;
-  
+
   FILE* cartridgeFile = fopen(pathToROM, "rb");
   if (cartridgeFile == NULL) {
     printf("Failed to read GB cartridge from '%s'\n", pathToROM);
@@ -24,13 +24,13 @@ uint8_t* cartridgeLoadData(char* pathToROM)
   }
   long int cartridgeSize = cartridgeGetSize(cartridgeFile);
   printf("Cartridge Size: %li\n", cartridgeSize);
-  
+
   cartridgeData = (uint8_t*)malloc(cartridgeSize * sizeof(uint8_t));
-  
+
   fseek(cartridgeFile, 0, SEEK_SET);
   fread(cartridgeData, 1, cartridgeSize, cartridgeFile);
   fclose(cartridgeFile);
-  
+
   return cartridgeData;
 }
 

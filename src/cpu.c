@@ -53,7 +53,7 @@
   SET_FLAG_TO_RESULT(C, newA < 0) \
   cycles += 4; \
   break;
-  
+
 #define MAKE_SBC_A_N_OPCODE_IMPL(SOURCE_REGISTER) \
   uint8_t oldA = cpu->registers.a; \
   uint8_t c = ((cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT); \
@@ -74,7 +74,7 @@
   resetC(cpu); \
   cycles += 4; \
   break;
-  
+
 #define MAKE_OR_N_OPCODE_IMPL(SOURCE_REGISTER) \
   cpu->registers.a |= cpu->registers.SOURCE_REGISTER; \
   SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0) \
@@ -214,7 +214,7 @@
   resetH(cpu); \
   cycles += 8; \
   break;
-  
+
 #define MAKE_SRL_N_OPCODE_IMPL(REGISTER) \
   SET_FLAG_TO_RESULT(C, cpu->registers.REGISTER & BIT_0) \
   cpu->registers.REGISTER = cpu->registers.REGISTER >> 1; \
@@ -269,7 +269,7 @@
   cpu->registers.REGISTER |= (0x1 << B); \
   cycles += 8; \
   break;
-  
+
 #define MAKE_SET_B_MEM_AT_HL_OPCODE_IMPL(B) \
   uint8_t value = readByte(m, (cpu->registers.h << 8) | cpu->registers.l); \
   value |= (0x1 << B); \
@@ -827,7 +827,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       cycles += 8;
       break;
     }
-    
+
     case 0x70: { // LD (HL), B
       writeByte(m, (cpu->registers.h << 8) | cpu->registers.l, cpu->registers.b);
       cycles += 8;
@@ -1724,7 +1724,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       cycles += 4;
       break;
     }
-    
+
     /* STOP ----------------------------------------------------------------------------------*/
     case 0x10: { // STOP
       // NOTE: Some Game Boy CPU manuals document the opcode for this instruction as 10 00 but there
@@ -1734,14 +1734,14 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       cycles += 4;
       break;
     }
-    
+
     /* DI ------------------------------------------------------------------------------------*/
     case 0xF3: { // DI
       cpu->di = 1;
       cycles += 4;
       break;
     }
-    
+
     /* EI ------------------------------------------------------------------------------------*/
     case 0xFB: { // EI
       cpu->ei = 1;
@@ -1996,7 +1996,7 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
     case 0xCB: {
       uint8_t opcode2 = readByte(m, cpu->registers.pc++);
       // debug("\b[0x%04X][0x%02X] %s\n", cpu->registers.pc - 1, opcode2, CB_OPCODE_MNEMONICS[opcode]);
-      
+
       switch (opcode2) {
         /* Miscellaneous **********************************************************************/
         /* SWAP n ----------------------------------------------------------------------------*/
@@ -2335,7 +2335,7 @@ void cpuUpdateIME(CPU* cpu)
     cpu->ime = false;
     cpu->di = 0;
   }
-  
+
   if (cpu->ei == 1) {
     cpu->ei++;
   } else if (cpu->ei == 2) {

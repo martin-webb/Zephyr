@@ -71,7 +71,7 @@ void lcdDrawScanlineBackground(LCDController* lcdController)
       // Draw all pixels from the current tile, starting at the offset in the tile determined by the x location in the complete background
       for (uint8_t pixelX = backgroundX % 8; pixelX < 8 && scanlineX < LCD_WIDTH; pixelX++) {
         uint8_t colourNumber = lcdMonochromeColourForPixel(pixelX, backgroundTileData[0], backgroundTileData[1]);
-        
+
         // Palette lookup
         // TODO: Check GB/GBC mode
         uint8_t shade = (lcdController->bgp >> (colourNumber * 2)) & 3;
@@ -99,23 +99,23 @@ void lcdDrawScanlineWindow(LCDController* lcdController)
 {
   uint16_t windowTileMapOffset = ((lcdController->lcdc & LCD_BG_TILE_MAP_DISPLAY_SELECT_BIT) ? 0x9C00 : 0x9800);
   uint16_t bgAndWindowTileTableOffset = ((lcdController->lcdc & LCD_BG_AND_WINDOW_TILE_DATA_SELECT_BIT) ? 0x8000 : 0x8800);
-  
+
   // Check if the window offset results in a row of the window on the current scanline - if not then we're done
   if (lcdController->ly < lcdController->wy) {
     return;
   }
-  
+
   for (int scanlineX = 0; scanlineX < LCD_WIDTH; scanlineX++) {
     // Determine map tile for pixel based on the LCD controller LY, scanline X and WX and WY window offsets
     uint8_t windowY = lcdController->wy - lcdController->ly;
-    
+
     // Check if the window offset results in a column of the window in the current column of the scanline
     if (scanlineX < (lcdController->wx - 7)) {
       continue;
     }
-    
+
     uint8_t windowX = (lcdController->wx - 7) - scanlineX;
-    
+
     uint16_t windowMapTileIndex = ((windowY / 8) * 32) + (windowX / 8);
     uint16_t windowMapTileOffset = lcdController->vram[windowTileMapOffset - 0x8000 + windowMapTileIndex];
 
@@ -264,13 +264,13 @@ void lcdUpdate(LCDController* lcdController, InterruptController* interruptContr
   if (!lcdIsEnabled(lcdController)) {
     return;
   }
-  
+
   // Update the internal clock cycle counter
   lcdController->clockCycles = (lcdController->clockCycles + cyclesExecuted) % FULL_FRAME_CLOCK_CYCLES;
-  
+
   uint8_t mode = lcdController->stat & STAT_MODE_FLAG_BITS; // NOTE: This is an 'out-of-date' value of mode from the previous update
   uint16_t horizontalScanClocks = lcdController->clockCycles % SINGLE_HORIZONTAL_SCAN_CLOCK_CYCLES;
-  
+
   // Update LY and LYC (even in VBLANK), triggering a STAT interrupt for LY=LYC if enabled
   // NOTE: Apparently, for lines 0-143, LY is updated in the transition to Mode 2, however functionally
   // there is no difference if we do this here, and additionally this still works while in Mode 1
@@ -298,9 +298,9 @@ void lcdUpdate(LCDController* lcdController, InterruptController* interruptContr
     lcdController->stat &= ~STAT_COINCIDENCE_FLAG_BIT;
   }
   lcdController->ly = ly;
-  
+
   if (lcdController->clockCycles < HORIZONTAL_SCANNING_CLOCK_CYCLES) // Horizontal scanning mode (modes 2, 3 and 0)
-  {  
+  {
     if (horizontalScanClocks < 80) // Mode 2
     {
       if (mode == 0 || mode == 1) // Handle mode change from HBLANK or VBLANK
@@ -340,7 +340,6 @@ void lcdUpdate(LCDController* lcdController, InterruptController* interruptContr
         if (lcdController->stat & STAT_MODE_0_HBLANK_INTERRUPT_ENABLE_BIT) {
           interruptFlag(interruptController, LCDC_STATUS_INTERRUPT_BIT);
         }
-        
       }
       else if (mode == 0) {}
       else // No mode change
@@ -365,15 +364,14 @@ void lcdUpdate(LCDController* lcdController, InterruptController* interruptContr
     if (mode == 0) // Handle mode change from HBLANK
     {
       lcdStatSetMode(lcdController, 1);
-      
       // Trigger a VBLANK interrupt
       interruptFlag(interruptController, VBLANK_INTERRUPT_BIT);
-      
+
       // Optionally trigger an LCDC Status interrupt
       if (lcdController->stat & STAT_MODE_1_VBLANK_INTERRUPT_ENABLE_BIT) {
         interruptFlag(interruptController, LCDC_STATUS_INTERRUPT_BIT);
       }
-      
+
       // Debug
       if (++lcdController->vblankCounter % 60 == 0) {
         debug("60 VBlanks (LCDC=%u STAT=%u Background=%u Window=%u Sprites=%u SCX=%u SCY=%u WX=%u WY=%u)\n",
@@ -388,7 +386,7 @@ void lcdUpdate(LCDController* lcdController, InterruptController* interruptContr
           lcdController->wy
         );
       }
-      
+
     }
     else if (mode == 1) {} // No mode change
     else

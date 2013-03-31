@@ -9,7 +9,7 @@ void timerUpdateDivider(TimerController* timerController, uint8_t cyclesExecuted
   // NOTE: In double-speed mode the divider increments twice as fast at 32768Hz, however because we
   // increment based on clock cycles instead of real time values we don't need to do anything else here,
   // because when double-speed mode is enabled (and the clock is effectively twice as fast) the same
-  // number of increments happens in the same period of time. 
+  // number of increments happens in the same period of time.
   // Alternatively, in double-speed mode the base clock is twice as fast, but the update frequency sis also twice as fast,
   // so the same number of clock cycles are executed before the register is incremented, so we don't have to do anything special here.
   if (timerController->dividerCounter + cyclesExecuted >= DIV_INCREMENT_CLOCK_CYCLES) {
@@ -26,17 +26,17 @@ void timerUpdateTimer(TimerController* timerController, InterruptController* int
     // multiple times per update if required (if, for example, after the last update we were 4 cycles
     // away from the next increment (in 262144 Hz mode) and we then executed a 24-cycle instruction,
     // putting us at 36 cycles-worth of updates, 2 full timer increments).
-    
+
     // NOTE: We could reduce the number of loop iterations here if we knew that cyclesExecuted would
     // always be divisible by 4 by incrementing in blocks of 4, but if a CPU in the HALT/STOP state
     // can tick in a single cycle (because in this emulator design the CPU "drives" the other components)
     // then this approach isn't safe.
-    
+
     // NOTE: Alternatively, we could increment by a value up to that required for the next TIMA increment
     // (if the value of cyclesExecuted allowed for this), and the again by the remainder, if needed,
     // knowing that for a single CPU instruction and with the timer set to increment every 16 cycles
     // (at 262144 Hz) there could be at MOST one TIMA increment plus some remainder clock cycles.
-    
+
     for (int c = 0; c < cyclesExecuted; c++) {
       // Determine the clock frequency for timer updates
       const uint32_t inputClocks[] = {4096, 262144, 65536, 16384};
@@ -60,6 +60,6 @@ void timerUpdateTimer(TimerController* timerController, InterruptController* int
       }
       timerController->timerCounter = (timerController->timerCounter + 1) % timerIncrementClockCycles;
     }
-    
+
   }
 }

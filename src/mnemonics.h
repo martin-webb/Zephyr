@@ -19,7 +19,7 @@ const char* OPCODE_MNEMONICS[256] = {
   "DEC C", // xD
   "LD C, n", // xE
   "RRCA", // xF
-  
+
   // 10
   "STOP", // x0 (may also be encoded as 10 00, but assemblers typically just use 10)
   "LD DE, nn", // x1
@@ -37,7 +37,7 @@ const char* OPCODE_MNEMONICS[256] = {
   "DEC E", // xD
   "LD E, n", // xE
   "RRA", // xF
-  
+
   // 20
   "JR NZ, *", // x0
   "LD HL, nn", // x1
@@ -55,7 +55,7 @@ const char* OPCODE_MNEMONICS[256] = {
   "DEC L", // xD
   "LD L, n", // xE
   "CPL", // xF
-  
+
   // 30
   "JR NC, *", // x0
   "LD SP, nn", // x1
@@ -73,7 +73,7 @@ const char* OPCODE_MNEMONICS[256] = {
   "DEC A", // xD
   "LD A, #", // xE
   "CCF", // xF
-  
+
   // 40
   "LD B, B", // x0
   "LD B, C", // x1
@@ -91,7 +91,7 @@ const char* OPCODE_MNEMONICS[256] = {
   "LD C, L", // xD
   "LD C, (HL)", // xE
   "LD C, A", // xF
-  
+
   // 50
   "LD D, B", // x0
   "LD D, C", // x1
@@ -109,7 +109,7 @@ const char* OPCODE_MNEMONICS[256] = {
   "LD E, L", // xD
   "LD E, (HL)", // xE
   "LD E, A", // xF
-  
+
   // 60
   "LD H, B", // x0
   "LD H, C", // x1
@@ -127,7 +127,7 @@ const char* OPCODE_MNEMONICS[256] = {
   "LD L, L", // xD
   "LD L, (HL)", // xE
   "LD L, A", // xF
-  
+
   // 70
   "LD (HL), B", // x0
   "LD (HL), C", // x1
@@ -145,7 +145,7 @@ const char* OPCODE_MNEMONICS[256] = {
   "LD A, L", // xD
   "LD A, (HL)", // xE
   "LD A, A", // xF
-  
+
   // 80
   "ADD A, B", // x0
   "ADD A, C", // x1
@@ -163,7 +163,7 @@ const char* OPCODE_MNEMONICS[256] = {
   "ADC A, L", // xD
   "ADC A, (HL)", // xE
   "ADC A, A", // xF
-  
+
   // 90
   "SUB B", // x0
   "SUB C", // x1
@@ -181,7 +181,7 @@ const char* OPCODE_MNEMONICS[256] = {
   "SBC A, L", // xD
   "SBC A, (HL)", // xE
   "SBC A, A", // xF
-  
+
   // A0
   "AND B", // x0
   "AND C", // x1
@@ -199,7 +199,7 @@ const char* OPCODE_MNEMONICS[256] = {
   "XOR L", // xD
   "XOR (HL)", // xE
   "XOR A", // xF
-  
+
   // B0
   "OR B", // x0
   "OR C", // x1
@@ -217,7 +217,7 @@ const char* OPCODE_MNEMONICS[256] = {
   "CP L", // xD
   "CP (HL)", // xE
   "CP A", // xF
-  
+
   // C0
   "RET NZ", // x0
   "POP BC", // x1
@@ -235,7 +235,7 @@ const char* OPCODE_MNEMONICS[256] = {
   "CALL nn", // xD
   "ADC A, #", // xE
   "RST 08H", // xF
-  
+
   // D0
   "RET NC", // x0
   "POP DE", // x1
@@ -253,7 +253,7 @@ const char* OPCODE_MNEMONICS[256] = {
   "UNKNOWN", // xD
   "SBC A, #", // xE
   "RST 18H", // xF
-  
+
   // E0
   "LD ($FF00 + n), A", // x0
   "POP HL", // x1
@@ -271,7 +271,7 @@ const char* OPCODE_MNEMONICS[256] = {
   "UNKNOWN", // xD
   "XOR #", // xE
   "RST 28H", // xF
-  
+
   // F0
   "LD A, ($FF00 + n)", // x0
   "POP AF", // x1
@@ -309,7 +309,7 @@ const char* CB_OPCODE_MNEMONICS[256] = {
   "RRC L", // xD
   "RRC (HL)", // xE
   "RRC A", // xF
-  
+
   // 10
   "RL B", // x0
   "RL C", // x1
@@ -327,7 +327,7 @@ const char* CB_OPCODE_MNEMONICS[256] = {
   "RR L", // xD
   "RR (HL)", // xE
   "RR A", // xF
-  
+
   // 20
   "SLA B", // x0
   "SLA C", // x1
@@ -345,7 +345,7 @@ const char* CB_OPCODE_MNEMONICS[256] = {
   "SRA L", // xD
   "SRA (HL)", // xE
   "SRA A", // xF
-  
+
   // 30
   "SWAP B", // x0
   "SWAP C", // x1
@@ -363,7 +363,7 @@ const char* CB_OPCODE_MNEMONICS[256] = {
   "SRL L", // xD
   "SRL (HL)", // xE
   "SRL A", // xF
-  
+
   // 40
   "BIT 0, B", // x0
   "BIT 0, C", // x1
@@ -381,7 +381,7 @@ const char* CB_OPCODE_MNEMONICS[256] = {
   "BIT 1, L", // xD
   "BIT 1, (HL)", // xE
   "BIT 1, A", // xF
-  
+
   // 50
   "BIT 2, B", // x0
   "BIT 2, C", // x1
@@ -399,7 +399,7 @@ const char* CB_OPCODE_MNEMONICS[256] = {
   "BIT 3, L", // xD
   "BIT 3, (HL)", // xE
   "BIT 3, A", // xF
-  
+
   // 60
   "BIT 4, B", // x0
   "BIT 4, C", // x1
@@ -417,7 +417,7 @@ const char* CB_OPCODE_MNEMONICS[256] = {
   "BIT 5, L", // xD
   "BIT 5, (HL)", // xE
   "BIT 5, A", // xF
-  
+
   // 70
   "BIT 6, B", // x0
   "BIT 6, C", // x1
@@ -435,7 +435,7 @@ const char* CB_OPCODE_MNEMONICS[256] = {
   "BIT 7, L", // xD
   "BIT 7, (HL)", // xE
   "BIT 7, A", // xF
-  
+
   // 80
   "RES 0, B", // x0
   "RES 0, C", // x1
@@ -453,7 +453,7 @@ const char* CB_OPCODE_MNEMONICS[256] = {
   "RES 1, L", // xD
   "RES 1, (HL)", // xE
   "RES 1, A", // xF
-  
+
   // 90
   "RES 2, B", // x0
   "RES 2, C", // x1
@@ -471,7 +471,7 @@ const char* CB_OPCODE_MNEMONICS[256] = {
   "RES 3, L", // xD
   "RES 3, (HL)", // xE
   "RES 3, A", // xF
-  
+
   // A0
   "RES 4, B", // x0
   "RES 4, C", // x1
@@ -489,7 +489,7 @@ const char* CB_OPCODE_MNEMONICS[256] = {
   "RES 5, L", // xD
   "RES 5, (HL)", // xE
   "RES 5, A", // xF
-  
+
   // B0
   "RES 6, B", // x0
   "RES 6, C", // x1
@@ -507,7 +507,7 @@ const char* CB_OPCODE_MNEMONICS[256] = {
   "RES 7, L", // xD
   "RES 7, (HL)", // xE
   "RES 7, A", // xF
-  
+
   // C0
   "SET 0, B", // x0
   "SET 0, C", // x1
@@ -525,7 +525,7 @@ const char* CB_OPCODE_MNEMONICS[256] = {
   "SET 1, L", // xD
   "SET 1, (HL)", // xE
   "SET 1, A", // xF
-  
+
   // D0
   "SET 2, B", // x0
   "SET 2, C", // x1
@@ -543,7 +543,7 @@ const char* CB_OPCODE_MNEMONICS[256] = {
   "SET 3, L", // xD
   "SET 3, (HL)", // xE
   "SET 3, A", // xF
-  
+
   // E0
   "SET 4, B", // x0
   "SET 4, C", // x1
@@ -561,7 +561,7 @@ const char* CB_OPCODE_MNEMONICS[256] = {
   "SET 5, L", // xD
   "SET 5, (HL)", // xE
   "SET 5, A", // xF
-  
+
   // F0
   "SET 6, B", // x0
   "SET 6, C", // x1

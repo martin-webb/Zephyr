@@ -40,7 +40,7 @@
 #define STAT_MODE_FLAG_BITS 0x3
 
 #define VBLANK_INTERRUPT_BIT (1 << 0)
-#define LCDC_STATUS_INTERRUPT_BIT (1 << 1) 
+#define LCDC_STATUS_INTERRUPT_BIT (1 << 1)
 
 #define SINGLE_HORIZONTAL_SCAN_CLOCK_CYCLES 456
 #define FULL_FRAME_CLOCK_CYCLES (SINGLE_HORIZONTAL_SCAN_CLOCK_CYCLES * 154)
@@ -66,7 +66,7 @@ typedef struct {
   uint8_t obp1; // FF49 - Object Palette 1 Data (R/W) - Non CGB Mode Only
   uint8_t wy;   // FF4A - Window Y Position (R/W)
   uint8_t wx;   // FF4B - Window X Position - 7 (R/W)
-  
+
   uint8_t* vram;
   uint8_t* oam;
   uint8_t* frameBuffer;

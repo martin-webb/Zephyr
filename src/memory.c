@@ -253,7 +253,7 @@ void CommonWriteByte(MemoryController* memoryController, uint16_t address, uint8
     } else {
       // Stopping LCD operation outside of the VBLANK period can damage the display hardware
       // Nintendo is reported to reject any games that didn't follow this rule.
-      // TODO: Make this a warning? Or a runtime option (e.g. "strict-lcd-disable-rule")? 
+      // TODO: Make this a warning? Or a runtime option (e.g. "strict-lcd-disable-rule")?
       uint8_t lcdMode = memoryController->lcdController->stat & STAT_MODE_FLAG_BITS;
       if (lcdMode != 0x01) {
         critical("Attempt to disable LCD outside of VBLANK period!\n");
@@ -335,7 +335,7 @@ void CommonWriteByte(MemoryController* memoryController, uint16_t address, uint8
   else
   {
     memoryController->memory[address - CARTRIDGE_SIZE] = value;
-    
+
     // Additional write to support the echo of 7.5KB of internal RAM
     if (address >= 0xC000 && address < 0xDE00) {
       memoryController->memory[address - CARTRIDGE_SIZE + 0x2000] = value;
@@ -343,7 +343,7 @@ void CommonWriteByte(MemoryController* memoryController, uint16_t address, uint8
       memoryController->memory[address - CARTRIDGE_SIZE - 0x2000] = value;
     }
   }
-  
+
   // TODO: Add to formal logging strategy that can be removed for release builds (for example)
   if (address >= 0x8000 && address < 0xA000) {
     // debug("\b[MEMORY] Write to VRAM address=0x%04X value=0x%02X\n", address, value);
@@ -431,7 +431,7 @@ uint8_t MBC1ReadByte(MemoryController* memoryController, uint16_t address)
 
 void MBC1WriteByte(MemoryController* memoryController, uint16_t address, uint8_t value)
 {
-  if (address <= 0x1FFF) { // External RAM Enable/Disable    
+  if (address <= 0x1FFF) { // External RAM Enable/Disable
     if ((value & 0xF) == 0xA) {
       if (!memoryController->ramEnabled) {
         info("External RAM was ENABLED by value 0x%02X written to address 0x%04X\n", value, address);
@@ -490,7 +490,7 @@ MemoryController InitMBC1MemoryController(
     timerController,
     interruptController
   };
-  
+
   // Allocate external RAM
   uint8_t* externalRAM = (uint8_t*)malloc(externalRAMSizeBytes * sizeof(uint8_t));
   if (!externalRAM) {
@@ -498,6 +498,6 @@ MemoryController InitMBC1MemoryController(
     exit(EXIT_FAILURE);
   }
   memoryController.externalRAM = externalRAM;
-  
+
   return memoryController;
 }
