@@ -374,7 +374,7 @@ void lcdUpdate(LCDController* lcdController, InterruptController* interruptContr
 
       // Debug
       if (++lcdController->vblankCounter % 60 == 0) {
-        debug("60 VBlanks (LCDC=%u STAT=%u Background=%u Window=%u Sprites=%u SCX=%u SCY=%u WX=%u WY=%u)\n",
+        debug("60 VBlanks (LCDC=0x%02X STAT=0x%02X Background=%u Window=%u Sprites=%u SCX=0x%02X SCY=0x%02X WX=0x%02X WY=0x%02X LYC=0x%02X)\n",
           lcdController->lcdc,
           lcdController->stat,
           (lcdController->lcdc & LCD_BG_DISPLAY_BIT) != 0,
@@ -383,7 +383,8 @@ void lcdUpdate(LCDController* lcdController, InterruptController* interruptContr
           lcdController->scx,
           lcdController->scy,
           lcdController->wx,
-          lcdController->wy
+          lcdController->wy,
+          lcdController->lyc
         );
       }
 
