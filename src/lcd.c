@@ -172,7 +172,22 @@ void lcdUpdate(LCDController* lcdController, InterruptController* interruptContr
   uint16_t horizontalScanClocks = lcdController->clockCycles % SINGLE_HORIZONTAL_SCAN_CLOCK_CYCLES;
   
   // Update LY and LYC (even in VBLANK), triggering a STAT interrupt for LY=LYC if enabled
+  // NOTE: Apparently, for lines 0-143, LY is updated in the transition to Mode 2, however functionally
+  // there is no difference if we do this here, and additionally this still works while in Mode 1
+  // (VBLANK) and no extra checks are required in the Mode 1 code to keep LY up-to-date.
   uint8_t ly = lcdController->clockCycles / SINGLE_HORIZONTAL_SCAN_CLOCK_CYCLES;
+
+  // Line 153 is interesting, in that LY apparently stays at 153 for ~4 clock cycles then rolls over early to 0.
+  // This is noticeable in the introductory sequence to The Legend of Zelda: Link's Awakening where,
+  // in the second section of the sequence (on Koholint Island) the top line of the screen will exhibit
+  // graphics glitches if the LYC Coincidence interrupt for LY=0 LYC=0 is triggered for the actual
+  // line 0, instead of the actual line 153.
+  // TODO: I read that this was a hardware bug present only in the GB hardware. Is this verified?
+  // NOTE: The "&& horizontalScanClocks >= 4" check below seems unnecessary for functionally correct behaviour
+  if (ly == 153 && horizontalScanClocks >= 4) {
+    ly = 0;
+  }
+
   if (ly == lcdController->lyc) {
     lcdController->stat |= STAT_COINCIDENCE_FLAG_BIT;
     if (lcdController->stat & STAT_COINCIDENCE_INTERRUPT_ENABLE_BIT && ly != lcdController->ly) {
