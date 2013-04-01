@@ -314,7 +314,7 @@ void lcdUpdate(LCDController* lcdController, InterruptController* interruptContr
       else if (mode == 2) {} // No mode change
       else
       {
-        critical("%s: Invalid LCDC mode transition from %u to %u\n", __func__, mode, 2);
+        critical("%s: Invalid LCDC mode transition from %u to %u (hclocks=%u vclocks=%u)\n", __func__, mode, 2, horizontalScanClocks, lcdController->clockCycles);
         exit(EXIT_FAILURE);
       }
     }
@@ -328,7 +328,7 @@ void lcdUpdate(LCDController* lcdController, InterruptController* interruptContr
       else if (mode == 3) {} // No mode change
       else
       {
-        critical("%s: Invalid LCDC mode transition from %u to %u\n", __func__, mode, 3);
+        critical("%s: Invalid LCDC mode transition from %u to %u (hclocks=%u vclocks=%u)\n", __func__, mode, 3, horizontalScanClocks, lcdController->clockCycles);
         exit(EXIT_FAILURE);
       }
     }
@@ -344,7 +344,7 @@ void lcdUpdate(LCDController* lcdController, InterruptController* interruptContr
       else if (mode == 0) {}
       else // No mode change
       {
-        critical("%s: Invalid LCDC mode transition from %u to %u\n", __func__, mode, 0);
+        critical("%s: Invalid LCDC mode transition from %u to %u (hclocks=%u vclocks=%u)\n", __func__, mode, 0, horizontalScanClocks, lcdController->clockCycles);
         exit(EXIT_FAILURE);
       }
     }
@@ -392,7 +392,7 @@ void lcdUpdate(LCDController* lcdController, InterruptController* interruptContr
     else if (mode == 1) {} // No mode change
     else
     {
-      critical("%s: Invalid LCDC mode transition from %u to %u\n", __func__, mode, 1);
+      critical("%s: Invalid LCDC mode transition from %u to %u (hclocks=%u vclocks=%u)\n", __func__, mode, 1, horizontalScanClocks, lcdController->clockCycles);
       exit(EXIT_FAILURE);
     }
   }
