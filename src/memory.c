@@ -248,8 +248,13 @@ void CommonWriteByte(MemoryController* memoryController, uint16_t address, uint8
   }
   else if (address == IO_REG_ADDRESS_LCDC)
   {
-    memoryController->lcdController->lcdc = value;
+    if (((memoryController->lcdController->lcdc & LCD_DISPLAY_ENABLE_BIT) == 0) && (value & LCD_DISPLAY_ENABLE_BIT)) {
+      debug("LCD was ENABLED by write of value 0x%02X to LCDC\n", value);
+    } else if ((memoryController->lcdController->lcdc & LCD_DISPLAY_ENABLE_BIT) && ((value & LCD_DISPLAY_ENABLE_BIT) == 0)) {
+      debug("LCD was DISABLED by write of value 0x%02X to LCDC\n", value);
+    }
 
+    memoryController->lcdController->lcdc = value;
     // Handle enable and disable of LCD
     if (value & LCD_DISPLAY_ENABLE_BIT) {
       // TODO: What to do here?
