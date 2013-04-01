@@ -9,6 +9,7 @@
 #include "cpu.h"
 #include "gameboy.h"
 #include "interrupts.h"
+#include "joypad.h"
 #include "lcd.h"
 #include "logging.h"
 #include "speed.h"
@@ -19,6 +20,7 @@
 #define WINDOW_SCALE_FACTOR (TARGET_WINDOW_WIDTH_DEFAULT * 1.0 / LCD_WIDTH)
 
 CPU cpu;
+JoypadController joypadController;
 LCDController lcdController;
 TimerController timerController;
 InterruptController interruptController;
@@ -108,6 +110,78 @@ void reshape(int width, int height)
   glLoadIdentity();
 }
 
+void keyPressed(unsigned char key, int x, int y)
+{
+  switch (key) {
+    case 120: // X
+      joypadController._a = true;
+      break;
+    case 122: // Z
+      joypadController._b = true;
+      break;
+    case 13: // Return
+      joypadController._start = true;
+      break;
+    case 9: // Tab
+      joypadController._select = true;
+      break;
+  }
+}
+
+void keyUp(unsigned char key, int x, int y)
+{
+  switch (key) {
+    case 120: // X
+      joypadController._a = false;
+      break;
+    case 122: // Z
+      joypadController._b = false;
+      break;
+    case 13: // Return
+      joypadController._start = false;
+      break;
+    case 9: // Tab
+      joypadController._select = false;
+      break;
+  }
+}
+
+void specialKeyPressed(int key, int x, int y)
+{
+  switch (key) {
+    case GLUT_KEY_UP:
+      joypadController._up = true;
+      break;
+    case GLUT_KEY_DOWN:
+      joypadController._down = true;
+      break;
+    case GLUT_KEY_LEFT:
+      joypadController._left = true;
+      break;
+    case GLUT_KEY_RIGHT:
+      joypadController._right = true;
+      break;
+  }
+}
+
+void specialKeyUp(int key, int x, int y)
+{
+  switch (key) {
+    case GLUT_KEY_UP:
+      joypadController._up = false;
+      break;
+    case GLUT_KEY_DOWN:
+      joypadController._down = false;
+      break;
+    case GLUT_KEY_LEFT:
+      joypadController._left = false;
+      break;
+    case GLUT_KEY_RIGHT:
+      joypadController._right = false;
+      break;
+  }
+}
+
 int main(int argc, char* argv[])
 {
   if (argc != 2) {
@@ -131,6 +205,16 @@ int main(int argc, char* argv[])
   uint32_t externalRAMSizeBytes = RAMSizeInBytes(ramSize);
   printf("RAM size: 0x%02X - %s\n", ramSize, RAMSizeToString(ramSize));
 
+  joypadController.p1 = 0x3F;
+  joypadController._a = false;
+  joypadController._b = false;
+  joypadController._up = false;
+  joypadController._down = false;
+  joypadController._left = false;
+  joypadController._right = false;
+  joypadController._start = false;
+  joypadController._select = false;
+
   lcdController.stat = 0;
   lcdController.vram = &(memory[0]);
   lcdController.oam = &(memory[0xFE00 - CARTRIDGE_SIZE]);
@@ -150,6 +234,7 @@ int main(int argc, char* argv[])
     cartridgeType,
     memory,
     cartridgeData,
+    &joypadController,
     &lcdController,
     &timerController,
     &interruptController,
@@ -195,7 +280,12 @@ int main(int argc, char* argv[])
   initGL();
 
   lastRunTimeUSecs = currentTimeMicros();
-  
+
+  glutKeyboardFunc(keyPressed);
+  glutKeyboardUpFunc(keyUp);
+  glutSpecialFunc(specialKeyPressed);
+  glutSpecialUpFunc(specialKeyUp);
+
   glutMainLoop();
 
   free(cartridgeData);

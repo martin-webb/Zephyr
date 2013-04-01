@@ -72,6 +72,7 @@ MemoryController InitMemoryController(
   uint8_t cartridgeType,
   uint8_t* memory,
   uint8_t* cartridge,
+  JoypadController* joypadController,
   LCDController* lcdController,
   TimerController* timerController,
   InterruptController* interruptController,
@@ -80,12 +81,12 @@ MemoryController InitMemoryController(
 {
   switch (cartridgeType) {
     case CARTRIDGE_TYPE_ROM_ONLY:
-      return InitROMOnlyMemoryController(memory, cartridge, lcdController, timerController, interruptController, externalRAMSizeBytes);
+      return InitROMOnlyMemoryController(memory, cartridge, joypadController, lcdController, timerController, interruptController, externalRAMSizeBytes);
       break;
     case CARTRIDGE_TYPE_MBC1:
     case CARTRIDGE_TYPE_MBC1_PLUS_RAM:
     case CARTRIDGE_TYPE_MBC1_PLUS_RAM_PLUS_BATTERY:
-      return InitMBC1MemoryController(memory, cartridge, lcdController, timerController, interruptController, externalRAMSizeBytes);
+      return InitMBC1MemoryController(memory, cartridge, joypadController, lcdController, timerController, interruptController, externalRAMSizeBytes);
       break;
     case CARTRIDGE_TYPE_MBC2:
     case CARTRIDGE_TYPE_MBC2_PLUS_BATTERY:
@@ -141,6 +142,10 @@ uint8_t CommonReadByte(MemoryController* memoryController, uint16_t address)
     } else {
       return 0xFF;
     }
+  }
+  else if (address == IO_REG_ADDRESS_P1)
+  {
+    return memoryController->joypadController->p1;
   }
   else if (address == IO_REG_ADDRESS_LCDC)
   {
@@ -261,6 +266,21 @@ void CommonWriteByte(MemoryController* memoryController, uint16_t address, uint8
       }
     }
   }
+  else if (address == IO_REG_ADDRESS_P1)
+  {
+    memoryController->joypadController->p1 = (value & 0x30) | 0x0F; // TODO: Do we need to preserve or reset (set to 1) the low 4 bits here?
+    if ((value & (1 << 5)) == 0) {
+      if (memoryController->joypadController->_start) memoryController->joypadController->p1 &= ~(1 << 3);
+      if (memoryController->joypadController->_select) memoryController->joypadController->p1 &= ~(1 << 2);
+      if (memoryController->joypadController->_b) memoryController->joypadController->p1 &= ~(1 << 1);
+      if (memoryController->joypadController->_a) memoryController->joypadController->p1 &= ~(1 << 0);
+    } else if ((value & (1 << 4)) == 0) {
+      if (memoryController->joypadController->_down) memoryController->joypadController->p1 &= ~(1 << 3);
+      if (memoryController->joypadController->_up) memoryController->joypadController->p1 &= ~(1 << 2);
+      if (memoryController->joypadController->_left) memoryController->joypadController->p1 &= ~(1 << 1);
+      if (memoryController->joypadController->_right) memoryController->joypadController->p1 &= ~(1 << 0);
+    }
+  }
   else if (address == IO_REG_ADDRESS_STAT)
   {
     memoryController->lcdController->stat = (value & 0xFC) | (memoryController->lcdController->stat & 0x03);
@@ -377,6 +397,7 @@ void ROMOnlyWriteByte(MemoryController* memoryController, uint16_t address, uint
 MemoryController InitROMOnlyMemoryController(
   uint8_t* memory,
   uint8_t* cartridge,
+  JoypadController* joypadController,
   LCDController* lcdController,
   TimerController* timerController,
   InterruptController* interruptController,
@@ -395,6 +416,7 @@ MemoryController InitROMOnlyMemoryController(
     0x0000,
     &ROMOnlyReadByte,
     &ROMOnlyWriteByte,
+    joypadController,
     lcdController,
     timerController,
     interruptController
@@ -468,6 +490,7 @@ void MBC1WriteByte(MemoryController* memoryController, uint16_t address, uint8_t
 MemoryController InitMBC1MemoryController(
   uint8_t* memory,
   uint8_t* cartridge,
+  JoypadController* joypadController,
   LCDController* lcdController,
   TimerController* timerController,
   InterruptController* interruptController,
@@ -486,6 +509,7 @@ MemoryController InitMBC1MemoryController(
     0x0000,
     &MBC1ReadByte,
     &MBC1WriteByte,
+    joypadController,
     lcdController,
     timerController,
     interruptController

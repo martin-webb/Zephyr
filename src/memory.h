@@ -6,6 +6,7 @@
 
 #include "timercontroller.h"
 #include "interrupts.h"
+#include "joypad.h"
 #include "lcd.h"
 
 #define IO_REG_ADDRESS_DMA 0xFF46
@@ -24,6 +25,7 @@ struct MemoryController {
   uint16_t dmaNextAddress;
   uint8_t (*readByteImpl)(MemoryController* memoryController, uint16_t address);
   void (*writeByteImpl)(MemoryController* memoryController, uint16_t address, uint8_t value);
+  JoypadController* joypadController;
   LCDController* lcdController;
   TimerController* timerController;
   InterruptController* interruptController;
@@ -40,6 +42,7 @@ MemoryController InitMemoryController(
   uint8_t cartridgeType,
   uint8_t* memory,
   uint8_t* cartridge,
+  JoypadController* joypadController,
   LCDController* lcdController,
   TimerController* timerController,
   InterruptController* interruptController,
@@ -54,6 +57,7 @@ void ROMOnlyWriteByte(MemoryController* memoryController, uint16_t address, uint
 MemoryController InitROMOnlyMemoryController(
   uint8_t* memory,
   uint8_t* cartridge,
+  JoypadController* joypadController,
   LCDController* lcdController,
   TimerController* timerController,
   InterruptController* interruptController,
@@ -68,6 +72,7 @@ void ROMOnlyWriteByte(MemoryController* memoryController, uint16_t address, uint
 MemoryController InitMBC1MemoryController(
   uint8_t* memory,
   uint8_t* cartridge,
+  JoypadController* joypadController,
   LCDController* lcdController,
   TimerController* timerController,
   InterruptController* interruptController,
