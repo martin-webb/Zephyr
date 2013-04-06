@@ -190,7 +190,7 @@ void lcdDrawScanlineObjects(LCDController* lcdController, SpeedMode speedMode)
   const uint8_t spriteHeight = ((lcdController->lcdc & LCD_OBJ_SIZE_BIT) ? 16 : 8);
 
   // Fetch sprites that we know to be in the visible scanline
-  const uint8_t spriteCount = lcdCopySpritesVisibleInScanline(lcdController, sprites, spriteHeight);
+  const uint8_t spriteCount = lcdCopySpritesVisibleInScanline(lcdController, sprites, 16);
 
   // Now that we know how many sprites we're drawing we can adjust the Mode 3 timing accordingly
   lcdController->mode3Cycles = MODE_3_CYCLES_MIN + (spriteCount * MODE_3_CYCLES_PER_SPRITE);
@@ -211,7 +211,12 @@ void lcdDrawScanlineObjects(LCDController* lcdController, SpeedMode speedMode)
   for (int sp = spritesToRender - 1; sp >= 0; sp--) {
     Sprite sprite = sprites[sp];
 
-    uint8_t lineNumInSprite = lcdController->ly - sprite.yPosition + spriteHeight;
+    uint8_t lineNumInSprite = lcdController->ly - sprite.yPosition + 16;
+
+    // All sprites are 16 pixels high but in 8x8 mode we don't draw the bottom half (however the positioning is always done in terms of 16 pixels height)
+    if (lineNumInSprite > spriteHeight - 1) {
+      continue;
+    }
 
     // Y flip
     if (sprite.attributes & SPRITE_ATTR_BITS_Y_FLIP) {
