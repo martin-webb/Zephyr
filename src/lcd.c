@@ -97,7 +97,7 @@ void lcdDrawScanlineBackground(LCDController* lcdController)
 
 void lcdDrawScanlineWindow(LCDController* lcdController)
 {
-  uint16_t windowTileMapOffset = ((lcdController->lcdc & LCD_BG_TILE_MAP_DISPLAY_SELECT_BIT) ? 0x9C00 : 0x9800);
+  uint16_t windowTileMapOffset = ((lcdController->lcdc & LCD_WINDOW_TILE_MAP_DISPLAY_SELECT_BIT) ? 0x9C00 : 0x9800);
   uint16_t bgAndWindowTileTableOffset = ((lcdController->lcdc & LCD_BG_AND_WINDOW_TILE_DATA_SELECT_BIT) ? 0x8000 : 0x8800);
 
   // Check if the window offset results in a row of the window on the current scanline - if not then we're done
@@ -107,14 +107,14 @@ void lcdDrawScanlineWindow(LCDController* lcdController)
 
   for (int scanlineX = 0; scanlineX < LCD_WIDTH; scanlineX++) {
     // Determine map tile for pixel based on the LCD controller LY, scanline X and WX and WY window offsets
-    uint8_t windowY = lcdController->wy - lcdController->ly;
+    uint8_t windowY = lcdController->ly - lcdController->wy;
 
     // Check if the window offset results in a column of the window in the current column of the scanline
     if (scanlineX < (lcdController->wx - 7)) {
       continue;
     }
 
-    uint8_t windowX = (lcdController->wx - 7) - scanlineX;
+    uint8_t windowX = scanlineX - (lcdController->wx - 7);
 
     uint16_t windowMapTileIndex = ((windowY / 8) * 32) + (windowX / 8);
     uint16_t windowMapTileOffset = lcdController->vram[windowTileMapOffset - 0x8000 + windowMapTileIndex];
