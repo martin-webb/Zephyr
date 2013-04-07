@@ -13,7 +13,7 @@ int cartridgeGetSize(FILE* cartridgeFile)
   return size;
 }
 
-uint8_t* cartridgeLoadData(char* pathToROM)
+uint8_t* cartridgeLoadData(const char* pathToROM)
 {
   uint8_t* cartridgeData = NULL;
 
@@ -34,7 +34,7 @@ uint8_t* cartridgeLoadData(char* pathToROM)
   return cartridgeData;
 }
 
-const char* cartridgeGetGameTitle(uint8_t* cartridgeData)
+const char* cartridgeGetGameTitle(const uint8_t* cartridgeData)
 {
   int titleLength = 0;
   for (int i = GAME_TITLE_START_ADDRESS; i <= GAME_TITLE_END_ADDRESS; i++) {
@@ -61,7 +61,7 @@ const char* cartridgeGetGameTitle(uint8_t* cartridgeData)
   return gameTitle;
 }
 
-uint8_t cartridgeGetType(uint8_t* cartridgeData)
+uint8_t cartridgeGetType(const uint8_t* cartridgeData)
 {
   return cartridgeData[CARTRIDGE_TYPE_ADDRESS];
 }
