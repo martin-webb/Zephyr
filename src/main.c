@@ -33,6 +33,8 @@ uint8_t frameBuffer[LCD_WIDTH * LCD_HEIGHT];
 
 uint64_t lastRunTimeUSecs;
 
+bool fast = false;
+
 void initGL()
 {
   glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -87,7 +89,7 @@ void runGBWithGLUT()
       &interruptController,
       gameBoyType,
       speedMode,
-      CPU_MIN_CYCLES_PER_SET
+      CPU_MIN_CYCLES_PER_SET * (fast ? 4 : 1)
     );
     lastRunTimeUSecs = currentTimeUSecs;
 
@@ -126,6 +128,9 @@ void keyPressed(unsigned char key, int x, int y)
     case 9: // Tab
       joypadController._select = true;
       break;
+    case 32: // Space
+      fast = true;
+      break;
   }
 }
 
@@ -143,6 +148,9 @@ void keyUp(unsigned char key, int x, int y)
       break;
     case 9: // Tab
       joypadController._select = false;
+      break;
+    case 32: // Space
+      fast = false;
       break;
   }
 }
