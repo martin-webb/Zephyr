@@ -94,7 +94,7 @@ void runGBWithGLUT()
     glutPostRedisplay();
   }
 
-  struct timespec sleepRequested = {0, 0.95 * 1e6}; // 0.25ms sleep
+  struct timespec sleepRequested = {0, 0.25 * 1e6}; // 0.25ms sleep
   struct timespec sleepRemaining;
   nanosleep(&sleepRequested, &sleepRemaining);
 }
