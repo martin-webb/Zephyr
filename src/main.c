@@ -17,7 +17,7 @@
 #include "timing.h"
 #include "utils/os.h"
 
-#define TARGET_WINDOW_WIDTH_DEFAULT 768
+#define TARGET_WINDOW_WIDTH_DEFAULT 1024
 #define WINDOW_SCALE_FACTOR (TARGET_WINDOW_WIDTH_DEFAULT * 1.0 / LCD_WIDTH)
 
 CPU cpu;
