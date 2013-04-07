@@ -182,7 +182,7 @@ void specialKeyUp(int key, int x, int y)
   }
 }
 
-int main(int argc, char* argv[])
+int main(int argc, const char* argv[])
 {
   if (argc != 2) {
     printf("Usage: %s PATH_TO_ROM\n", argv[0]);
@@ -261,7 +261,7 @@ int main(int argc, char* argv[])
   cpuReset(&cpu, &memoryController, GB);
   cpuPrintState(&cpu);
 
-  glutInit(&argc, argv);
+  glutInit(&argc, (char**)argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGBA);
   glutInitWindowSize(LCD_WIDTH * WINDOW_SCALE_FACTOR, LCD_HEIGHT * WINDOW_SCALE_FACTOR);
   glutInitWindowPosition(
