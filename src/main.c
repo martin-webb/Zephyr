@@ -246,11 +246,9 @@ int main(int argc, char* argv[])
 
   GameBoyType gameType = gbGetGameType(cartridgeData);
 
-  printf("Title: ");
-  for (int i = GAME_TITLE_START_ADDRESS; i < GAME_TITLE_END_ADDRESS; i++) {
-    printf("%c", cartridgeData[i]);
-  }
-  printf("\n");
+  const char* gameTitle = cartridgeGetGameTitle(cartridgeData);
+  printf("Title: %s\n", gameTitle);
+  free(gameTitle);
 
   printf("Game Type: %s\n", (gameType == GB) ? "GB" : (gameType == CGB) ? "CGB" : "SGB");
 
