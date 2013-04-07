@@ -248,7 +248,7 @@ int main(int argc, const char* argv[])
 
   const char* gameTitle = cartridgeGetGameTitle(cartridgeData);
   printf("Title: %s\n", gameTitle);
-  free(gameTitle);
+  free((void*)gameTitle);
 
   printf("Game Type: %s\n", (gameType == GB) ? "GB" : (gameType == CGB) ? "CGB" : "SGB");
 
