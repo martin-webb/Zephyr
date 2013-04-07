@@ -229,7 +229,13 @@ void lcdDrawScanlineObjects(LCDController* lcdController, SpeedMode speedMode)
     };
 
     for (uint8_t lineX = 0; lineX < 8; lineX++) {
-      if (lineX >= LCD_WIDTH) {
+      // Stop sprite pixels from wrapping back around onto the end of the previous scanline
+      if (((sprite.xPosition - 8) + lineX) < 0) {
+        continue;
+      }
+
+      // Stop sprite pixels from wrapping around onto the start of the next scanline
+      if (((sprite.xPosition - 8) + lineX) >= LCD_WIDTH) {
         break;
       }
 
