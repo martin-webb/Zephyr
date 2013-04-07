@@ -117,7 +117,7 @@ void keyPressed(unsigned char key, int x, int y)
     case 120: // X
       joypadController._a = true;
       break;
-    case 122: // Z
+    case 97: // A
       joypadController._b = true;
       break;
     case 13: // Return
@@ -135,7 +135,7 @@ void keyUp(unsigned char key, int x, int y)
     case 120: // X
       joypadController._a = false;
       break;
-    case 122: // Z
+    case 97: // A
       joypadController._b = false;
       break;
     case 13: // Return
