@@ -34,6 +34,33 @@ uint8_t* cartridgeLoadData(char* pathToROM)
   return cartridgeData;
 }
 
+const char* cartridgeGetGameTitle(uint8_t* cartridgeData)
+{
+  int titleLength = 0;
+  for (int i = GAME_TITLE_START_ADDRESS; i <= GAME_TITLE_END_ADDRESS; i++) {
+    if ((cartridgeData[i] == 0) || (i == GAME_TITLE_END_ADDRESS)) {
+      titleLength = i - GAME_TITLE_START_ADDRESS;
+      if (i == GAME_TITLE_END_ADDRESS) {
+        titleLength++; // Plus 1 because we encountered no NULL bytes and used the full length of
+      }
+      break;
+    }
+  }
+
+  char* gameTitle = malloc((titleLength + 1) * sizeof(char));
+  if (gameTitle == NULL) {
+    critical("%s: malloc() failed\n", __func__);
+    exit(EXIT_FAILURE);
+  }
+
+  for (int i = 0; i < titleLength; i++) {
+    gameTitle[i] = cartridgeData[GAME_TITLE_START_ADDRESS + i];
+  }
+  gameTitle[titleLength] = '\0';
+
+  return gameTitle;
+}
+
 uint8_t cartridgeGetType(uint8_t* cartridgeData)
 {
   return cartridgeData[CARTRIDGE_TYPE_ADDRESS];
