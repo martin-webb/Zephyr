@@ -15,6 +15,7 @@
 #include "speed.h"
 #include "timercontroller.h"
 #include "timing.h"
+#include "utils/os.h"
 
 #define TARGET_WINDOW_WIDTH_DEFAULT 768
 #define WINDOW_SCALE_FACTOR (TARGET_WINDOW_WIDTH_DEFAULT * 1.0 / LCD_WIDTH)
@@ -230,6 +231,8 @@ int main(int argc, const char* argv[])
   interruptController.f = 0;
   interruptController.e = 0;
 
+  const char* romFilename = basename(argv[1]);
+
   memoryController = InitMemoryController(
     cartridgeType,
     memory,
@@ -238,7 +241,8 @@ int main(int argc, const char* argv[])
     &lcdController,
     &timerController,
     &interruptController,
-    externalRAMSizeBytes
+    externalRAMSizeBytes,
+    romFilename
   );
 
   gameBoyType = GB;
@@ -286,6 +290,7 @@ int main(int argc, const char* argv[])
 
   glutMainLoop();
 
+  free((void*)romFilename);
   free(cartridgeData);
 
   return 0;

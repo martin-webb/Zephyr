@@ -17,6 +17,7 @@ struct MemoryController {
   uint8_t* memory;
   uint8_t* cartridge;
   uint8_t* externalRAM;
+  uint32_t externalRAMSize;
   uint8_t bankSelect; // 2-bit register to select EITHER RAM Bank 00-03h or to specify the upper two bits (5 and 6, 0-based) of the ROM bank mapped to 0x4000-0x7FFF
   uint8_t modeSelect; // 1-bit register to select whether the above 2-bit applies to ROM/RAM bank selection
   uint8_t romBank;
@@ -29,6 +30,7 @@ struct MemoryController {
   LCDController* lcdController;
   TimerController* timerController;
   InterruptController* interruptController;
+  const char* romFilename;
 };
 
 uint8_t readByte(MemoryController* memoryController, uint16_t address);
@@ -46,7 +48,8 @@ MemoryController InitMemoryController(
   LCDController* lcdController,
   TimerController* timerController,
   InterruptController* interruptController,
-  uint32_t externalRAMSizeBytes
+  uint32_t externalRAMSizeBytes,
+  const char* romFilename
 );
 
 /****************************************************************************/
@@ -76,7 +79,8 @@ MemoryController InitMBC1MemoryController(
   LCDController* lcdController,
   TimerController* timerController,
   InterruptController* interruptController,
-  uint32_t externalRAMSizeBytes
+  uint32_t externalRAMSizeBytes,
+  const char* romFilename
 );
 
 #endif // MEMORY_H_

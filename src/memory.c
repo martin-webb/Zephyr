@@ -3,6 +3,7 @@
 #include "cartridge.h"
 #include "logging.h"
 #include "memory.h"
+#include "ram.h"
 #include "timer.h"
 
 uint8_t readByte(MemoryController* memoryController, uint16_t address)
@@ -76,7 +77,8 @@ MemoryController InitMemoryController(
   LCDController* lcdController,
   TimerController* timerController,
   InterruptController* interruptController,
-  uint32_t externalRAMSizeBytes
+  uint32_t externalRAMSizeBytes,
+  const char* romFilename
 )
 {
   switch (cartridgeType) {
@@ -86,7 +88,7 @@ MemoryController InitMemoryController(
     case CARTRIDGE_TYPE_MBC1:
     case CARTRIDGE_TYPE_MBC1_PLUS_RAM:
     case CARTRIDGE_TYPE_MBC1_PLUS_RAM_PLUS_BATTERY:
-      return InitMBC1MemoryController(memory, cartridge, joypadController, lcdController, timerController, interruptController, externalRAMSizeBytes);
+      return InitMBC1MemoryController(memory, cartridge, joypadController, lcdController, timerController, interruptController, externalRAMSizeBytes, romFilename);
       break;
     case CARTRIDGE_TYPE_MBC2:
     case CARTRIDGE_TYPE_MBC2_PLUS_BATTERY:
@@ -413,6 +415,7 @@ MemoryController InitROMOnlyMemoryController(
     memory,
     cartridge,
     NULL,
+    0,
     0x00, // NOTE: Unused in ROM Only cartridges
     0x00, // NOTE: Unused in ROM Only cartridges
     0x01, // NOTE: Unused in ROM Only cartridges
@@ -424,7 +427,8 @@ MemoryController InitROMOnlyMemoryController(
     joypadController,
     lcdController,
     timerController,
-    interruptController
+    interruptController,
+    NULL
   };
   return memoryController;
 }
@@ -461,11 +465,13 @@ void MBC1WriteByte(MemoryController* memoryController, uint16_t address, uint8_t
   if (address <= 0x1FFF) { // External RAM Enable/Disable
     if ((value & 0xF) == 0xA) {
       if (!memoryController->ramEnabled) {
+        ramLoad(memoryController->externalRAM, memoryController->externalRAMSize, memoryController->romFilename);
         info("External RAM was ENABLED by value 0x%02X written to address 0x%04X\n", value, address);
       }
       memoryController->ramEnabled = true;
     } else {
       if (memoryController->ramEnabled) {
+        ramSave(memoryController->externalRAM, memoryController->externalRAMSize, memoryController->romFilename);
         info("External RAM was DISABLED by value 0x%02X written to address 0x%04X\n", value, address);
       }
       memoryController->ramEnabled = false;
@@ -499,13 +505,15 @@ MemoryController InitMBC1MemoryController(
   LCDController* lcdController,
   TimerController* timerController,
   InterruptController* interruptController,
-  uint32_t externalRAMSizeBytes
+  uint32_t externalRAMSizeBytes,
+  const char* romFilename
 )
 {
   MemoryController memoryController = {
     memory,
     cartridge,
     NULL,
+    0,
     0x00, // TODO: Correct default?
     0x00, // TODO: Correct default?
     0x01,
@@ -517,7 +525,8 @@ MemoryController InitMBC1MemoryController(
     joypadController,
     lcdController,
     timerController,
-    interruptController
+    interruptController,
+    romFilename
   };
 
   // Allocate external RAM
@@ -527,6 +536,7 @@ MemoryController InitMBC1MemoryController(
     exit(EXIT_FAILURE);
   }
   memoryController.externalRAM = externalRAM;
+  memoryController.externalRAMSize = externalRAMSizeBytes;
 
   return memoryController;
 }
