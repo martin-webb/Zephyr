@@ -49,7 +49,10 @@ void drawGBScreen()
 
   for (int y = 0; y < LCD_HEIGHT; y++) {
     for (int x = 0; x < LCD_WIDTH; x++) {
-      switch (frameBuffer[y * LCD_WIDTH + x]) {
+      // NOTE: Mask out the top nibble of the value in the framebuffer because for pixels that contain
+      // only background and/or window shades the colour number will still be in the top nibble of
+      // the byte (it is not included for sprite/object shades because it is not needed later)
+      switch (frameBuffer[y * LCD_WIDTH + x] & 0x0F) {
         case 0:
           glColor3f(1.0, 1.0, 1.0);
           break;

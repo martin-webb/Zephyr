@@ -77,7 +77,10 @@ void lcdDrawScanlineBackground(LCDController* lcdController)
         uint8_t shade = (lcdController->bgp >> (colourNumber * 2)) & 3;
 
         // Draw a pixel!
-        lcdController->frameBuffer[lcdController->ly * LCD_WIDTH + scanlineX] = shade;
+        // NOTE: We encode the colour number in the top nibble of the byte so that it can be used
+        // to determine the OBJ-to-BG priority (and we can't determine the original colour number
+        // based on the shade and the palette, because multiple colours could map to the same shade)
+        lcdController->frameBuffer[lcdController->ly * LCD_WIDTH + scanlineX] = (colourNumber << 4) | shade;
 
         // Don't increment this for the last pixel of the current tile, the increment in the outer loop will do this for us
         if (pixelX != 7) {
@@ -142,7 +145,10 @@ void lcdDrawScanlineWindow(LCDController* lcdController)
       uint8_t shade = (lcdController->bgp >> (colourNumber * 2)) & 3;
 
       // Draw a pixel!
-      lcdController->frameBuffer[lcdController->ly * LCD_WIDTH + scanlineX] = shade;
+      // NOTE: We encode the colour number in the top nibble of the byte so that it can be used
+      // to determine the OBJ-to-BG priority (and we can't determine the original colour number
+      // based on the shade and the palette, because multiple colours could map to the same shade)
+      lcdController->frameBuffer[lcdController->ly * LCD_WIDTH + scanlineX] = (colourNumber << 4) | shade;
 
       // Don't increment this for the last pixel of the current tile, the increment in the outer loop will do this for us
       if (pixelX != 7) {
@@ -246,14 +252,18 @@ void lcdDrawScanlineObjects(LCDController* lcdController, SpeedMode speedMode)
         realX = 7 - realX;
       }
 
-      // Colour and shade lookup
-      // TODO: Check GB/GBC mode
-      uint8_t colourNumber = lcdMonochromeColourForPixel(realX, lineBytes[0], lineBytes[1]);
-      uint8_t palette = ((sprite.attributes & SPRITE_ATTR_BITS_MONOCHROME_PALETTE_NUMBER) ? lcdController->obp1 : lcdController->obp0);
-      uint8_t shade = (palette >> (colourNumber * 2)) & 3;
+      uint16_t pixelPos = lcdController->ly * LCD_WIDTH + (sprite.xPosition - 8) + lineX;
 
-      if (colourNumber != 0 && !(sprite.attributes & SPRITE_ATTR_BITS_OBJ_TO_BG_PRIORITY)) {
-        lcdController->frameBuffer[lcdController->ly * LCD_WIDTH + (sprite.xPosition - 8) + lineX] = shade;
+      // TODO: Check GB/GBC mode
+
+      uint8_t bgOrWinColourNumber = lcdController->frameBuffer[pixelPos] >> 4;
+      uint8_t spriteColourNumber = lcdMonochromeColourForPixel(realX, lineBytes[0], lineBytes[1]);
+
+      if ((bgOrWinColourNumber == 0 || !(sprite.attributes & SPRITE_ATTR_BITS_OBJ_TO_BG_PRIORITY)) && spriteColourNumber != 0) {
+        uint8_t palette = ((sprite.attributes & SPRITE_ATTR_BITS_MONOCHROME_PALETTE_NUMBER) ? lcdController->obp1 : lcdController->obp0);
+        uint8_t shade = (palette >> (spriteColourNumber * 2)) & 3;
+
+        lcdController->frameBuffer[pixelPos] = shade;
       }
     }
   }
