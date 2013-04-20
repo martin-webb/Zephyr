@@ -83,7 +83,7 @@ MemoryController InitMemoryController(
 {
   switch (cartridgeType) {
     case CARTRIDGE_TYPE_ROM_ONLY:
-      return InitROMOnlyMemoryController(memory, cartridge, joypadController, lcdController, timerController, interruptController, externalRAMSizeBytes);
+      return InitROMOnlyMemoryController(memory, cartridge, joypadController, lcdController, timerController, interruptController);
       break;
     case CARTRIDGE_TYPE_MBC1:
     case CARTRIDGE_TYPE_MBC1_PLUS_RAM:
@@ -407,8 +407,7 @@ MemoryController InitROMOnlyMemoryController(
   JoypadController* joypadController,
   LCDController* lcdController,
   TimerController* timerController,
-  InterruptController* interruptController,
-  uint32_t externalRAMSizeBytes
+  InterruptController* interruptController
 )
 {
   MemoryController memoryController = {

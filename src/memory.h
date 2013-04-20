@@ -63,8 +63,7 @@ MemoryController InitROMOnlyMemoryController(
   JoypadController* joypadController,
   LCDController* lcdController,
   TimerController* timerController,
-  InterruptController* interruptController,
-  uint32_t externalRAMSizeBytes
+  InterruptController* interruptController
 );
 
 /****************************************************************************/
