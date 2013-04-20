@@ -1,73 +1,12 @@
-#include <stdlib.h>
+#include "memory.h"
 
 #include "cartridge.h"
+#include "cartridge-types/mbc1.h"
+#include "cartridge-types/romonly.h"
 #include "logging.h"
-#include "memory.h"
-#include "ram.h"
 #include "timer.h"
 
-uint8_t readByte(MemoryController* memoryController, uint16_t address)
-{
-  if (memoryController->dmaIsActive && (address < 0xFF80 || address > 0xFFFE)) {
-    critical("Read from non-HRAM address 0x%04X while DMA is active.\n", address);
-    exit(EXIT_FAILURE);
-  }
-  return memoryController->readByteImpl(memoryController, address);
-}
-
-uint16_t readWord(MemoryController* memoryController, uint16_t address)
-{
-  uint8_t lsByte = memoryController->readByteImpl(memoryController, address);
-  uint8_t msByte = memoryController->readByteImpl(memoryController, address + 1);
-  return (msByte << 8) | lsByte;
-}
-
-void writeByte(MemoryController* memoryController, uint16_t address, uint8_t value)
-{
-  if (memoryController->dmaIsActive && (address < 0xFF80 || address > 0xFFFE)) {
-    critical("Write of value 0x%02X to non-HRAM address 0x%04X while DMA is active.\n", value, address);
-    exit(EXIT_FAILURE);
-  }
-  memoryController->writeByteImpl(memoryController, address, value);
-}
-
-void writeWord(MemoryController* memoryController, uint16_t address, uint16_t value)
-{
-  memoryController->writeByteImpl(memoryController, address, value & 0x00FF);
-  memoryController->writeByteImpl(memoryController, address + 1, (value & 0xFF00) >> 8);
-}
-
-void dmaUpdate(MemoryController* memoryController, uint8_t cyclesExecuted)
-{
-  if (memoryController->dmaIsActive) {
-    if (cyclesExecuted % 4 != 0) {
-      critical("%s called with cycle count not divisible by four.", __func__);
-      exit(EXIT_FAILURE);
-    }
-
-    for (int i = 0; i < cyclesExecuted / 4; i++) {
-      uint16_t sourceAddress = memoryController->dmaNextAddress;
-      uint16_t destinationAddress = 0xFE00 + (sourceAddress & 0x00FF);
-
-      // Memory can be transferred from ROM or RAM, so we need to use the MBC readByte() implementations (NOT the "public" CPU methods) to handle ROM banking.
-      uint8_t value;
-      if (sourceAddress < CARTRIDGE_SIZE) {
-        value = memoryController->readByteImpl(memoryController, sourceAddress);
-      } else {
-        value = memoryController->memory[sourceAddress - CARTRIDGE_SIZE];
-      }
-      memoryController->memory[destinationAddress - CARTRIDGE_SIZE] = value;
-
-      memoryController->dmaNextAddress++;
-
-      if ((destinationAddress + 1) == 0xFEA0) {
-        memoryController->dmaIsActive = false;
-        break;
-      }
-
-    }
-  }
-}
+#include <stdlib.h>
 
 MemoryController InitMemoryController(
   uint8_t cartridgeType,
@@ -81,14 +20,28 @@ MemoryController InitMemoryController(
   const char* romFilename
 )
 {
+  MemoryController memoryController = {
+    memory,
+    cartridge,
+    false,
+    0x0000,
+    NULL,
+    NULL,
+    NULL,
+    joypadController,
+    lcdController,
+    timerController,
+    interruptController
+  };
+
   switch (cartridgeType) {
     case CARTRIDGE_TYPE_ROM_ONLY:
-      return InitROMOnlyMemoryController(memory, cartridge, joypadController, lcdController, timerController, interruptController);
+      romOnlyInitialiseMemoryController(&memoryController);
       break;
     case CARTRIDGE_TYPE_MBC1:
     case CARTRIDGE_TYPE_MBC1_PLUS_RAM:
     case CARTRIDGE_TYPE_MBC1_PLUS_RAM_PLUS_BATTERY:
-      return InitMBC1MemoryController(memory, cartridge, joypadController, lcdController, timerController, interruptController, externalRAMSizeBytes, romFilename);
+      mbc1InitialiseMemoryController(&memoryController, externalRAMSizeBytes, romFilename);
       break;
     case CARTRIDGE_TYPE_MBC2:
     case CARTRIDGE_TYPE_MBC2_PLUS_BATTERY:
@@ -123,9 +76,42 @@ MemoryController InitMemoryController(
       exit(EXIT_FAILURE);
       break;
   }
+
+  return memoryController;
 }
 
-uint8_t CommonReadByte(MemoryController* memoryController, uint16_t address)
+uint8_t readByte(MemoryController* memoryController, uint16_t address)
+{
+  if (memoryController->dmaIsActive && (address < 0xFF80 || address > 0xFFFE)) {
+    critical("Read from non-HRAM address 0x%04X while DMA is active.\n", address);
+    exit(EXIT_FAILURE);
+  }
+  return memoryController->readByteImpl(memoryController, address);
+}
+
+uint16_t readWord(MemoryController* memoryController, uint16_t address)
+{
+  uint8_t lsByte = memoryController->readByteImpl(memoryController, address);
+  uint8_t msByte = memoryController->readByteImpl(memoryController, address + 1);
+  return (msByte << 8) | lsByte;
+}
+
+void writeByte(MemoryController* memoryController, uint16_t address, uint8_t value)
+{
+  if (memoryController->dmaIsActive && (address < 0xFF80 || address > 0xFFFE)) {
+    critical("Write of value 0x%02X to non-HRAM address 0x%04X while DMA is active.\n", value, address);
+    exit(EXIT_FAILURE);
+  }
+  memoryController->writeByteImpl(memoryController, address, value);
+}
+
+void writeWord(MemoryController* memoryController, uint16_t address, uint16_t value)
+{
+  memoryController->writeByteImpl(memoryController, address, value & 0x00FF);
+  memoryController->writeByteImpl(memoryController, address + 1, (value & 0xFF00) >> 8);
+}
+
+uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
 {
   if (address >= 0x8000 && address < 0xA000) // Read from VRAM
   {
@@ -228,7 +214,7 @@ uint8_t CommonReadByte(MemoryController* memoryController, uint16_t address)
   }
 }
 
-void CommonWriteByte(MemoryController* memoryController, uint16_t address, uint8_t value)
+void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8_t value)
 {
   if (address >= 0x8000 && address < 0xA000) // Write to VRAM
   {
@@ -381,161 +367,34 @@ void CommonWriteByte(MemoryController* memoryController, uint16_t address, uint8
   }
 }
 
-/****************************************************************************/
-
-uint8_t ROMOnlyReadByte(MemoryController* memoryController, uint16_t address)
+void dmaUpdate(MemoryController* memoryController, uint8_t cyclesExecuted)
 {
-  if (address < CARTRIDGE_SIZE) {
-    return memoryController->cartridge[address];
-  } else {
-    return CommonReadByte(memoryController, address);
-  }
-}
-
-void ROMOnlyWriteByte(MemoryController* memoryController, uint16_t address, uint8_t value)
-{
-  if (address < CARTRIDGE_SIZE) {
-    warning("Write of value 0x%02X to address 0x%04X in ROM space (0x%04X-0x%04X) on ROM Only cartridge\n", value, address, 0, CARTRIDGE_SIZE);
-  } else {
-    CommonWriteByte(memoryController, address, value);
-  }
-}
-
-MemoryController InitROMOnlyMemoryController(
-  uint8_t* memory,
-  uint8_t* cartridge,
-  JoypadController* joypadController,
-  LCDController* lcdController,
-  TimerController* timerController,
-  InterruptController* interruptController
-)
-{
-  MemoryController memoryController = {
-    memory,
-    cartridge,
-    NULL,
-    0,
-    0x00, // NOTE: Unused in ROM Only cartridges
-    0x00, // NOTE: Unused in ROM Only cartridges
-    0x01, // NOTE: Unused in ROM Only cartridges
-    false, // NOTE: Unused in ROM Only cartridges
-    false,
-    0x0000,
-    &ROMOnlyReadByte,
-    &ROMOnlyWriteByte,
-    joypadController,
-    lcdController,
-    timerController,
-    interruptController,
-    NULL
-  };
-  return memoryController;
-}
-
-/****************************************************************************/
-
-uint8_t MBC1ReadByte(MemoryController* memoryController, uint16_t address)
-{
-  if (address <= 0x3FFF) { // Read from ROM Bank 0
-    return memoryController->cartridge[address];
-  } else if (address >= 0x4000 && address <= 0x7FFF) { // Read from ROM Banks 01-7F
-    uint8_t bankNumHigh = 0x00;
-    if (memoryController->modeSelect == 0x00) {
-      bankNumHigh = memoryController->bankSelect << 2;
+  if (memoryController->dmaIsActive) {
+    if (cyclesExecuted % 4 != 0) {
+      critical("%s called with cycle count not divisible by four.", __func__);
+      exit(EXIT_FAILURE);
     }
-    uint8_t bankNum = bankNumHigh | memoryController->romBank;
-    uint16_t offsetInBank = address - 0x4000;
-    uint32_t romAddress = (bankNum * 1024 * 16) + offsetInBank;
-    return memoryController->cartridge[romAddress];
-  } else if (address >= 0xA000 && address <= 0xBFFF) { // Read from external cartridge RAM
-    if (memoryController->ramEnabled) {
-      return memoryController->externalRAM[address - 0xA000];
-    } else {
-      warning("MBC1: Read from external RAM at address 0x%04X failed because RAM is DISABLED.\n", address);
-      return 0; // TODO: What value should be returned here?
-    }
-  } else {
-    return CommonReadByte(memoryController, address);
-  }
-}
 
-void MBC1WriteByte(MemoryController* memoryController, uint16_t address, uint8_t value)
-{
-  if (address <= 0x1FFF) { // External RAM Enable/Disable
-    if ((value & 0xF) == 0xA) {
-      if (!memoryController->ramEnabled) {
-        ramLoad(memoryController->externalRAM, memoryController->externalRAMSize, memoryController->romFilename);
-        info("External RAM was ENABLED by value 0x%02X written to address 0x%04X\n", value, address);
+    for (int i = 0; i < cyclesExecuted / 4; i++) {
+      uint16_t sourceAddress = memoryController->dmaNextAddress;
+      uint16_t destinationAddress = 0xFE00 + (sourceAddress & 0x00FF);
+
+      // Memory can be transferred from ROM or RAM, so we need to use the MBC readByte() implementations (NOT the "public" CPU methods) to handle ROM banking.
+      uint8_t value;
+      if (sourceAddress < CARTRIDGE_SIZE) {
+        value = memoryController->readByteImpl(memoryController, sourceAddress);
+      } else {
+        value = memoryController->memory[sourceAddress - CARTRIDGE_SIZE];
       }
-      memoryController->ramEnabled = true;
-    } else {
-      if (memoryController->ramEnabled) {
-        ramSave(memoryController->externalRAM, memoryController->externalRAMSize, memoryController->romFilename);
-        info("External RAM was DISABLED by value 0x%02X written to address 0x%04X\n", value, address);
+      memoryController->memory[destinationAddress - CARTRIDGE_SIZE] = value;
+
+      memoryController->dmaNextAddress++;
+
+      if ((destinationAddress + 1) == 0xFEA0) {
+        memoryController->dmaIsActive = false;
+        break;
       }
-      memoryController->ramEnabled = false;
+
     }
-  } else if (address >= 0x2000 && address <= 0x3FFF) { // ROM Bank Number
-    if (value == 0x00) {
-      value = 0x01;
-    }
-    memoryController->romBank = value & 0x1F; // Select the lower 5 bits of the value
-    // TODO: Add cycle cost here??
-  } else if (address >= 0x4000 && address <= 0x5FFF) { // RAM Bank Number or Upper Bits of ROM Bank Number
-    memoryController->bankSelect = value & 0x02;
-  } else if (address >= 0x6000 && address <= 0x7FFF) { // ROM/RAM Mode Select
-    memoryController->modeSelect = (address & 0x1);
-    // TODO: Add cycle cost here??
-  } else if (address >= 0xA000 && address <= 0xBFFF) { // Write to external cartridge RAM
-    if (memoryController->ramEnabled) {
-      memoryController->externalRAM[address - 0xA000] = value;
-    } else {
-      warning("MBC1: Write of value 0x%02X to external RAM at address 0x%04X failed because RAM is DISABLED.\n", value, address);
-    }
-  } else {
-    CommonWriteByte(memoryController, address, value);
   }
-}
-
-MemoryController InitMBC1MemoryController(
-  uint8_t* memory,
-  uint8_t* cartridge,
-  JoypadController* joypadController,
-  LCDController* lcdController,
-  TimerController* timerController,
-  InterruptController* interruptController,
-  uint32_t externalRAMSizeBytes,
-  const char* romFilename
-)
-{
-  MemoryController memoryController = {
-    memory,
-    cartridge,
-    NULL,
-    0,
-    0x00, // TODO: Correct default?
-    0x00, // TODO: Correct default?
-    0x01,
-    false,
-    false,
-    0x0000,
-    &MBC1ReadByte,
-    &MBC1WriteByte,
-    joypadController,
-    lcdController,
-    timerController,
-    interruptController,
-    romFilename
-  };
-
-  // Allocate external RAM
-  uint8_t* externalRAM = (uint8_t*)malloc(externalRAMSizeBytes * sizeof(uint8_t));
-  if (!externalRAM) {
-    critical("Failed to allocate %u bytes of external RAM for MBC1 cartridge.\n", externalRAMSizeBytes);
-    exit(EXIT_FAILURE);
-  }
-  memoryController.externalRAM = externalRAM;
-  memoryController.externalRAMSize = externalRAMSizeBytes;
-
-  return memoryController;
 }

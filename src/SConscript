@@ -4,6 +4,8 @@ env.AppendUnique(FRAMEWORKS=["OpenGL", "GLUT"])
 
 env.Program("gbemu1", [
   "cartridge.c",
+  "cartridge-types/mbc1.c",
+  "cartridge-types/romonly.c",
   "cpu.c",
   "gameboy.c",
   "interrupts.c",

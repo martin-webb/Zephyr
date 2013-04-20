@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 
-#include "memory.h"
 #include "speed.h"
 
 #define LCD_WIDTH 160
