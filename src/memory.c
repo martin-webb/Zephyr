@@ -380,15 +380,15 @@ void dmaUpdate(MemoryController* memoryController, uint8_t cyclesExecuted)
       uint16_t destinationAddress = 0xFE00 + (sourceAddress & 0x00FF);
 
       // Memory can be transferred from ROM or RAM, so we need to use the MBC readByte() implementations instead of the "public" CPU methods to handle ROM and/or RAM banking.
-      memoryController->dmaNextAddress++;
       uint8_t value = memoryController->readByteImpl(memoryController, sourceAddress);
       memoryController->memory[destinationAddress - CARTRIDGE_SIZE] = value;
 
-      if ((destinationAddress + 1) == 0xFEA0) {
+      if ((destinationAddress + 1) < 0xFEA0) {
+        memoryController->dmaNextAddress++;
+      } else {
         memoryController->dmaIsActive = false;
         break;
       }
-
     }
   }
 }
