@@ -198,18 +198,19 @@ void lcdDrawScanlineObjects(LCDController* lcdController, SpeedMode speedMode)
   // Fetch sprites that we know to be in the visible scanline
   const uint8_t spriteCount = lcdCopySpritesVisibleInScanline(lcdController, sprites, 16);
 
-  // Now that we know how many sprites we're drawing we can adjust the Mode 3 timing accordingly
-  lcdController->mode3Cycles = MODE_3_CYCLES_MIN + (spriteCount * MODE_3_CYCLES_PER_SPRITE);
-
   // For non CGB mode, order sprites that are in the scanline by X position and then order in the sprite table
   if (speedMode == NORMAL) {
     qsort((void*)sprites, spriteCount, sizeof(Sprite), spritesCompareByXPosition);
   }
 
+  // Limit the number of sprites drawn
   uint8_t spritesToRender = spriteCount;
   if (spritesToRender > MAX_SPRITES_PER_LINE) {
     spritesToRender = MAX_SPRITES_PER_LINE;
   }
+
+  // Now that we know how many sprites we're drawing we can adjust the Mode 3 timing accordingly
+  lcdController->mode3Cycles = MODE_3_CYCLES_MIN + (spritesToRender * MODE_3_CYCLES_PER_SPRITE);
 
   // Draw sprites from least to highest priority so higher priority sprites will be drawn over lower priority sprites
   // TODO: This could be improved by moving across the scanline from left to right and not drawing
