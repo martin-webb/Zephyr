@@ -236,27 +236,22 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
   }
   else if (address == IO_REG_ADDRESS_LCDC)
   {
-    if (((memoryController->lcdController->lcdc & LCD_DISPLAY_ENABLE_BIT) == 0) && (value & LCD_DISPLAY_ENABLE_BIT)) {
-      debug("LCD was ENABLED by write of value 0x%02X to LCDC\n", value);
-    } else if ((memoryController->lcdController->lcdc & LCD_DISPLAY_ENABLE_BIT) && ((value & LCD_DISPLAY_ENABLE_BIT) == 0)) {
-      debug("LCD was DISABLED by write of value 0x%02X to LCDC\n", value);
-    }
+    bool lcdEnabledBefore = memoryController->lcdController->lcdc & LCD_DISPLAY_ENABLE_BIT;
+    bool lcdEnabledAfter = value & LCD_DISPLAY_ENABLE_BIT;
 
     memoryController->lcdController->lcdc = value;
-    // Handle enable and disable of LCD
-    if (value & LCD_DISPLAY_ENABLE_BIT) {
-      // TODO: What to do here?
-      // memoryController->lcdController->stat = 0x02;
-      // memoryController->lcdController->clockCycles = 0; // This must be reset on enable otherwise invalid mode transitions can occur falsely
-    } else {
-      // Stopping LCD operation outside of the VBLANK period can damage the display hardware
+
+    if (!lcdEnabledBefore && lcdEnabledAfter) {
+      debug("LCD was ENABLED by write of value 0x%02X to LCDC\n", value);
+    } else if (lcdEnabledBefore && !lcdEnabledAfter) {
+      // Stopping LCD operation outside of the VBLANK period could damage the display hardware.
       // Nintendo is reported to reject any games that didn't follow this rule.
-      // TODO: Make this a warning? Or a runtime option (e.g. "strict-lcd-disable-rule")?
       uint8_t lcdMode = memoryController->lcdController->stat & STAT_MODE_FLAG_BITS;
-      if (lcdMode != 0x01) {
-        critical("Attempt to disable LCD outside of VBLANK period!\n");
+      if (lcdMode != 1) {
+        critical("LCD was DISABLED outside of VBLANK period!\n");
         exit(EXIT_FAILURE);
       }
+      debug("LCD was DISABLED by write of value 0x%02X to LCDC\n", value);
     }
   }
   else if (address == IO_REG_ADDRESS_P1)
