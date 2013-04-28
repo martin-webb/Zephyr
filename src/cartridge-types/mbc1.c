@@ -10,10 +10,12 @@
 typedef struct {
   uint8_t* externalRAM;
   uint32_t externalRAMSize;
-  uint8_t bankSelect; // 2-bit register to select EITHER RAM Bank 00-03h or to specify the upper two bits (5 and 6, 0-based) of the ROM bank mapped to 0x4000-0x7FFF
-  uint8_t modeSelect; // 1-bit register to select whether the above 2-bit applies to ROM/RAM bank selection
+  bool ramEnabled;
+
   uint8_t romBank;
-  bool ramEnabled; // TODO: Store a bool value or the actual value written to 0x0000-0x1FFFF?
+  uint8_t bankSelect; // 2-bit register to select EITHER RAM Bank 00-03h or to specify the upper two bits (5 and 6, 0-based) of the ROM bank mapped to 0x4000-0x7FFF
+  uint8_t modeSelect; // 1-bit register to select whether the above 2-bit register applies to ROM/RAM bank selection
+
   const char* romFilename;
 } MBC1;
 
@@ -24,17 +26,15 @@ uint8_t mbc1ReadByte(MemoryController* memoryController, uint16_t address)
   if (address <= 0x3FFF) { // Read from ROM Bank 0
     return memoryController->cartridge[address];
   } else if (address >= 0x4000 && address <= 0x7FFF) { // Read from ROM Banks 01-7F
-    uint8_t bankNumHigh = 0x00;
-    if (mbc1->modeSelect == 0x00) {
-      bankNumHigh = mbc1->bankSelect << 2;
-    }
-    uint8_t bankNum = bankNumHigh | mbc1->romBank;
-    uint16_t offsetInBank = address - 0x4000;
-    uint32_t romAddress = (bankNum * 1024 * 16) + offsetInBank;
+    uint8_t bankNumber = ((mbc1->modeSelect == 0) ? (mbc1->bankSelect << 5) : 0) | mbc1->romBank;
+    uint32_t romAddress = (bankNumber * 16 * 1024) + (address - 0x4000);
     return memoryController->cartridge[romAddress];
   } else if (address >= 0xA000 && address <= 0xBFFF) { // Read from external cartridge RAM
     if (mbc1->ramEnabled) {
-      return mbc1->externalRAM[address - 0xA000];
+      uint8_t bankNumber = ((mbc1->modeSelect == 1) ? mbc1->bankSelect : 0);
+      uint16_t ramAddress = (bankNumber * 8 * 1024) + (address - 0xA000);
+      assert(ramAddress < mbc1->externalRAMSize);
+      return mbc1->externalRAM[ramAddress];
     } else {
       warning("MBC1: Read from external RAM at address 0x%04X failed because RAM is DISABLED.\n", address);
       return 0; // TODO: What value should be returned here?
@@ -48,7 +48,7 @@ void mbc1WriteByte(MemoryController* memoryController, uint16_t address, uint8_t
 {
   MBC1* mbc1 = (MBC1*)memoryController->mbc;
 
-  if (address <= 0x1FFF) { // External RAM Enable/Disable
+  if (address <= 0x1FFF) { // External RAM enable/disable
     if ((value & 0xF) == 0xA) {
       if (!mbc1->ramEnabled) {
         ramLoad(mbc1->externalRAM, mbc1->externalRAMSize, mbc1->romFilename);
@@ -63,19 +63,20 @@ void mbc1WriteByte(MemoryController* memoryController, uint16_t address, uint8_t
       mbc1->ramEnabled = false;
     }
   } else if (address >= 0x2000 && address <= 0x3FFF) { // ROM Bank Number
-    if (value == 0x00) {
-      value = 0x01;
+    if (value == 0) {
+      value = 1;
     }
     mbc1->romBank = value & 0x1F; // Select the lower 5 bits of the value
-    // TODO: Add cycle cost here??
   } else if (address >= 0x4000 && address <= 0x5FFF) { // RAM Bank Number or Upper Bits of ROM Bank Number
-    mbc1->bankSelect = value & 0x02;
+    mbc1->bankSelect = value & 3;
   } else if (address >= 0x6000 && address <= 0x7FFF) { // ROM/RAM Mode Select
-    mbc1->modeSelect = (address & 0x1);
-    // TODO: Add cycle cost here??
+    mbc1->modeSelect = value & 1;
   } else if (address >= 0xA000 && address <= 0xBFFF) { // Write to external cartridge RAM
     if (mbc1->ramEnabled) {
-      mbc1->externalRAM[address - 0xA000] = value;
+      uint8_t bankNumber = ((mbc1->modeSelect == 1) ? mbc1->bankSelect : 0);
+      uint16_t ramAddress = (bankNumber * 8 * 1024) + (address - 0xA000);
+      assert(ramAddress < mbc1->externalRAMSize);
+      mbc1->externalRAM[ramAddress] = value;
     } else {
       warning("MBC1: Write of value 0x%02X to external RAM at address 0x%04X failed because RAM is DISABLED.\n", value, address);
     }
@@ -98,10 +99,10 @@ void mbc1InitialiseMemoryController(
 
   mbc1->externalRAM = externalRAM;
   mbc1->externalRAMSize = externalRAMSizeBytes;
+  mbc1->ramEnabled = false;
+  mbc1->romBank = 1; // Initialise to 1 because writes of 0 are translated to a 1
   mbc1->bankSelect = 0;
   mbc1->modeSelect = 0;
-  mbc1->romBank = 1;
-  mbc1->ramEnabled = false;
   mbc1->romFilename = romFilename;
 
   memoryController->readByteImpl = &mbc1ReadByte;
