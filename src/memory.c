@@ -222,7 +222,7 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
     if (lcdMode != 3) { // LCD Controller is not reading from VRAM and OAM so write access is okay
       memoryController->memory[address - CARTRIDGE_SIZE] = value;
     } else {
-      warning("Invalid write to VRAM while LCD is in Mode 3\n");
+      warning("Invalid write of value 0x%02X to VRAM address 0x%04X while LCD is in Mode %u\n", value, address, lcdMode);
     }
   }
   else if (address >= 0xFE00 && address < 0xFEA0) // Write to OAM
@@ -231,7 +231,7 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
     if (lcdMode == 0 || lcdMode == 1) { // LCD Controller is in HBLANK or VBLANK so write access is okay
       memoryController->memory[address - CARTRIDGE_SIZE] = value;
     } else {
-      warning("Invalid write to OAM while LCD is not in Mode 0 or Mode 1\n");
+      warning("Invalid write of value 0x%02X to OAM address 0x%04X while LCD is in Mode %u\n", value, address, lcdMode);
     }
   }
   else if (address == IO_REG_ADDRESS_LCDC)
