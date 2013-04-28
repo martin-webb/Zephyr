@@ -166,8 +166,14 @@ uint8_t lcdCopySpritesVisibleInScanline(LCDController* lcdController, Sprite* sp
     // Does the sprite's Y position exclude it from appearing in the scanline?
     // TODO: Check that "spriteY == 0 ||" and "|| spriteY >= 160" are implied here?
     uint8_t spriteY = lcdController->oam[spriteIndex * 4];
-    if (spriteY <= lcdController->ly || spriteY > (lcdController->ly + spriteHeight)) {
-      continue;
+    if (spriteHeight == 8) {
+      if (spriteY < (lcdController->ly + 8 + 1) || spriteY > (lcdController->ly + 16)) {
+        continue;
+      }
+    } else {
+      if (spriteY < (lcdController->ly + 1) || spriteY > (lcdController->ly + 16)) {
+        continue;
+      }
     }
 
     // Does the sprite's X position exclude it from appearing in the scanline?
@@ -196,7 +202,7 @@ void lcdDrawScanlineObjects(LCDController* lcdController, SpeedMode speedMode)
   const uint8_t spriteHeight = ((lcdController->lcdc & LCD_OBJ_SIZE_BIT) ? 16 : 8);
 
   // Fetch sprites that we know to be in the visible scanline
-  const uint8_t spriteCount = lcdCopySpritesVisibleInScanline(lcdController, sprites, 16);
+  const uint8_t spriteCount = lcdCopySpritesVisibleInScanline(lcdController, sprites, spriteHeight);
 
   // For non CGB mode, order sprites that are in the scanline by X position and then order in the sprite table
   if (speedMode == NORMAL) {
