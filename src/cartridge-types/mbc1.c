@@ -2,7 +2,7 @@
 
 #include "../logging.h"
 #include "../memory.h"
-#include "../ram.h"
+#include "../battery.h"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -51,13 +51,13 @@ void mbc1WriteByte(MemoryController* memoryController, uint16_t address, uint8_t
   if (address <= 0x1FFF) { // External RAM enable/disable
     if ((value & 0xF) == 0xA) {
       if (!mbc1->ramEnabled) {
-        ramLoad(mbc1->externalRAM, mbc1->externalRAMSize, mbc1->romFilename);
+        batteryLoad(mbc1->externalRAM, mbc1->externalRAMSize, mbc1->romFilename);
         info("External RAM was ENABLED by value 0x%02X written to address 0x%04X\n", value, address);
       }
       mbc1->ramEnabled = true;
     } else {
       if (mbc1->ramEnabled) {
-        ramSave(mbc1->externalRAM, mbc1->externalRAMSize, mbc1->romFilename);
+        batterySave(mbc1->externalRAM, mbc1->externalRAMSize, mbc1->romFilename);
         info("External RAM was DISABLED by value 0x%02X written to address 0x%04X\n", value, address);
       }
       mbc1->ramEnabled = false;

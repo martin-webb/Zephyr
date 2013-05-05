@@ -3,6 +3,7 @@ Import("env")
 env.AppendUnique(FRAMEWORKS=["OpenGL", "GLUT"])
 
 env.Program("gbemu1", [
+  "battery.c",
   "cartridge.c",
   "cartridge-types/mbc1.c",
   "cartridge-types/romonly.c",
@@ -13,7 +14,6 @@ env.Program("gbemu1", [
   "logging.c",
   "main.c",
   "memory.c",
-  "ram.c",
   "sprites.c",
   "timer.c",
   "timing.c",
