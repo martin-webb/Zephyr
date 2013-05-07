@@ -70,7 +70,7 @@ void batteryLoad(uint8_t* data, uint32_t size, const char* romFilename)
     size_t bytesRead = fread((void*)data, 1, size, saveFile);
     fclose(saveFile);
     if (bytesRead != size) {
-      warning("Battery save load incomplete - expected to read %u bytes, actually wrote %u bytes\n", size, bytesRead);
+      warning("Battery save load incomplete - expected to read %u bytes, actually read %u bytes\n", size, bytesRead);
     }
   } else {
     batterySave(data, size, romFilename);
