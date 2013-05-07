@@ -2,8 +2,9 @@
 #define BATTERY_H_
 
 #include <stdint.h>
+#include <stdio.h>
 
-void batterySave(uint8_t* data, uint32_t size, const char* romFilename);
-void batteryLoad(uint8_t* data, uint32_t size, const char* romFilename);
+FILE* batteryFileOpen(const char* romFilename, uint8_t* data, uint32_t size);
+void batteryFileWriteByte(FILE* saveFile, uint16_t address, uint8_t value);
 
 #endif // BATTERY_H_

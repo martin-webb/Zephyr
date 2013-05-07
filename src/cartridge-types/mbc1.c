@@ -16,7 +16,7 @@ typedef struct {
   uint8_t bankSelect; // 2-bit register to select EITHER RAM Bank 00-03h or to specify the upper two bits (5 and 6, 0-based) of the ROM bank mapped to 0x4000-0x7FFF
   uint8_t modeSelect; // 1-bit register to select whether the above 2-bit register applies to ROM/RAM bank selection
 
-  const char* romFilename;
+  FILE* batteryFile;
 } MBC1;
 
 uint8_t mbc1ReadByte(MemoryController* memoryController, uint16_t address)
@@ -51,13 +51,11 @@ void mbc1WriteByte(MemoryController* memoryController, uint16_t address, uint8_t
   if (address <= 0x1FFF) { // External RAM enable/disable
     if ((value & 0xF) == 0xA) {
       if (!mbc1->ramEnabled) {
-        batteryLoad(mbc1->externalRAM, mbc1->externalRAMSize, mbc1->romFilename);
         info("External RAM was ENABLED by value 0x%02X written to address 0x%04X\n", value, address);
       }
       mbc1->ramEnabled = true;
     } else {
       if (mbc1->ramEnabled) {
-        batterySave(mbc1->externalRAM, mbc1->externalRAMSize, mbc1->romFilename);
         info("External RAM was DISABLED by value 0x%02X written to address 0x%04X\n", value, address);
       }
       mbc1->ramEnabled = false;
@@ -77,6 +75,7 @@ void mbc1WriteByte(MemoryController* memoryController, uint16_t address, uint8_t
       uint16_t ramAddress = (bankNumber * 8 * 1024) + (address - 0xA000);
       assert(ramAddress < mbc1->externalRAMSize);
       mbc1->externalRAM[ramAddress] = value;
+      batteryFileWriteByte(mbc1->batteryFile, ramAddress, value);
     } else {
       warning("MBC1: Write of value 0x%02X to external RAM at address 0x%04X failed because RAM is DISABLED.\n", value, address);
     }
@@ -103,7 +102,8 @@ void mbc1InitialiseMemoryController(
   mbc1->romBank = 1; // Initialise to 1 because writes of 0 are translated to a 1
   mbc1->bankSelect = 0;
   mbc1->modeSelect = 0;
-  mbc1->romFilename = romFilename;
+
+  mbc1->batteryFile = batteryFileOpen(romFilename, mbc1->externalRAM, mbc1->externalRAMSize);
 
   memoryController->readByteImpl = &mbc1ReadByte;
   memoryController->writeByteImpl = &mbc1WriteByte;
@@ -114,6 +114,7 @@ void mbc1FinaliseMemoryController(MemoryController* memoryController)
 {
   MBC1* mbc1 = (MBC1*)memoryController->mbc;
 
+  fclose(mbc1->batteryFile);
   free(mbc1->externalRAM);
   free(memoryController->mbc);
 }

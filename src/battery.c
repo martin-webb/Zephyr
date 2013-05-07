@@ -10,7 +10,7 @@
 #define PATH_TO_BATTERY_SAVE_DIR "/Library/Application Support/GBEmu1/Battery/"
 #define BATTERY_SAVE_FILE_EXTENSION ".bat"
 
-const char* batterySaveLocation(const char* romFilename)
+static const char* batterySaveLocation(const char* romFilename)
 {
   const char* pathToHomeDir = getenv("HOME");
 
@@ -38,10 +38,8 @@ const char* batterySaveLocation(const char* romFilename)
   return pathToSaveFile;
 }
 
-void batterySave(uint8_t* data, uint32_t size, const char* romFilename)
+static void batteryFileCreate(const char* pathToFile, uint8_t* data, uint32_t size)
 {
-  const char* pathToFile = batterySaveLocation(romFilename);
-
   const char* destinationDir = dirname(pathToFile);
   if (!exists(destinationDir)) {
     mkdirp(destinationDir);
@@ -53,28 +51,40 @@ void batterySave(uint8_t* data, uint32_t size, const char* romFilename)
   size_t bytesWritten = fwrite((void*)data, 1, size, saveFile);
   fclose(saveFile);
   if (bytesWritten != size) {
-    warning("Battery save incomplete - expected to write %u bytes, actually wrote %u bytes\n", size, bytesWritten);
+    warning("Battery file creation incomplete - expected to write %u bytes, actually wrote %u bytes\n", size, bytesWritten);
   }
-
-  free((void*)pathToFile);
 }
 
-void batteryLoad(uint8_t* data, uint32_t size, const char* romFilename)
+static void batteryFileLoad(const char* pathToFile, uint8_t* data, uint32_t size)
 {
+  FILE* saveFile = fopen(pathToFile, "rb");
+  assert(saveFile);
+  size_t bytesRead = fread((void*)data, 1, size, saveFile);
+  fclose(saveFile);
+  if (bytesRead != size) {
+    warning("Battery file load incomplete - expected to read %u bytes, actually read %u bytes\n", size, bytesRead);
+  }
+}
+
+FILE* batteryFileOpen(const char* romFilename, uint8_t* data, uint32_t size)
+{
+  FILE* saveFile;
   const char* pathToFile = batterySaveLocation(romFilename);
 
-  // Read the save data from disk or create the file if it doesn't exist yet
   if (exists(pathToFile)) {
-    FILE* saveFile = fopen(pathToFile, "rb");
-    assert(saveFile);
-    size_t bytesRead = fread((void*)data, 1, size, saveFile);
-    fclose(saveFile);
-    if (bytesRead != size) {
-      warning("Battery save load incomplete - expected to read %u bytes, actually read %u bytes\n", size, bytesRead);
-    }
+    batteryFileLoad(pathToFile, data, size);
   } else {
-    batterySave(data, size, romFilename);
+    batteryFileCreate(pathToFile, data, size);
   }
 
+  saveFile = fopen(pathToFile, "rb+"); // rb+ to ensure that we can write to specific positions in the file
   free((void*)pathToFile);
+  return saveFile;
+}
+
+void batteryFileWriteByte(FILE* saveFile, uint16_t address, uint8_t value)
+{
+  fseek(saveFile, address, SEEK_SET);
+  fwrite((void*)&value, sizeof(uint8_t), 1, saveFile);
+  fflush(saveFile);
 }
