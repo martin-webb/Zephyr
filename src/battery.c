@@ -1,11 +1,11 @@
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "battery.h"
 
 #include "logging.h"
-#include "battery.h"
 #include "utils/os.h"
+
+#include <assert.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define PATH_TO_BATTERY_SAVE_DIR "/Library/Application Support/GBEmu1/Battery/"
 #define BATTERY_SAVE_FILE_EXTENSION ".bat"

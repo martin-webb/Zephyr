@@ -1,11 +1,11 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include "lcd.h"
 
 #include "cpu.h"
-#include "lcd.h"
 #include "logging.h"
 #include "speed.h"
 #include "sprites.h"
+
+#include <stdlib.h>
 
 bool lcdIsEnabled(LCDController* lcdController)
 {

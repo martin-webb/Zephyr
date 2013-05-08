@@ -2,7 +2,6 @@
 #define TIMER_H_
 
 #include "cpu.h"
-#include "memory.h"
 #include "speed.h"
 #include "timercontroller.h"
 

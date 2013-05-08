@@ -1,8 +1,8 @@
 #include "mbc1.h"
 
+#include "../battery.h"
 #include "../logging.h"
 #include "../memory.h"
-#include "../battery.h"
 
 #include <assert.h>
 #include <stdlib.h>

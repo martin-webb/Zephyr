@@ -1,11 +1,10 @@
+#include "os.h"
+
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-
 #include <sys/stat.h>
-
-#include "os.h"
+#include <unistd.h>
 
 bool exists(const char* path)
 {

@@ -12,6 +12,7 @@ MemoryController InitMemoryController(
   uint8_t cartridgeType,
   uint8_t* memory,
   uint8_t* cartridge,
+
   JoypadController* joypadController,
   LCDController* lcdController,
   TimerController* timerController,

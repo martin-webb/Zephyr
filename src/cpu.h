@@ -1,11 +1,11 @@
 #ifndef CPU_H_
 #define CPU_H_
 
-#include <stdbool.h>
-
 #include "gbtype.h"
 #include "interrupts.h"
 #include "memory.h"
+
+#include <stdbool.h>
 
 #define CLOCK_CYCLE_FREQUENCY_NORMAL_SPEED 4194304
 #define CLOCK_CYCLE_TIME_SECS_NORMAL_SPEED (1.0 / CLOCK_CYCLE_FREQUENCY_NORMAL_SPEED)

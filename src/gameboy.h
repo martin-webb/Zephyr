@@ -1,8 +1,6 @@
 #ifndef GAMEBOY_H_
 #define GAMEBOY_H_
 
-#include <stdint.h>
-
 #include "cpu.h"
 #include "gbtype.h"
 #include "interrupts.h"
@@ -10,6 +8,8 @@
 #include "memory.h"
 #include "speed.h"
 #include "timer.h"
+
+#include <stdint.h>
 
 GameBoyType gbGetGameType(uint8_t* cartridgeData);
 uint32_t gbRunAtLeastNCycles(

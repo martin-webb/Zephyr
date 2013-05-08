@@ -1,10 +1,9 @@
+#include "logging.h"
+
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-
 #include <sys/time.h>
-
-#include "logging.h"
 
 const char* const LOG_LEVEL_NAMES[] =
 {

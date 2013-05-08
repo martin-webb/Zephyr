@@ -1,12 +1,12 @@
+#include "cpu.h"
+
+#include "logging.h"
+#include "mnemonics.h"
+#include "timer.h"
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "cpu.h"
-#include "logging.h"
-#include "timer.h"
-
-#include "mnemonics.h"
 
 /* Flag Set/Reset Generation Macros *************************************************************/
 #define SET_FLAG_TO_RESULT(FLAG, TEST) \

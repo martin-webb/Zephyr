@@ -1,9 +1,10 @@
 #ifndef LCD_H_
 #define LCD_H_
 
-#include <stdint.h>
-
+#include "interrupts.h"
 #include "speed.h"
+
+#include <stdint.h>
 
 #define LCD_WIDTH 160
 #define LCD_HEIGHT 144

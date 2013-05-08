@@ -1,7 +1,6 @@
-#include <stdint.h>
-#include <sys/time.h>
-
 #include "timing.h"
+
+#include <sys/time.h>
 
 uint64_t currentTimeMillis()
 {

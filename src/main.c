@@ -1,10 +1,3 @@
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/time.h>
-
-#include <GLUT/glut.h>
-
 #include "cartridge.h"
 #include "cpu.h"
 #include "gameboy.h"
@@ -16,6 +9,13 @@
 #include "timercontroller.h"
 #include "timing.h"
 #include "utils/os.h"
+
+#include <GLUT/glut.h>
+
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/time.h>
 
 #define TARGET_WINDOW_WIDTH_DEFAULT 1024
 #define WINDOW_SCALE_FACTOR (TARGET_WINDOW_WIDTH_DEFAULT * 1.0 / LCD_WIDTH)

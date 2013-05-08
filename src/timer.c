@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #include "timer.h"
 
 void timerUpdateDivider(TimerController* timerController, uint8_t cyclesExecuted)

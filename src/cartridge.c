@@ -1,8 +1,8 @@
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "cartridge.h"
+
 #include "logging.h"
+
+#include <stdlib.h>
 
 int cartridgeGetSize(FILE* cartridgeFile)
 {
