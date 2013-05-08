@@ -75,7 +75,9 @@ void mbc1WriteByte(MemoryController* memoryController, uint16_t address, uint8_t
       uint16_t ramAddress = (bankNumber * 8 * 1024) + (address - 0xA000);
       assert(ramAddress < mbc1->externalRAMSize);
       mbc1->externalRAM[ramAddress] = value;
-      batteryFileWriteByte(mbc1->batteryFile, ramAddress, value);
+      if (mbc1->batteryFile != NULL) {
+        batteryFileWriteByte(mbc1->batteryFile, ramAddress, value);
+      }
     } else {
       warning("MBC1: Write of value 0x%02X to external RAM at address 0x%04X failed because RAM is DISABLED.\n", value, address);
     }
@@ -87,23 +89,36 @@ void mbc1WriteByte(MemoryController* memoryController, uint16_t address, uint8_t
 void mbc1InitialiseMemoryController(
   MemoryController* memoryController,
   uint32_t externalRAMSizeBytes,
-  const char* romFilename
+  const char* romFilename,
+  bool ram,
+  bool battery
 )
 {
   MBC1* mbc1 = (MBC1*)malloc(sizeof(MBC1));
   assert(mbc1);
 
-  uint8_t* externalRAM = (uint8_t*)malloc(externalRAMSizeBytes * sizeof(uint8_t));
-  assert(externalRAM);
-
-  mbc1->externalRAM = externalRAM;
+  mbc1->externalRAM = NULL;
   mbc1->externalRAMSize = externalRAMSizeBytes;
   mbc1->ramEnabled = false;
   mbc1->romBank = 1; // Initialise to 1 because writes of 0 are translated to a 1
   mbc1->bankSelect = 0;
   mbc1->modeSelect = 0;
+  mbc1->batteryFile = NULL;
 
-  mbc1->batteryFile = batteryFileOpen(romFilename, mbc1->externalRAM, mbc1->externalRAMSize);
+  if (ram) {
+    mbc1->externalRAM = (uint8_t*)malloc(externalRAMSizeBytes * sizeof(uint8_t));
+    assert(mbc1->externalRAM);
+  }
+
+  if (!ram && externalRAMSizeBytes > 0) {
+    warning("\b[MBC1]: Cartridge declared %u bytes of external RAM but cartridge type did not indicate RAM.\n", externalRAMSizeBytes);
+  } else if (ram && externalRAMSizeBytes == 0) {
+    warning("\b[MBC1]: Cartridge type indicated RAM but cartridge declared %u bytes of external RAM.\n", externalRAMSizeBytes);
+  }
+
+  if (battery) {
+    mbc1->batteryFile = batteryFileOpen(romFilename, mbc1->externalRAM, mbc1->externalRAMSize);
+  }
 
   memoryController->readByteImpl = &mbc1ReadByte;
   memoryController->writeByteImpl = &mbc1WriteByte;
@@ -114,7 +129,13 @@ void mbc1FinaliseMemoryController(MemoryController* memoryController)
 {
   MBC1* mbc1 = (MBC1*)memoryController->mbc;
 
-  fclose(mbc1->batteryFile);
-  free(mbc1->externalRAM);
+  if (mbc1->batteryFile != NULL) {
+    fclose(mbc1->batteryFile);
+  }
+
+  if (mbc1->externalRAM != NULL) {
+    free(mbc1->externalRAM);
+  }
+
   free(memoryController->mbc);
 }

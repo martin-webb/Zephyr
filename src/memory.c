@@ -39,9 +39,13 @@ MemoryController InitMemoryController(
       romOnlyInitialiseMemoryController(&memoryController);
       break;
     case CARTRIDGE_TYPE_MBC1:
+      mbc1InitialiseMemoryController(&memoryController, externalRAMSizeBytes, romFilename, false, false);
+      break;
     case CARTRIDGE_TYPE_MBC1_PLUS_RAM:
+      mbc1InitialiseMemoryController(&memoryController, externalRAMSizeBytes, romFilename, true, false);
+      break;
     case CARTRIDGE_TYPE_MBC1_PLUS_RAM_PLUS_BATTERY:
-      mbc1InitialiseMemoryController(&memoryController, externalRAMSizeBytes, romFilename);
+      mbc1InitialiseMemoryController(&memoryController, externalRAMSizeBytes, romFilename, true, true);
       break;
     case CARTRIDGE_TYPE_MBC2:
     case CARTRIDGE_TYPE_MBC2_PLUS_BATTERY:
