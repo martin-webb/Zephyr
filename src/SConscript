@@ -6,6 +6,7 @@ env.Program("gbemu1", [
   "battery.c",
   "cartridge.c",
   "cartridge-types/mbc1.c",
+  "cartridge-types/mbc3.c",
   "cartridge-types/romonly.c",
   "cpu.c",
   "gameboy.c",

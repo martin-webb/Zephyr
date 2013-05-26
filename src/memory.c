@@ -2,6 +2,7 @@
 
 #include "cartridge.h"
 #include "cartridge-types/mbc1.h"
+#include "cartridge-types/mbc3.h"
 #include "cartridge-types/romonly.h"
 #include "logging.h"
 #include "timer.h"
@@ -55,11 +56,24 @@ MemoryController InitMemoryController(
     case CARTRIDGE_TYPE_MMM01:
     case CARTRIDGE_TYPE_MMM01_PLUS_RAM:
     case CARTRIDGE_TYPE_MMM01_PLUS_RAM_PLUS_BATTERY:
+      critical("Error in %s - cartridge type UNSUPPORTED\n", __func__);
+      exit(EXIT_FAILURE);
+      break;
     case CARTRIDGE_TYPE_MBC3_PLUS_TIMER_PLUS_BATTERY:
+      mbc3InitialiseMemoryController(&memoryController, externalRAMSizeBytes, romFilename, false, true, true);
+      break;
     case CARTRIDGE_TYPE_MBC3_PLUS_TIMER_PLUS_RAM_PLUS_BATTERY:
+      mbc3InitialiseMemoryController(&memoryController, externalRAMSizeBytes, romFilename, true, true, true);
+      break;
     case CARTRIDGE_TYPE_MBC3:
+      mbc3InitialiseMemoryController(&memoryController, externalRAMSizeBytes, romFilename, false, false, false);
+      break;
     case CARTRIDGE_TYPE_MBC3_PLUS_RAM:
+      mbc3InitialiseMemoryController(&memoryController, externalRAMSizeBytes, romFilename, true, false, false);
+      break;
     case CARTRIDGE_TYPE_MBC3_PLUS_RAM_PLUS_BATTERY:
+      mbc3InitialiseMemoryController(&memoryController, externalRAMSizeBytes, romFilename, true, false, true);
+      break;
     case CARTRIDGE_TYPE_MBC4:
     case CARTRIDGE_TYPE_MBC4_PLUS_RAM:
     case CARTRIDGE_TYPE_MBC4_PLUS_RAM_PLUS_BATTERY:
