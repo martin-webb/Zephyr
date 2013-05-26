@@ -28,6 +28,7 @@ MemoryController InitMemoryController(
     NULL,
     NULL,
     NULL,
+    NULL,
     joypadController,
     lcdController,
     timerController,
@@ -363,6 +364,13 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
     // debug("\b[MEMORY] Write to OAM address=0x%04X value=0x%02X\n", address, value);
   } else if (address >= 0xFF00 && address < 0xFF4C) {
     // debug("\b[MEMORY] Write to I/O reg - address=0x%04X value=0x%02X\n", address, value);
+  }
+}
+
+void cartridgeUpdate(MemoryController* memoryController, uint8_t cyclesExecuted)
+{
+  if (memoryController->cartridgeUpdateImpl != NULL) {
+    memoryController->cartridgeUpdateImpl(memoryController, cyclesExecuted);
   }
 }
 

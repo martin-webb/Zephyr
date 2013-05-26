@@ -29,6 +29,7 @@ void writeWord(MemoryController* memoryController, uint16_t address, uint16_t va
 uint8_t commonReadByte(MemoryController* memoryController, uint16_t address);
 void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8_t value);
 
+void cartridgeUpdate(MemoryController* memoryController, uint8_t cyclesExecuted);
 void dmaUpdate(MemoryController* memoryController, uint8_t cyclesExecuted);
 
 #endif // MEMORY_H_
