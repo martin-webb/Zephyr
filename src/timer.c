@@ -1,5 +1,7 @@
 #include "timer.h"
 
+static const uint32_t INPUT_CLOCKS[] = {4096, 262144, 65536, 16384};
+
 void timerUpdateDivider(TimerController* timerController, uint8_t cyclesExecuted)
 {
   // If we have executed enough clock cycles-worth of time since the last update then increment the DIV register
@@ -20,33 +22,19 @@ void timerUpdateTimer(TimerController* timerController, InterruptController* int
 {
   // Only update the timer if the enable bit is set in the TAC I/O register
   if (timerController->tac & TAC_TIMER_STOP_BIT) {
-    // NOTE: Processing cycles individually is the simplest way of ensuring that the timer can increment
-    // multiple times per update if required (if, for example, after the last update we were 4 cycles
-    // away from the next increment (in 262144 Hz mode) and we then executed a 24-cycle instruction,
-    // putting us at 36 cycles-worth of updates, 2 full timer increments).
+    // Determine the clock frequency for timer updates
+    uint32_t selectedInputClock = INPUT_CLOCKS[timerController->tac & TAC_INPUT_CLOCK_SELECT_BITS];
 
-    // NOTE: We could reduce the number of loop iterations here if we knew that cyclesExecuted would
-    // always be divisible by 4 by incrementing in blocks of 4, but if a CPU in the HALT/STOP state
-    // can tick in a single cycle (because in this emulator design the CPU "drives" the other components)
-    // then this approach isn't safe.
+    // Work out the number of cycles that should pass before we update the internal counter that ends with an increment to the TIMA register
+    // NOTE: Double the required number of clock cyles if double-speed mode is enabled, because while
+    // the base clock speed is twice as fast the timer frequency is fixed.
+    uint32_t timerIncrementClockCycles = (CLOCK_CYCLE_FREQUENCY_NORMAL_SPEED / selectedInputClock) * 1;
 
-    // NOTE: Alternatively, we could increment by a value up to that required for the next TIMA increment
-    // (if the value of cyclesExecuted allowed for this), and the again by the remainder, if needed,
-    // knowing that for a single CPU instruction and with the timer set to increment every 16 cycles
-    // (at 262144 Hz) there could be at MOST one TIMA increment plus some remainder clock cycles.
-
-    for (int c = 0; c < cyclesExecuted; c++) {
-      // Determine the clock frequency for timer updates
-      const uint32_t inputClocks[] = {4096, 262144, 65536, 16384};
-      uint32_t selectedInputClock = inputClocks[timerController->tac & TAC_INPUT_CLOCK_SELECT_BITS];
-
-      // Work out the number of cycles that should pass before we update the internal counter that ends with an increment to the TIMA register
-      // NOTE: Double the required number of clock cyles if double-speed mode is enabled, because while
-      // the base clock speed is twice as fast the timer frequency is fixed.
-      uint32_t timerIncrementClockCycles = (CLOCK_CYCLE_FREQUENCY_NORMAL_SPEED / selectedInputClock) * 1;
-
+    int remainingCycles = cyclesExecuted;
+    while (remainingCycles > 0) {
+      int updateCycles = ((remainingCycles > timerIncrementClockCycles) ? timerIncrementClockCycles : remainingCycles);
       // Check for updates
-      if ((timerController->timerCounter + 1) >= timerIncrementClockCycles) {
+      if ((timerController->timerCounter + updateCycles) >= timerIncrementClockCycles) {
         // Increment TIMA and trigger an interrupt and load of TMA if an overflow occurred
         timerController->tima++;
         // debug("TIMA: %u\n", timerController->tima);
@@ -56,8 +44,8 @@ void timerUpdateTimer(TimerController* timerController, InterruptController* int
           interruptFlag(interruptController, TIMER_OVERFLOW_INTERRUPT_BIT);
         }
       }
-      timerController->timerCounter = (timerController->timerCounter + 1) % timerIncrementClockCycles;
+      timerController->timerCounter = (timerController->timerCounter + updateCycles) % timerIncrementClockCycles;
+      remainingCycles -= updateCycles;
     }
-
   }
 }
