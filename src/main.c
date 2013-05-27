@@ -16,7 +16,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/time.h>
 
 #define TARGET_WINDOW_WIDTH_DEFAULT 1024
 #define WINDOW_SCALE_FACTOR (TARGET_WINDOW_WIDTH_DEFAULT * 1.0 / LCD_WIDTH)
@@ -32,34 +31,24 @@ SpeedMode speedMode;
 
 uint8_t frameBuffer[LCD_WIDTH * LCD_HEIGHT];
 
-uint64_t lastRunTimeUSecs;
-
 bool fast = false;
 
-void runGBWithGLUT()
+void runGBWithGLUT(int value)
 {
-  uint64_t currentTimeUSecs = currentTimeMicros();
+  glutTimerFunc(17, runGBWithGLUT, value);
 
-  // NOTE: 16750 = (1 / 59.7) * 1e6 - the time available between VBlanks for a target of ~59.7 FPS
-  if (currentTimeUSecs - lastRunTimeUSecs > 16750) {
-    gbRunAtLeastNCycles(
-      &cpu,
-      &memoryController,
-      &lcdController,
-      &timerController,
-      &interruptController,
-      gameBoyType,
-      speedMode,
-      CPU_MIN_CYCLES_PER_SET * (fast ? 4 : 1)
-    );
-    lastRunTimeUSecs = currentTimeUSecs;
+  gbRunAtLeastNCycles(
+    &cpu,
+    &memoryController,
+    &lcdController,
+    &timerController,
+    &interruptController,
+    gameBoyType,
+    speedMode,
+    CPU_MIN_CYCLES_PER_SET * (fast ? 4 : 1)
+  );
 
-    glutPostRedisplay();
-  }
-
-  struct timespec sleepRequested = {0, 0.25 * 1e6}; // 0.25ms sleep
-  struct timespec sleepRemaining;
-  nanosleep(&sleepRequested, &sleepRemaining);
+  glutPostRedisplay();
 }
 
 void reshape(int width, int height)
@@ -248,11 +237,9 @@ int main(int argc, const char* argv[])
 
   glutReshapeFunc(reshape);
   glutDisplayFunc(lcdGLDrawScreen);
-  glutIdleFunc(runGBWithGLUT);
+  glutTimerFunc(0, runGBWithGLUT, 0);
 
   lcdGLInit();
-
-  lastRunTimeUSecs = currentTimeMicros();
 
   glutKeyboardFunc(keyPressed);
   glutKeyboardUpFunc(keyUp);
