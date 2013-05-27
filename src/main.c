@@ -4,6 +4,7 @@
 #include "interrupts.h"
 #include "joypad.h"
 #include "lcd.h"
+#include "lcdgl.h"
 #include "logging.h"
 #include "speed.h"
 #include "timercontroller.h"
@@ -34,49 +35,6 @@ uint8_t frameBuffer[LCD_WIDTH * LCD_HEIGHT];
 uint64_t lastRunTimeUSecs;
 
 bool fast = false;
-
-void initGL()
-{
-  glClearColor(0.0, 0.0, 0.0, 0.0);
-  glEnable(GL_DEPTH_TEST);
-  glShadeModel(GL_SMOOTH);
-}
-
-void drawGBScreen()
-{
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glLoadIdentity();
-
-  for (int y = 0; y < LCD_HEIGHT; y++) {
-    for (int x = 0; x < LCD_WIDTH; x++) {
-      // NOTE: Mask out the top nibble of the value in the framebuffer because for pixels that contain
-      // only background and/or window shades the colour number will still be in the top nibble of
-      // the byte (it is not included for sprite/object shades because it is not needed later)
-      switch (frameBuffer[y * LCD_WIDTH + x] & 0x0F) {
-        case 0:
-          glColor3f(1.0, 1.0, 1.0);
-          break;
-        case 1:
-          glColor3f(0.66, 0.66, 0.66);
-          break;
-        case 2:
-          glColor3f(0.33, 0.33, 0.33);
-          break;
-        case 3:
-          glColor3f(0.0, 0.0, 0.0);
-          break;
-      }
-      glBegin(GL_QUADS);
-        glVertex2f(x, LCD_HEIGHT - y);
-        glVertex2f(x, LCD_HEIGHT - y - 1);
-        glVertex2f(x + 1, LCD_HEIGHT - y - 1);
-        glVertex2f(x + 1, LCD_HEIGHT - y);
-      glEnd();
-    }
-  }
-
-  glutSwapBuffers();
-}
 
 void runGBWithGLUT()
 {
@@ -201,6 +159,8 @@ int main(int argc, const char* argv[])
     return 1;
   }
 
+  lcdGLInitPixelVerticesArray();
+
   // Load all cartridge data
   uint8_t* cartridgeData = cartridgeLoadData(argv[1]);
   if (cartridgeData == NULL) {
@@ -287,10 +247,10 @@ int main(int argc, const char* argv[])
   glutCreateWindow("GBEmu1");
 
   glutReshapeFunc(reshape);
-  glutDisplayFunc(drawGBScreen);
+  glutDisplayFunc(lcdGLDrawScreen);
   glutIdleFunc(runGBWithGLUT);
 
-  initGL();
+  lcdGLInit();
 
   lastRunTimeUSecs = currentTimeMicros();
 
