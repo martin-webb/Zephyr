@@ -5,6 +5,7 @@
 #include "speed.h"
 
 #include <stdint.h>
+#include <time.h>
 
 #define LCD_WIDTH 160
 #define LCD_HEIGHT 144
@@ -76,6 +77,7 @@ typedef struct {
 
   // Values for debug/profiling statistics
   uint32_t vblankCounter;
+  time_t last60VBlanksTime;
 } LCDController;
 
 void lcdUpdate(LCDController* lcdController, InterruptController* interruptController, SpeedMode speedMode, uint8_t cyclesExecuted);

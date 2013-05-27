@@ -402,7 +402,11 @@ void lcdUpdate(LCDController* lcdController, InterruptController* interruptContr
 
       // Debug
       if (++lcdController->vblankCounter % 60 == 0) {
-        debug("60 VBlanks (LCDC=0x%02X STAT=0x%02X Background=%u Window=%u Sprites=%u SCX=0x%02X SCY=0x%02X WX=0x%02X WY=0x%02X LYC=0x%02X)\n",
+        time_t now = time(NULL);
+        double secondsSinceLast60VBlanks = difftime(now, lcdController->last60VBlanksTime);
+        double meanTimeBetweenFramesMS = (secondsSinceLast60VBlanks / 60.0) * 1000;
+        debug("60 VBlanks ~%.2fms/frame (LCDC=0x%02X STAT=0x%02X Background=%u Window=%u Sprites=%u SCX=0x%02X SCY=0x%02X WX=0x%02X WY=0x%02X LYC=0x%02X)\n",
+          meanTimeBetweenFramesMS,
           lcdController->lcdc,
           lcdController->stat,
           (lcdController->lcdc & LCD_BG_DISPLAY_BIT) != 0,
@@ -414,6 +418,7 @@ void lcdUpdate(LCDController* lcdController, InterruptController* interruptContr
           lcdController->wy,
           lcdController->lyc
         );
+        lcdController->last60VBlanksTime = now;
       }
 
     }
