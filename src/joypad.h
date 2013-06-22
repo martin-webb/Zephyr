@@ -20,4 +20,6 @@ typedef struct {
 
 } JoypadController;
 
+void initJoypadController(JoypadController* joypadController);
+
 #endif // JOYPAD_H_

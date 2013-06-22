@@ -166,15 +166,7 @@ int main(int argc, const char* argv[])
   uint32_t externalRAMSizeBytes = RAMSizeInBytes(ramSize);
   printf("RAM size: 0x%02X - %s\n", ramSize, RAMSizeToString(ramSize));
 
-  joypadController.p1 = 0x3F;
-  joypadController._a = false;
-  joypadController._b = false;
-  joypadController._up = false;
-  joypadController._down = false;
-  joypadController._left = false;
-  joypadController._right = false;
-  joypadController._start = false;
-  joypadController._select = false;
+  initJoypadController(&joypadController);
 
   lcdController.stat = 0;
   lcdController.vram = &(memory[0]);

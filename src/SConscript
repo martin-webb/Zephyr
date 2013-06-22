@@ -12,6 +12,7 @@ env.Program("gbemu1", [
   "cpu.c",
   "gameboy.c",
   "interrupts.c",
+  "joypad.c",
   "lcd.c",
   "lcdgl.c",
   "logging.c",
