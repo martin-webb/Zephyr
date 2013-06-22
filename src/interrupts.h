@@ -11,6 +11,8 @@ typedef struct {
   uint8_t e; // FFFF - Interrupt Enable (R/W)
 } InterruptController;
 
+void initInterruptController(InterruptController* interruptController);
+
 void interruptFlag(InterruptController* interruptController, uint8_t interruptBit);
 void interruptReset(InterruptController* interruptController, uint8_t interruptBit);
 

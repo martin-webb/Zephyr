@@ -169,9 +169,7 @@ int main(int argc, const char* argv[])
   initJoypadController(&joypadController);
   initLCDController(&lcdController, &(memory[0]), &(memory[0xFE00 - CARTRIDGE_SIZE]), &(frameBuffer[0]));
   initTimerController(&timerController);
-
-  interruptController.f = 0;
-  interruptController.e = 0;
+  initInterruptController(&interruptController);
 
   const char* romFilename = basename(argv[1]);
 

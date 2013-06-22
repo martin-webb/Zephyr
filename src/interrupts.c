@@ -1,5 +1,11 @@
 #include "interrupts.h"
 
+void initInterruptController(InterruptController* interruptController)
+{
+  interruptController->f = 0;
+  interruptController->e = 0;
+}
+
 void interruptFlag(InterruptController* interruptController, uint8_t interruptBit)
 {
   interruptController->f |= interruptBit;
