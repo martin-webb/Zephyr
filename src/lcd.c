@@ -293,17 +293,21 @@ void lcdUpdate(LCDController* lcdController, InterruptController* interruptContr
     return;
   }
 
+  // LCD timings are based off the CPU clock speed, so because the LCD isn't affected by CGB's
+  // double speed mode we have to take this into account when updating the LCD state based on clock cycles
+  const uint8_t speedMultiplier = ((speedMode == DOUBLE) ? 2 : 1);
+
   // Update the internal clock cycle counter
-  lcdController->clockCycles = (lcdController->clockCycles + cyclesExecuted) % FULL_FRAME_CLOCK_CYCLES;
+  lcdController->clockCycles = (lcdController->clockCycles + cyclesExecuted) % (FULL_FRAME_CLOCK_CYCLES * speedMultiplier);
 
   uint8_t mode = lcdController->stat & STAT_MODE_FLAG_BITS; // NOTE: This is an 'out-of-date' value of mode from the previous update
-  uint16_t horizontalScanClocks = lcdController->clockCycles % SINGLE_HORIZONTAL_SCAN_CLOCK_CYCLES;
+  uint16_t horizontalScanClocks = lcdController->clockCycles % (SINGLE_HORIZONTAL_SCAN_CLOCK_CYCLES * speedMultiplier);
 
   // Update LY and LYC (even in VBLANK), triggering a STAT interrupt for LY=LYC if enabled
   // NOTE: Apparently, for lines 0-143, LY is updated in the transition to Mode 2, however functionally
   // there is no difference if we do this here, and additionally this still works while in Mode 1
   // (VBLANK) and no extra checks are required in the Mode 1 code to keep LY up-to-date.
-  uint8_t ly = lcdController->clockCycles / SINGLE_HORIZONTAL_SCAN_CLOCK_CYCLES;
+  uint8_t ly = lcdController->clockCycles / (SINGLE_HORIZONTAL_SCAN_CLOCK_CYCLES * speedMultiplier);
 
   // Line 153 is interesting, in that LY apparently stays at 153 for ~4 clock cycles then rolls over early to 0.
   // This is noticeable in the introductory sequence to The Legend of Zelda: Link's Awakening where,
@@ -312,7 +316,7 @@ void lcdUpdate(LCDController* lcdController, InterruptController* interruptContr
   // line 0, instead of the actual line 153.
   // TODO: I read that this was a hardware bug present only in the GB hardware. Is this verified?
   // NOTE: The "&& horizontalScanClocks >= 4" check below seems unnecessary for functionally correct behaviour
-  if (ly == 153 && horizontalScanClocks >= 4) {
+  if (ly == 153 && horizontalScanClocks >= (4 * speedMultiplier)) {
     ly = 0;
   }
 
@@ -327,9 +331,9 @@ void lcdUpdate(LCDController* lcdController, InterruptController* interruptContr
   }
   lcdController->ly = ly;
 
-  if (lcdController->clockCycles < HORIZONTAL_SCANNING_CLOCK_CYCLES) // Horizontal scanning mode (modes 2, 3 and 0)
+  if (lcdController->clockCycles < (HORIZONTAL_SCANNING_CLOCK_CYCLES * speedMultiplier)) // Horizontal scanning mode (modes 2, 3 and 0)
   {
-    if (horizontalScanClocks < 80) // Mode 2
+    if (horizontalScanClocks < (80 * speedMultiplier)) // Mode 2
     {
       if (mode == 0 || mode == 1) // Handle mode change from HBLANK or VBLANK
       {
@@ -346,7 +350,7 @@ void lcdUpdate(LCDController* lcdController, InterruptController* interruptContr
         exit(EXIT_FAILURE);
       }
     }
-    else if (horizontalScanClocks >= 80 && horizontalScanClocks < (80 + lcdController->mode3Cycles)) // Mode 3
+    else if (horizontalScanClocks >= (80 * speedMultiplier) && horizontalScanClocks < ((80 + lcdController->mode3Cycles) * speedMultiplier)) // Mode 3
     {
       if (mode == 2) // Handle mode change from mode 2
       {
@@ -360,7 +364,7 @@ void lcdUpdate(LCDController* lcdController, InterruptController* interruptContr
         exit(EXIT_FAILURE);
       }
     }
-    else if (horizontalScanClocks >= (80 + lcdController->mode3Cycles) && horizontalScanClocks < SINGLE_HORIZONTAL_SCAN_CLOCK_CYCLES) // Mode 0
+    else if (horizontalScanClocks >= ((80 + lcdController->mode3Cycles) * speedMultiplier) && horizontalScanClocks < (SINGLE_HORIZONTAL_SCAN_CLOCK_CYCLES * speedMultiplier)) // Mode 0
     {
       if (mode == 3) // Handle mode change from mode 3
       {
@@ -380,8 +384,8 @@ void lcdUpdate(LCDController* lcdController, InterruptController* interruptContr
     {
       critical("%s: Horizontal scan cycle count exceeded expected maximum (expected max %u, actual value %u)\n",
         __func__,
-        SINGLE_HORIZONTAL_SCAN_CLOCK_CYCLES - 1,
-        horizontalScanClocks
+        (SINGLE_HORIZONTAL_SCAN_CLOCK_CYCLES - 1) * speedMultiplier,
+        horizontalScanClocks * speedMultiplier
       );
       exit(EXIT_FAILURE);
     }
