@@ -345,8 +345,10 @@ static void mbc3CartridgeUpdate(MemoryController* memoryController, uint32_t cyc
 {
   MBC3* mbc3 = (MBC3*)memoryController->mbc;
 
+  const int cyclesPerSecond = RTC_TICK_FREQUENCY * ((speedMode == DOUBLE) ? 2 : 1);
+
   if (mbc3->timer) {
-    if (((mbc3->rtc.dayHigh & DAY_HIGH_HALT_BIT_SELECT) == 0) && ((mbc3->cycles + cyclesExecuted) >= RTC_TICK_FREQUENCY)) {
+    if (((mbc3->rtc.dayHigh & DAY_HIGH_HALT_BIT_SELECT) == 0) && ((mbc3->cycles + cyclesExecuted) >= cyclesPerSecond)) {
       mbc3IncrementSeconds(mbc3);
 
       if (mbc3->batteryFile != NULL) {
@@ -355,7 +357,7 @@ static void mbc3CartridgeUpdate(MemoryController* memoryController, uint32_t cyc
       }
     }
 
-    mbc3->cycles = (mbc3->cycles + cyclesExecuted) % RTC_TICK_FREQUENCY;
+    mbc3->cycles = (mbc3->cycles + cyclesExecuted) % cyclesPerSecond;
     // It would be good to save the RTC state at this point so that we could serialise the updated
     // value of the internal clock cycles counter, however with the frequency that this method is
     // called this seriously affects the emulation speed, and as long as mbc3FinaliseMemoryController()
