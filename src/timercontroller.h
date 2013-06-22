@@ -13,4 +13,6 @@ typedef struct {
   uint32_t timerCounter;
 } TimerController;
 
+void initTimerController(TimerController* timerController);
+
 #endif // TIMERCONTROLLER_H_

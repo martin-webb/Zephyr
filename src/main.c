@@ -168,9 +168,7 @@ int main(int argc, const char* argv[])
 
   initJoypadController(&joypadController);
   initLCDController(&lcdController, &(memory[0]), &(memory[0xFE00 - CARTRIDGE_SIZE]), &(frameBuffer[0]));
-
-  timerController.dividerCounter = 0;
-  timerController.timerCounter = 0;
+  initTimerController(&timerController);
 
   interruptController.f = 0;
   interruptController.e = 0;

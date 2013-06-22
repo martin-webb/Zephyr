@@ -20,6 +20,7 @@ env.Program("gbemu1", [
   "memory.c",
   "sprites.c",
   "timer.c",
+  "timercontroller.c",
   "timing.c",
   "utils/os.c"
 ])
