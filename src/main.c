@@ -167,15 +167,7 @@ int main(int argc, const char* argv[])
   printf("RAM size: 0x%02X - %s\n", ramSize, RAMSizeToString(ramSize));
 
   initJoypadController(&joypadController);
-
-  lcdController.stat = 0;
-  lcdController.vram = &(memory[0]);
-  lcdController.oam = &(memory[0xFE00 - CARTRIDGE_SIZE]);
-
-  lcdController.frameBuffer = &(frameBuffer[0]);
-  lcdController.clockCycles = 0;
-
-  lcdController.vblankCounter = 0;
+  initLCDController(&lcdController, &(memory[0]), &(memory[0xFE00 - CARTRIDGE_SIZE]), &(frameBuffer[0]));
 
   timerController.dividerCounter = 0;
   timerController.timerCounter = 0;

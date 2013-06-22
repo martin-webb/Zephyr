@@ -7,6 +7,16 @@
 
 #include <stdlib.h>
 
+void initLCDController(LCDController* lcdController, uint8_t* vram, uint8_t* oam, uint8_t* frameBuffer)
+{
+  lcdController->stat = 0;
+  lcdController->vram = vram;
+  lcdController->oam = oam;
+  lcdController->frameBuffer = frameBuffer;
+  lcdController->clockCycles = 0;
+  lcdController->vblankCounter = 0;
+}
+
 bool lcdIsEnabled(LCDController* lcdController)
 {
   return lcdController->lcdc & LCD_DISPLAY_ENABLE_BIT;
