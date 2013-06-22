@@ -4,6 +4,7 @@
 #include "interrupts.h"
 #include "joypad.h"
 #include "lcd.h"
+#include "speed.h"
 #include "timercontroller.h"
 
 #include <stdbool.h>
@@ -20,7 +21,7 @@ struct MemoryController {
 
   uint8_t (*readByteImpl)(MemoryController* memoryController, uint16_t address);
   void (*writeByteImpl)(MemoryController* memoryController, uint16_t address, uint8_t value);
-  void (*cartridgeUpdateImpl)(MemoryController* memoryController, uint32_t cyclesExecuted);
+  void (*cartridgeUpdateImpl)(MemoryController* memoryController, uint32_t cyclesExecuted, SpeedMode speedMode);
 
   void* mbc;
 

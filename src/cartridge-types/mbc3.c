@@ -341,7 +341,7 @@ static void mbc3IncrementSeconds(MBC3* mbc3)
   }
 }
 
-static void mbc3CartridgeUpdate(MemoryController* memoryController, uint32_t cyclesExecuted)
+static void mbc3CartridgeUpdate(MemoryController* memoryController, uint32_t cyclesExecuted, SpeedMode speedMode)
 {
   MBC3* mbc3 = (MBC3*)memoryController->mbc;
 

@@ -397,10 +397,10 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
   }
 }
 
-void cartridgeUpdate(MemoryController* memoryController, uint8_t cyclesExecuted)
+void cartridgeUpdate(MemoryController* memoryController, uint8_t cyclesExecuted, SpeedMode speedMode)
 {
   if (memoryController->cartridgeUpdateImpl != NULL) {
-    memoryController->cartridgeUpdateImpl(memoryController, cyclesExecuted);
+    memoryController->cartridgeUpdateImpl(memoryController, cyclesExecuted, speedMode);
   }
 }
 
