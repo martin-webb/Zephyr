@@ -422,26 +422,15 @@ void resetC(CPU* cpu)
 
 void cpuReset(CPU* cpu, MemoryController* m, GameBoyType gameBoyType)
 {
-  switch (gameBoyType) {
-    case GB:
-    case SGB:
-      cpu->registers.a = 0x00;
-      cpu->registers.f = 0x01;
-      break;
-    case GBP:
-      cpu->registers.a = 0x00;
-      cpu->registers.f = 0xFF;
-      break;
-    case CGB:
-      cpu->registers.a = 0x00;
-      cpu->registers.f = 0x11;
-      break;
-    default:
-      fprintf(stderr, "%s: Unknown GameBoyType %i encountered. Exiting...\n", __func__, gameBoyType);
-      exit(EXIT_FAILURE);
-      break;
-  }
+  cpu->registers.a = (gameBoyType == CGB) ? 0x11 : 0x01;
   cpu->registers.f = 0xB0;
+  cpu->registers.b = 0x00;
+  cpu->registers.c = 0x13;
+  cpu->registers.d = 0x00;
+  cpu->registers.e = 0xD8;
+  cpu->registers.h = 0x01;
+  cpu->registers.l = 0x4D;
+
   cpu->registers.sp = 0xFFFE;
   cpu->registers.pc = 0x100;
   cpu->_pcFrozen = false;
