@@ -3,6 +3,7 @@
 #include "cartridge.h"
 #include "cartridge-types/mbc1.h"
 #include "cartridge-types/mbc3.h"
+#include "cartridge-types/mbc5.h"
 #include "cartridge-types/romonly.h"
 #include "logging.h"
 #include "timer.h"
@@ -77,12 +78,27 @@ MemoryController InitMemoryController(
     case CARTRIDGE_TYPE_MBC4:
     case CARTRIDGE_TYPE_MBC4_PLUS_RAM:
     case CARTRIDGE_TYPE_MBC4_PLUS_RAM_PLUS_BATTERY:
+      critical("Error in %s - cartridge type UNSUPPORTED\n", __func__);
+      exit(EXIT_FAILURE);
+      break;
     case CARTRIDGE_TYPE_MBC5:
+      mbc5InitialiseMemoryController(&memoryController, externalRAMSizeBytes, romFilename, false, false);
+      break;
     case CARTRIDGE_TYPE_MBC5_PLUS_RAM:
+      mbc5InitialiseMemoryController(&memoryController, externalRAMSizeBytes, romFilename, true, false);
+      break;
     case CARTRIDGE_TYPE_MBC5_PLUS_RAM_PLUS_BATTERY:
+      mbc5InitialiseMemoryController(&memoryController, externalRAMSizeBytes, romFilename, true, true);
+      break;
     case CARTRIDGE_TYPE_MBC5_PLUS_RUMBLE:
+      mbc5InitialiseMemoryController(&memoryController, externalRAMSizeBytes, romFilename, false, false);
+      break;
     case CARTRIDGE_TYPE_MBC5_PLUS_RUMBLE_PLUS_RAM:
+      mbc5InitialiseMemoryController(&memoryController, externalRAMSizeBytes, romFilename, true, false);
+      break;
     case CARTRIDGE_TYPE_MBC5_PLUS_RUMBLE_PLUS_RAM_PLUS_BATTERY:
+      mbc5InitialiseMemoryController(&memoryController, externalRAMSizeBytes, romFilename, true, true);
+      break;
     case CARTRIDGE_TYPE_POCKET_CAMERA:
     case CARTRIDGE_TYPE_BANDAI_TAMA5:
     case CARTRIDGE_TYPE_HuC3:
