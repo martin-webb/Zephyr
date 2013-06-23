@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define TARGET_WINDOW_WIDTH_DEFAULT 1024
 #define WINDOW_SCALE_FACTOR (TARGET_WINDOW_WIDTH_DEFAULT * 1.0 / LCD_WIDTH)
@@ -117,14 +118,30 @@ void specialKeyUp(int key, int x, int y)
   }
 }
 
+GameBoyType getGameBoyType(int argc, const char* argv[])
+{
+  if (argc >= 3) {
+    if (strcmp(argv[2], "--gb") == 0) {
+      return GB;
+    } else if (strcmp(argv[2], "--cgb") == 0) {
+      return CGB;
+    } else {
+      return GB;
+    }
+  } else {
+    return GB;
+  }
+}
+
 int main(int argc, const char* argv[])
 {
-  if (argc != 2) {
+  if (argc < 2) {
     printf("Usage: %s PATH_TO_ROM\n", argv[0]);
     return 1;
   }
 
   const char* romFilename = basename(argv[1]);
+  const GameBoyType gameBoyType = getGameBoyType(argc, argv);
 
   // Load all cartridge data
   uint8_t* cartridgeData = cartridgeLoadData(argv[1]);
@@ -133,7 +150,7 @@ int main(int argc, const char* argv[])
     exit(EXIT_FAILURE);
   }
 
-  gbInitialise(&gameBoy, GB, cartridgeData, frameBuffer, romFilename);
+  gbInitialise(&gameBoy, gameBoyType, cartridgeData, frameBuffer, romFilename);
 
   glutInit(&argc, (char**)argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGBA);
