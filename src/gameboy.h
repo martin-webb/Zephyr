@@ -2,25 +2,28 @@
 #define GAMEBOY_H_
 
 #include "cpu.h"
-#include "gbtype.h"
-#include "interrupts.h"
-#include "lcd.h"
-#include "memory.h"
-#include "speed.h"
 #include "timer.h"
 
 #include <stdint.h>
 
+typedef struct {
+  CPU cpu;
+  JoypadController joypadController;
+  LCDController lcdController;
+  TimerController timerController;
+  InterruptController interruptController;
+  MemoryController memoryController;
+  GameBoyType gameBoyType;
+  SpeedMode speedMode;
+
+  uint8_t* memory;
+} GameBoy;
+
+void gbInitialise(GameBoy* gameBoy, GameBoyType gameBoyType, uint8_t* cartridgeData, uint8_t* frameBuffer, const char* romFilename);
+void gbFinalise(GameBoy* gameBoy);
+
 GameBoyType gbGetGameType(uint8_t* cartridgeData);
-uint32_t gbRunAtLeastNCycles(
-  CPU* cpu,
-  MemoryController* m,
-  LCDController* lcdController,
-  TimerController* timerController,
-  InterruptController* interruptController,
-  GameBoyType gameBoyType,
-  SpeedMode speedMode,
-  uint32_t targetCycles
-);
+
+void gbRunNFrames(GameBoy* gameBoy, const int frames);
 
 #endif // GAMEBOY_H_
