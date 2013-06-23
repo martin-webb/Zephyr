@@ -23,7 +23,6 @@ uint8_t* cartridgeLoadData(const char* pathToROM)
     return NULL;
   }
   long int cartridgeSize = cartridgeGetSize(cartridgeFile);
-  printf("Cartridge Size: %li\n", cartridgeSize);
 
   cartridgeData = (uint8_t*)malloc(cartridgeSize * sizeof(uint8_t));
 
