@@ -16,7 +16,10 @@ typedef struct {
   GameBoyType gameBoyType;
   SpeedMode speedMode;
 
-  uint8_t* memory;
+  uint8_t* vram;
+  uint8_t* wram;
+  uint8_t* oam;
+  uint8_t* hram;
 } GameBoy;
 
 void gbInitialise(GameBoy* gameBoy, GameBoyType gameBoyType, uint8_t* cartridgeData, uint8_t* frameBuffer, const char* romFilename);

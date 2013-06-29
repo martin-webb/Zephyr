@@ -6,16 +6,29 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MEMORY_SIZE_BYTES (32 * 1024)
+#define VRAM_SIZE_BYTES (8 * 1024)
+#define WRAM_SIZE_BYTES (8 * 1024)
+#define OAM_SIZE_BYTES 160
+#define HRAM_SIZE_BYTES 127
 
 void gbInitialise(GameBoy* gameBoy, GameBoyType gameBoyType, uint8_t* cartridgeData, uint8_t* frameBuffer, const char* romFilename)
 {
-  gameBoy->memory = (uint8_t*)malloc(MEMORY_SIZE_BYTES * sizeof(uint8_t));
-  assert(gameBoy->memory);
+  gameBoy->vram = (uint8_t*)malloc(VRAM_SIZE_BYTES * sizeof(uint8_t));
+  gameBoy->wram = (uint8_t*)malloc(WRAM_SIZE_BYTES * sizeof(uint8_t));
+  gameBoy->oam  = (uint8_t*)malloc(OAM_SIZE_BYTES * sizeof(uint8_t));
+  gameBoy->hram = (uint8_t*)malloc(HRAM_SIZE_BYTES * sizeof(uint8_t));
 
-  memset(gameBoy->memory, 0, MEMORY_SIZE_BYTES);
+  assert(gameBoy->vram);
+  assert(gameBoy->wram);
+  assert(gameBoy->oam);
+  assert(gameBoy->hram);
 
-  initLCDController(&gameBoy->lcdController, &(gameBoy->memory[0]), &(gameBoy->memory[0xFE00 - CARTRIDGE_SIZE]), &(frameBuffer[0]));
+  memset(gameBoy->vram, 0, VRAM_SIZE_BYTES);
+  memset(gameBoy->wram, 0, WRAM_SIZE_BYTES);
+  memset(gameBoy->oam,  0, OAM_SIZE_BYTES);
+  memset(gameBoy->hram, 0, HRAM_SIZE_BYTES);
+
+  initLCDController(&gameBoy->lcdController, gameBoy->vram, gameBoy->oam, frameBuffer);
   initJoypadController(&gameBoy->joypadController);
   initTimerController(&gameBoy->timerController);
   initInterruptController(&gameBoy->interruptController);
@@ -27,7 +40,10 @@ void gbInitialise(GameBoy* gameBoy, GameBoyType gameBoyType, uint8_t* cartridgeD
 
   gameBoy->memoryController = InitMemoryController(
     cartridgeType,
-    gameBoy->memory,
+    gameBoy->vram,
+    gameBoy->wram,
+    gameBoy->oam,
+    gameBoy->hram,
     cartridgeData,
     &gameBoy->joypadController,
     &gameBoy->lcdController,
@@ -45,7 +61,10 @@ void gbInitialise(GameBoy* gameBoy, GameBoyType gameBoyType, uint8_t* cartridgeD
 
 void gbFinalise(GameBoy* gameBoy)
 {
-  free(gameBoy->memory);
+  free(gameBoy->vram);
+  free(gameBoy->wram);
+  free(gameBoy->oam);
+  free(gameBoy->hram);
 }
 
 GameBoyType gbGetGameType(uint8_t* cartridgeData)

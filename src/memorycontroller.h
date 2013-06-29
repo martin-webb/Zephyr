@@ -13,9 +13,13 @@
 typedef struct MemoryController MemoryController;
 
 struct MemoryController {
-  uint8_t* memory;
+  uint8_t* vram;
+  uint8_t* wram;
+  uint8_t* oam;
+  uint8_t* hram;
   uint8_t* cartridge;
 
+  uint8_t dma; // FF46 - DMA - DMA Transfer and Start Address (W)
   bool dmaIsActive;
   uint16_t dmaNextAddress;
 

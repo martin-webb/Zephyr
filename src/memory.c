@@ -12,7 +12,10 @@
 
 MemoryController InitMemoryController(
   uint8_t cartridgeType,
-  uint8_t* memory,
+  uint8_t* vram,
+  uint8_t* wram,
+  uint8_t* oam,
+  uint8_t* hram,
   uint8_t* cartridge,
   JoypadController* joypadController,
   LCDController* lcdController,
@@ -23,8 +26,12 @@ MemoryController InitMemoryController(
 )
 {
   MemoryController memoryController = {
-    memory,
+    vram,
+    wram,
+    oam,
+    hram,
     cartridge,
+    0,
     false,
     0x0000,
     NULL,
@@ -148,252 +155,244 @@ void writeWord(MemoryController* memoryController, uint16_t address, uint16_t va
 
 uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
 {
-  if (address >= 0x8000 && address < 0xA000) // Read from VRAM
+  if (address >= 0x8000 && address <= 0x9FFF) // Read from VRAM
   {
     uint8_t lcdMode = memoryController->lcdController->stat & STAT_MODE_FLAG_BITS;
     if (lcdMode != 3) { // LCD Controller is not reading from VRAM and OAM so read access is okay
-      return memoryController->memory[address - CARTRIDGE_SIZE];
+      return memoryController->vram[address - 0x8000];
     } else {
       return 0xFF;
     }
   }
-  else if (address >= 0xFE00 && address < 0xFEA0) // Read from OAM
+  else if (address >= 0xC000 && address <= 0xCFFF) // Read from WRAM (Bank 0)
+  {
+    return memoryController->wram[address - 0xC000];
+  }
+  else if (address >= 0xD000 && address <= 0xDFFF) // Read from WRAM (Banks 1-7)
+  {
+    return memoryController->wram[address - 0xC000];
+  }
+  else if (address >= 0xE000 && address <= 0xFDFF) // Read from WRAM (echo)
+  {
+    return memoryController->wram[address - 0xE000];
+  }
+  else if (address >= 0xFE00 && address <= 0xFE9F) // Read from OAM
   {
     uint8_t lcdMode = memoryController->lcdController->stat & STAT_MODE_FLAG_BITS;
     if (lcdMode == 0 || lcdMode == 1) { // LCD Controller is in HBLANK or VBLANK so read access is okay
-      return memoryController->memory[address - CARTRIDGE_SIZE];
+      return memoryController->oam[address - 0xFE00];
     } else {
       return 0xFF;
     }
   }
-  else if (address == IO_REG_ADDRESS_P1)
+  else if (address >= 0xFEA0 && address <= 0xFEFF) // Not Usable
   {
-    return memoryController->joypadController->p1;
+    critical("Read from unusable address 0x%04X\n", address);
+    exit(EXIT_FAILURE);
   }
-  else if (address == IO_REG_ADDRESS_LCDC)
+  else if (address >= 0xFF00 && address <= 0xFF7F) // I/O Ports
   {
-    return memoryController->lcdController->lcdc;
+    switch (address) {
+      case IO_REG_ADDRESS_P1:
+        return memoryController->joypadController->p1;
+      case IO_REG_ADDRESS_LCDC:
+        return memoryController->lcdController->lcdc;
+      case IO_REG_ADDRESS_STAT:
+        return memoryController->lcdController->stat;
+      case IO_REG_ADDRESS_SCY:
+        return memoryController->lcdController->scy;
+      case IO_REG_ADDRESS_SCX:
+        return memoryController->lcdController->scx;
+      case IO_REG_ADDRESS_LY:
+        return memoryController->lcdController->ly;
+      case IO_REG_ADDRESS_LYC:
+        return memoryController->lcdController->lyc;
+      case IO_REG_ADDRESS_DMA:
+        warning("Read from DMA I/O register (write only).\n");
+        return memoryController->dma;
+      case IO_REG_ADDRESS_BGP:
+        return memoryController->lcdController->bgp;
+      case IO_REG_ADDRESS_OBP0:
+        return memoryController->lcdController->obp0;
+      case IO_REG_ADDRESS_OBP1:
+        return memoryController->lcdController->obp1;
+      case IO_REG_ADDRESS_WY:
+        return memoryController->lcdController->wy;
+      case IO_REG_ADDRESS_WX:
+        return memoryController->lcdController->wx;
+      case IO_REG_ADDRESS_DIV:
+        return memoryController->timerController->div;
+      case IO_REG_ADDRESS_TIMA:
+        return memoryController->timerController->tima;
+      case IO_REG_ADDRESS_TMA:
+        return memoryController->timerController->tma;
+      case IO_REG_ADDRESS_TAC:
+        return memoryController->timerController->tac;
+      case IO_REG_ADDRESS_IF:
+        return memoryController->interruptController->f;
+      default:
+        // warning("Read from unhandled I/O register address 0x%04X\n", address);
+        return 0;
+    }
   }
-  else if (address == IO_REG_ADDRESS_STAT)
+  else if (address >= 0xFF80 && address <= 0xFFFE) // High RAM
   {
-    return memoryController->lcdController->stat;
+    return memoryController->hram[address - 0xFF80];
   }
-  else if (address == IO_REG_ADDRESS_SCY)
-  {
-    return memoryController->lcdController->scy;
-  }
-  else if (address == IO_REG_ADDRESS_SCX)
-  {
-    return memoryController->lcdController->scx;
-  }
-  else if (address == IO_REG_ADDRESS_LY)
-  {
-    return memoryController->lcdController->ly;
-  }
-  else if (address == IO_REG_ADDRESS_LYC)
-  {
-    return memoryController->lcdController->lyc;
-  }
-  else if (address == IO_REG_ADDRESS_DMA)
-  {
-    warning("Read from DMA I/O register.\n");
-    return memoryController->memory[address - CARTRIDGE_SIZE];
-  }
-  else if (address == IO_REG_ADDRESS_BGP)
-  {
-    return memoryController->lcdController->bgp;
-  }
-  else if (address == IO_REG_ADDRESS_OBP0)
-  {
-    return memoryController->lcdController->obp0;
-  }
-  else if (address == IO_REG_ADDRESS_OBP1)
-  {
-    return memoryController->lcdController->obp1;
-  }
-  else if (address == IO_REG_ADDRESS_WY)
-  {
-    return memoryController->lcdController->wy;
-  }
-  else if (address == IO_REG_ADDRESS_WX)
-  {
-    return memoryController->lcdController->wx;
-  }
-  else if (address == IO_REG_ADDRESS_DIV)
-  {
-    return memoryController->timerController->div;
-  }
-  else if (address == IO_REG_ADDRESS_TIMA)
-  {
-    return memoryController->timerController->tima;
-  }
-  else if (address == IO_REG_ADDRESS_TMA)
-  {
-    return memoryController->timerController->tma;
-  }
-  else if (address == IO_REG_ADDRESS_TAC)
-  {
-    return memoryController->timerController->tac;
-  }
-  else if (address == IO_REG_ADDRESS_IF)
-  {
-    return memoryController->interruptController->f;
-  }
-  else if (address == IO_REG_ADDRESS_IE)
+  else if (address == IO_REG_ADDRESS_IE) // Interrupt Enable Register
   {
     return memoryController->interruptController->e;
   }
   else
   {
-    return memoryController->memory[address - CARTRIDGE_SIZE];
+    critical("Read from unhandled address 0x%04X\n", address);
+    exit(EXIT_FAILURE);
   }
 }
 
 void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8_t value)
 {
-  if (address >= 0x8000 && address < 0xA000) // Write to VRAM
+  if (address >= 0x8000 && address <= 0x9FFF) // Write to VRAM
   {
     uint8_t lcdMode = memoryController->lcdController->stat & STAT_MODE_FLAG_BITS;
     if (lcdMode != 3) { // LCD Controller is not reading from VRAM and OAM so write access is okay
-      memoryController->memory[address - CARTRIDGE_SIZE] = value;
+      memoryController->vram[address - 0x8000] = value;
     } else {
       warning("Invalid write of value 0x%02X to VRAM address 0x%04X while LCD is in Mode %u\n", value, address, lcdMode);
     }
   }
-  else if (address >= 0xFE00 && address < 0xFEA0) // Write to OAM
+  else if (address >= 0xC000 && address <= 0xCFFF) // Write to WRAM (Bank 0)
+  {
+    memoryController->wram[address - 0xC000] = value;
+  }
+  else if (address >= 0xD000 && address <= 0xDFFF) // Write to WRAM (Banks 1-7)
+  {
+    memoryController->wram[address - 0xC000] = value;
+  }
+  else if (address >= 0xE000 && address <= 0xFDFF) // Write to WRAM (echo)
+  {
+    memoryController->wram[address - 0xE000] = value;
+  }
+  else if (address >= 0xFE00 && address <= 0xFE9F) // Write to OAM
   {
     uint8_t lcdMode = memoryController->lcdController->stat & STAT_MODE_FLAG_BITS;
     if (lcdMode == 0 || lcdMode == 1) { // LCD Controller is in HBLANK or VBLANK so write access is okay
-      memoryController->memory[address - CARTRIDGE_SIZE] = value;
+      memoryController->oam[address - 0xFE00] = value;
     } else {
       warning("Invalid write of value 0x%02X to OAM address 0x%04X while LCD is in Mode %u\n", value, address, lcdMode);
     }
   }
-  else if (address == IO_REG_ADDRESS_LCDC)
+  else if (address >= 0xFEA0 && address <= 0xFEFF) // Not Usable
   {
-    bool lcdEnabledBefore = memoryController->lcdController->lcdc & LCD_DISPLAY_ENABLE_BIT;
-    bool lcdEnabledAfter = value & LCD_DISPLAY_ENABLE_BIT;
+    critical("Write to unusable address 0x%04X\n", address);
+    exit(EXIT_FAILURE);
+  }
+  else if (address >= 0xFF00 && address <= 0xFF7F) // I/O Ports
+  {
+    switch (address) {
+      case IO_REG_ADDRESS_LCDC: {
+        bool lcdEnabledBefore = memoryController->lcdController->lcdc & LCD_DISPLAY_ENABLE_BIT;
+        bool lcdEnabledAfter = value & LCD_DISPLAY_ENABLE_BIT;
 
-    memoryController->lcdController->lcdc = value;
+        memoryController->lcdController->lcdc = value;
 
-    if (!lcdEnabledBefore && lcdEnabledAfter) {
-      debug("LCD was ENABLED by write of value 0x%02X to LCDC\n", value);
-    } else if (lcdEnabledBefore && !lcdEnabledAfter) {
-      // Stopping LCD operation outside of the VBLANK period could damage the display hardware.
-      // Nintendo is reported to reject any games that didn't follow this rule.
-      uint8_t lcdMode = memoryController->lcdController->stat & STAT_MODE_FLAG_BITS;
-      if (lcdMode != 1) {
-        critical("LCD was DISABLED outside of VBLANK period!\n");
-        exit(EXIT_FAILURE);
+        if (!lcdEnabledBefore && lcdEnabledAfter) {
+          debug("LCD was ENABLED by write of value 0x%02X to LCDC\n", value);
+        } else if (lcdEnabledBefore && !lcdEnabledAfter) {
+          // Stopping LCD operation outside of the VBLANK period could damage the display hardware.
+          // Nintendo is reported to reject any games that didn't follow this rule.
+          uint8_t lcdMode = memoryController->lcdController->stat & STAT_MODE_FLAG_BITS;
+          if (lcdMode != 1) {
+            critical("LCD was DISABLED outside of VBLANK period!\n");
+            exit(EXIT_FAILURE);
+          }
+          debug("LCD was DISABLED by write of value 0x%02X to LCDC\n", value);
+        }
+        break;
       }
-      debug("LCD was DISABLED by write of value 0x%02X to LCDC\n", value);
+      case IO_REG_ADDRESS_P1: {
+        memoryController->joypadController->p1 = (value & 0x30) | 0x0F; // TODO: Do we need to preserve or reset (set to 1) the low 4 bits here?
+        if ((value & (1 << 5)) == 0) {
+          if (memoryController->joypadController->_start) memoryController->joypadController->p1 &= ~(1 << 3);
+          if (memoryController->joypadController->_select) memoryController->joypadController->p1 &= ~(1 << 2);
+          if (memoryController->joypadController->_b) memoryController->joypadController->p1 &= ~(1 << 1);
+          if (memoryController->joypadController->_a) memoryController->joypadController->p1 &= ~(1 << 0);
+        } else if ((value & (1 << 4)) == 0) {
+          if (memoryController->joypadController->_down) memoryController->joypadController->p1 &= ~(1 << 3);
+          if (memoryController->joypadController->_up) memoryController->joypadController->p1 &= ~(1 << 2);
+          if (memoryController->joypadController->_left) memoryController->joypadController->p1 &= ~(1 << 1);
+          if (memoryController->joypadController->_right) memoryController->joypadController->p1 &= ~(1 << 0);
+        }
+        break;
+      }
+      case IO_REG_ADDRESS_STAT:
+        memoryController->lcdController->stat = (value & 0xFC) | (memoryController->lcdController->stat & 0x03);
+        break;
+      case IO_REG_ADDRESS_SCY:
+        memoryController->lcdController->scy = value;
+        break;
+      case IO_REG_ADDRESS_SCX:
+        memoryController->lcdController->scx = value;
+        break;
+      case IO_REG_ADDRESS_LY:
+        memoryController->lcdController->ly = 0;
+        debug("[MEMORY LOG]: WRITE TO LY!\n");
+        break;
+      case IO_REG_ADDRESS_LYC:
+        memoryController->lcdController->lyc = value;
+        break;
+      case IO_REG_ADDRESS_DMA:
+        memoryController->dma = value;
+        memoryController->dmaIsActive = true;
+        memoryController->dmaNextAddress = value * 0x100;
+        break;
+      case IO_REG_ADDRESS_BGP:
+        memoryController->lcdController->bgp = value;
+        break;
+      case IO_REG_ADDRESS_OBP0:
+        memoryController->lcdController->obp0 = value;
+        break;
+      case IO_REG_ADDRESS_OBP1:
+        memoryController->lcdController->obp1 = value;
+        break;
+      case IO_REG_ADDRESS_WY:
+        memoryController->lcdController->wy = value;
+        break;
+      case IO_REG_ADDRESS_WX:
+        memoryController->lcdController->wx = value;
+        break;
+      case IO_REG_ADDRESS_DIV:
+        memoryController->timerController->div = 0x00;
+        break;
+      case IO_REG_ADDRESS_TIMA:
+        memoryController->timerController->tima = value;
+        break;
+      case IO_REG_ADDRESS_TMA:
+        memoryController->timerController->tma = value;
+        break;
+      case IO_REG_ADDRESS_TAC:
+        memoryController->timerController->tac = value;
+        break;
+      case IO_REG_ADDRESS_IF:
+        memoryController->interruptController->f = value;
+        break;
+      default:
+        // warning("Write of value 0x%02X to unhandled I/O register address 0x%04X\n", value, address);
+        break;
     }
   }
-  else if (address == IO_REG_ADDRESS_P1)
+  else if (address >= 0xFF80 && address <= 0xFFFE) // High RAM
   {
-    memoryController->joypadController->p1 = (value & 0x30) | 0x0F; // TODO: Do we need to preserve or reset (set to 1) the low 4 bits here?
-    if ((value & (1 << 5)) == 0) {
-      if (memoryController->joypadController->_start) memoryController->joypadController->p1 &= ~(1 << 3);
-      if (memoryController->joypadController->_select) memoryController->joypadController->p1 &= ~(1 << 2);
-      if (memoryController->joypadController->_b) memoryController->joypadController->p1 &= ~(1 << 1);
-      if (memoryController->joypadController->_a) memoryController->joypadController->p1 &= ~(1 << 0);
-    } else if ((value & (1 << 4)) == 0) {
-      if (memoryController->joypadController->_down) memoryController->joypadController->p1 &= ~(1 << 3);
-      if (memoryController->joypadController->_up) memoryController->joypadController->p1 &= ~(1 << 2);
-      if (memoryController->joypadController->_left) memoryController->joypadController->p1 &= ~(1 << 1);
-      if (memoryController->joypadController->_right) memoryController->joypadController->p1 &= ~(1 << 0);
-    }
+    memoryController->hram[address - 0xFF80] = value;
   }
-  else if (address == IO_REG_ADDRESS_STAT)
-  {
-    memoryController->lcdController->stat = (value & 0xFC) | (memoryController->lcdController->stat & 0x03);
-  }
-  else if (address == IO_REG_ADDRESS_SCY)
-  {
-    memoryController->lcdController->scy = value;
-  }
-  else if (address == IO_REG_ADDRESS_SCX)
-  {
-    memoryController->lcdController->scx = value;
-  }
-  else if (address == IO_REG_ADDRESS_LY)
-  {
-    memoryController->lcdController->ly = 0;
-    debug("[MEMORY LOG]: WRITE TO LY!\n");
-  }
-  else if (address == IO_REG_ADDRESS_LYC)
-  {
-    memoryController->lcdController->lyc = value;
-  }
-  else if (address == IO_REG_ADDRESS_DMA)
-  {
-    memoryController->memory[address - CARTRIDGE_SIZE] = value;
-    memoryController->dmaIsActive = true;
-    memoryController->dmaNextAddress = value * 0x100;
-  }
-  else if (address == IO_REG_ADDRESS_BGP)
-  {
-    memoryController->lcdController->bgp = value;
-  }
-  else if (address == IO_REG_ADDRESS_OBP0)
-  {
-    memoryController->lcdController->obp0 = value;
-  }
-  else if (address == IO_REG_ADDRESS_OBP1)
-  {
-    memoryController->lcdController->obp1 = value;
-  }
-  else if (address == IO_REG_ADDRESS_WY)
-  {
-    memoryController->lcdController->wy = value;
-  }
-  else if (address == IO_REG_ADDRESS_WX)
-  {
-    memoryController->lcdController->wx = value;
-  }
-  else if (address == IO_REG_ADDRESS_DIV)
-  {
-    memoryController->timerController->div = 0x00;
-  }
-  else if (address == IO_REG_ADDRESS_TIMA)
-  {
-    memoryController->timerController->tima = value;
-  }
-  else if (address == IO_REG_ADDRESS_TMA)
-  {
-    memoryController->timerController->tma = value;
-  }
-  else if (address == IO_REG_ADDRESS_TAC)
-  {
-    memoryController->timerController->tac = value;
-  }
-  else if (address == IO_REG_ADDRESS_IF)
-  {
-    memoryController->interruptController->f = value;
-  }
-  else if (address == IO_REG_ADDRESS_IE)
+  else if (address == IO_REG_ADDRESS_IE) // Interrupt Enable Register
   {
     memoryController->interruptController->e = value;
   }
   else
   {
-    memoryController->memory[address - CARTRIDGE_SIZE] = value;
-
-    // Additional write to support the echo of 7.5KB of internal RAM
-    if (address >= 0xC000 && address < 0xDE00) {
-      memoryController->memory[address - CARTRIDGE_SIZE + 0x2000] = value;
-    } else if (address >= 0xE000 && address < 0xFE00) {
-      memoryController->memory[address - CARTRIDGE_SIZE - 0x2000] = value;
-    }
-  }
-
-  // TODO: Add to formal logging strategy that can be removed for release builds (for example)
-  if (address >= 0x8000 && address < 0xA000) {
-    // debug("\b[MEMORY] Write to VRAM address=0x%04X value=0x%02X\n", address, value);
-  } else if (address >= 0xFE00 && address < 0xFEA0) {
-    // debug("\b[MEMORY] Write to OAM address=0x%04X value=0x%02X\n", address, value);
-  } else if (address >= 0xFF00 && address < 0xFF4C) {
-    // debug("\b[MEMORY] Write to I/O reg - address=0x%04X value=0x%02X\n", address, value);
+    critical("Write to unhandled address 0x%04X\n", address);
+    exit(EXIT_FAILURE);
   }
 }
 
@@ -418,7 +417,7 @@ void dmaUpdate(MemoryController* memoryController, uint8_t cyclesExecuted)
 
       // Memory can be transferred from ROM or RAM, so we need to use the MBC readByte() implementations instead of the "public" CPU methods to handle ROM and/or RAM banking.
       uint8_t value = memoryController->readByteImpl(memoryController, sourceAddress);
-      memoryController->memory[destinationAddress - CARTRIDGE_SIZE] = value;
+      memoryController->oam[destinationAddress - 0xFE00] = value;
 
       if ((destinationAddress + 1) < 0xFEA0) {
         memoryController->dmaNextAddress++;
