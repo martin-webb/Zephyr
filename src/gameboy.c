@@ -13,6 +13,14 @@
 
 void gbInitialise(GameBoy* gameBoy, GameBoyType gameBoyType, uint8_t* cartridgeData, uint8_t* frameBuffer, const char* romFilename)
 {
+  CGBMode cgbMode;
+  uint8_t cgbFlag = cartridgeGetCGBMode(cartridgeData);
+  if (gameBoyType == CGB && (cgbFlag == 0x80 || cgbFlag == 0xC0)) {
+    cgbMode = COLOUR;
+  } else {
+    cgbMode = MONOCHROME;
+  }
+
   gameBoy->vram = (uint8_t*)malloc(VRAM_SIZE_BYTES * sizeof(uint8_t));
   gameBoy->wram = (uint8_t*)malloc(WRAM_SIZE_BYTES * sizeof(uint8_t));
   gameBoy->oam  = (uint8_t*)malloc(OAM_SIZE_BYTES * sizeof(uint8_t));
@@ -54,6 +62,7 @@ void gbInitialise(GameBoy* gameBoy, GameBoyType gameBoyType, uint8_t* cartridgeD
   );
 
   gameBoy->gameBoyType = gameBoyType;
+  gameBoy->cgbMode = cgbMode;
   gameBoy->speedMode = NORMAL;
 
   cpuReset(&gameBoy->cpu, &gameBoy->memoryController, gameBoy->gameBoyType);

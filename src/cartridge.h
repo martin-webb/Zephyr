@@ -60,6 +60,7 @@
 int cartridgeGetSize(FILE* cartridgeFile);
 uint8_t* cartridgeLoadData(const char* pathToROM);
 const char* cartridgeGetGameTitle(const uint8_t* cartridgeData); // NOTE: Caller owns memory
+uint8_t cartridgeGetCGBMode(const uint8_t* cartridgeData);
 uint8_t cartridgeGetType(const uint8_t* cartridgeData);
 
 uint32_t RAMSizeInBytes(uint8_t ramSize);

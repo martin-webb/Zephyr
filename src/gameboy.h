@@ -1,6 +1,7 @@
 #ifndef GAMEBOY_H_
 #define GAMEBOY_H_
 
+#include "cgbmode.h"
 #include "cpu.h"
 #include "timer.h"
 
@@ -14,6 +15,7 @@ typedef struct {
   InterruptController interruptController;
   MemoryController memoryController;
   GameBoyType gameBoyType;
+  CGBMode cgbMode;
   SpeedMode speedMode;
 
   uint8_t* vram;

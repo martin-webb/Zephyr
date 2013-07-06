@@ -60,6 +60,11 @@ const char* cartridgeGetGameTitle(const uint8_t* cartridgeData)
   return gameTitle;
 }
 
+uint8_t cartridgeGetCGBMode(const uint8_t* cartridgeData)
+{
+  return cartridgeData[CGB_FLAG_ADDRESS];
+}
+
 uint8_t cartridgeGetType(const uint8_t* cartridgeData)
 {
   return cartridgeData[CARTRIDGE_TYPE_ADDRESS];
