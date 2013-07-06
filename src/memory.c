@@ -245,8 +245,8 @@ uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
   }
   else
   {
-    critical("Read from unhandled address 0x%04X\n", address);
-    exit(EXIT_FAILURE);
+    warning("Read from unhandled address 0x%04X\n", address);
+    return 0;
   }
 }
 
@@ -391,8 +391,7 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
   }
   else
   {
-    critical("Write to unhandled address 0x%04X\n", address);
-    exit(EXIT_FAILURE);
+    warning("Write to unhandled address 0x%04X\n", address);
   }
 }
 
