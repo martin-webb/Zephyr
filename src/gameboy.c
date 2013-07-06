@@ -22,7 +22,7 @@ void gbInitialise(GameBoy* gameBoy, GameBoyType gameBoyType, uint8_t* cartridgeD
   }
 
   gameBoy->vram = (uint8_t*)malloc(VRAM_SIZE_BYTES * sizeof(uint8_t));
-  gameBoy->wram = (uint8_t*)malloc(WRAM_SIZE_BYTES * sizeof(uint8_t));
+  gameBoy->wram = (uint8_t*)malloc(WRAM_SIZE_BYTES * ((cgbMode == COLOUR) ? 4 : 1) * sizeof(uint8_t));
   gameBoy->oam  = (uint8_t*)malloc(OAM_SIZE_BYTES * sizeof(uint8_t));
   gameBoy->hram = (uint8_t*)malloc(HRAM_SIZE_BYTES * sizeof(uint8_t));
 
@@ -53,6 +53,7 @@ void gbInitialise(GameBoy* gameBoy, GameBoyType gameBoyType, uint8_t* cartridgeD
     gameBoy->oam,
     gameBoy->hram,
     cartridgeData,
+    cgbMode,
     &gameBoy->joypadController,
     &gameBoy->lcdController,
     &gameBoy->timerController,

@@ -17,6 +17,7 @@ MemoryController InitMemoryController(
   uint8_t* oam,
   uint8_t* hram,
   uint8_t* cartridge,
+  CGBMode cgbMode,
   JoypadController* joypadController,
   LCDController* lcdController,
   TimerController* timerController,
@@ -34,10 +35,12 @@ MemoryController InitMemoryController(
     0,
     false,
     0x0000,
+    0,
     NULL,
     NULL,
     NULL,
     NULL,
+    cgbMode,
     joypadController,
     lcdController,
     timerController,
@@ -170,7 +173,12 @@ uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
   }
   else if (address >= 0xD000 && address <= 0xDFFF) // Read from WRAM (Banks 1-7)
   {
-    return memoryController->wram[address - 0xC000];
+    if (memoryController->cgbMode == COLOUR) {
+      uint16_t bankOffset = memoryController->svbk * 4 * 1024;
+      return memoryController->wram[bankOffset + (address - 0xD000)];
+    } else {
+      return memoryController->wram[address - 0xC000];
+    }
   }
   else if (address >= 0xE000 && address <= 0xFDFF) // Read from WRAM (echo)
   {
@@ -230,6 +238,9 @@ uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
         return memoryController->timerController->tac;
       case IO_REG_ADDRESS_IF:
         return memoryController->interruptController->f;
+      case IO_REG_ADDRESS_SVBK:
+        return memoryController->svbk;
+        break;
       default:
         // warning("Read from unhandled I/O register address 0x%04X\n", address);
         return 0;
@@ -267,7 +278,12 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
   }
   else if (address >= 0xD000 && address <= 0xDFFF) // Write to WRAM (Banks 1-7)
   {
-    memoryController->wram[address - 0xC000] = value;
+    if (memoryController->cgbMode == COLOUR) {
+      uint16_t bankOffset = memoryController->svbk * 4 * 1024;
+      memoryController->wram[bankOffset + (address - 0xD000)] = value;
+    } else {
+      memoryController->wram[address - 0xC000] = value;
+    }
   }
   else if (address >= 0xE000 && address <= 0xFDFF) // Write to WRAM (echo)
   {
@@ -375,6 +391,13 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
         break;
       case IO_REG_ADDRESS_IF:
         memoryController->interruptController->f = value;
+        break;
+      case IO_REG_ADDRESS_SVBK:
+        if (value == 0) {
+          memoryController->svbk = 1;
+        } else {
+          memoryController->svbk = (value & 7);
+        }
         break;
       default:
         // warning("Write of value 0x%02X to unhandled I/O register address 0x%04X\n", value, address);

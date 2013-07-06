@@ -15,6 +15,7 @@ MemoryController InitMemoryController(
   uint8_t* oam,
   uint8_t* hram,
   uint8_t* cartridge,
+  CGBMode cgbMode,
   JoypadController* joypadController,
   LCDController* lcdController,
   TimerController* timerController,
