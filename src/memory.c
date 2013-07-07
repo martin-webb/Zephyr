@@ -35,7 +35,7 @@ MemoryController InitMemoryController(
     0,
     false,
     0x0000,
-    0,
+    1, // SVBK should be initialised to 1 because writes of 0 are always translated to 1
     NULL,
     NULL,
     NULL,
