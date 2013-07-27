@@ -40,6 +40,7 @@ void gbInitialise(GameBoy* gameBoy, GameBoyType gameBoyType, uint8_t* cartridgeD
   initJoypadController(&gameBoy->joypadController);
   initTimerController(&gameBoy->timerController);
   initInterruptController(&gameBoy->interruptController);
+  initSpeedController(&gameBoy->speedController);
 
   uint8_t cartridgeType = cartridgeGetType(cartridgeData);
 
@@ -58,6 +59,7 @@ void gbInitialise(GameBoy* gameBoy, GameBoyType gameBoyType, uint8_t* cartridgeD
     &gameBoy->lcdController,
     &gameBoy->timerController,
     &gameBoy->interruptController,
+    &gameBoy->speedController,
     externalRAMSizeBytes,
     romFilename
   );
@@ -99,20 +101,24 @@ void gbRunNFrames(GameBoy* gameBoy, const int frames)
   InterruptController* interruptController = &gameBoy->interruptController;
   TimerController* timerController = &gameBoy->timerController;
   MemoryController* memoryController = &gameBoy->memoryController;
+  SpeedController* speedController = &gameBoy->speedController;
   GameBoyType gameBoyType = gameBoy->gameBoyType;
-  SpeedMode speedMode = gameBoy->speedMode;
 
   // Execute instructions until we have reached the minimum required number of cycles that would have occurred
   uint32_t totalCyclesExecuted = 0;
   while (totalCyclesExecuted < targetCycles) {
     uint8_t cyclesExecuted = cpuRunSingleOp(cpu, memoryController);
+
+    // Detect speed switch
+    gameBoy->speedMode = ((speedController->key1 & (1 << 7)) ? DOUBLE : NORMAL);
+
     totalCyclesExecuted += cyclesExecuted;
     cpuUpdateIME(cpu);
-    cartridgeUpdate(memoryController, cyclesExecuted, speedMode);
+    cartridgeUpdate(memoryController, cyclesExecuted, gameBoy->speedMode);
     dmaUpdate(memoryController, cyclesExecuted);
     timerUpdateDivider(timerController, cyclesExecuted);
-    timerUpdateTimer(timerController, interruptController, speedMode, cyclesExecuted);
-    lcdUpdate(lcdController, interruptController, speedMode, cyclesExecuted);
+    timerUpdateTimer(timerController, interruptController, gameBoy->speedMode, cyclesExecuted);
+    lcdUpdate(lcdController, interruptController, gameBoy->speedMode, cyclesExecuted);
     cpuHandleInterrupts(cpu, interruptController, memoryController, gameBoyType);
   }
 }

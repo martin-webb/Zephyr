@@ -6,6 +6,7 @@
 #include "cartridge-types/mbc5.h"
 #include "cartridge-types/romonly.h"
 #include "logging.h"
+#include "speedcontroller.h"
 #include "timer.h"
 
 #include <stdlib.h>
@@ -22,6 +23,7 @@ MemoryController InitMemoryController(
   LCDController* lcdController,
   TimerController* timerController,
   InterruptController* interruptController,
+  SpeedController* speedController,
   uint32_t externalRAMSizeBytes,
   const char* romFilename
 )
@@ -44,7 +46,8 @@ MemoryController InitMemoryController(
     joypadController,
     lcdController,
     timerController,
-    interruptController
+    interruptController,
+    speedController
   };
 
   switch (cartridgeType) {
@@ -243,6 +246,8 @@ uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
         return memoryController->timerController->tac;
       case IO_REG_ADDRESS_IF:
         return memoryController->interruptController->f;
+      case IO_REG_ADDRESS_KEY1:
+        return memoryController->speedController->key1;
       case IO_REG_ADDRESS_VBK:
         return memoryController->lcdController->vbk;
       case IO_REG_ADDRESS_SVBK:
@@ -403,6 +408,9 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
         break;
       case IO_REG_ADDRESS_IF:
         memoryController->interruptController->f = value;
+        break;
+      case IO_REG_ADDRESS_KEY1:
+        memoryController->speedController->key1 = (memoryController->speedController->key1 | (value & 1));
         break;
       case IO_REG_ADDRESS_VBK:
         memoryController->lcdController->vbk = value & 1;

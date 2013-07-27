@@ -14,6 +14,7 @@ typedef struct {
   TimerController timerController;
   InterruptController interruptController;
   MemoryController memoryController;
+  SpeedController speedController;
   GameBoyType gameBoyType;
   CGBMode cgbMode;
   SpeedMode speedMode;

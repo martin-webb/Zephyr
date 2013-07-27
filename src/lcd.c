@@ -445,3 +445,9 @@ void lcdUpdate(LCDController* lcdController, InterruptController* interruptContr
     }
   }
 }
+
+void lcdSpeedChange(LCDController* lcdController)
+{
+  lcdController->stat = (lcdController->stat & 0xFC) | 1;
+  lcdController->clockCycles = 0;
+}

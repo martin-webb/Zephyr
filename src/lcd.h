@@ -85,5 +85,6 @@ typedef struct {
 
 void initLCDController(LCDController* lcdController, uint8_t* vram, uint8_t* oam, uint8_t* frameBuffer);
 void lcdUpdate(LCDController* lcdController, InterruptController* interruptController, SpeedMode speedMode, uint8_t cyclesExecuted);
+void lcdSpeedChange(LCDController* lcdController);
 
 #endif // LCD_H_

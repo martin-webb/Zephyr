@@ -6,6 +6,7 @@
 #include "joypad.h"
 #include "lcd.h"
 #include "speed.h"
+#include "speedcontroller.h"
 #include "timercontroller.h"
 
 #include <stdbool.h>
@@ -39,6 +40,7 @@ struct MemoryController {
   LCDController* lcdController;
   TimerController* timerController;
   InterruptController* interruptController;
+  SpeedController* speedController;
 };
 
 #endif // MEMORYCONTROLLER_H_

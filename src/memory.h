@@ -6,6 +6,7 @@
 
 #define IO_REG_ADDRESS_DMA 0xFF46
 
+#include "speedcontroller.h"
 #include "memorycontroller.h"
 
 MemoryController InitMemoryController(
@@ -20,6 +21,7 @@ MemoryController InitMemoryController(
   LCDController* lcdController,
   TimerController* timerController,
   InterruptController* interruptController,
+  SpeedController* speedController,
   uint32_t externalRAMSizeBytes,
   const char* romFilename
 );

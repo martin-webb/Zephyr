@@ -1719,7 +1719,19 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
       // NOTE: Some Game Boy CPU manuals document the opcode for this instruction as 10 00 but there
       // seems to be no reason for this to not be a single byte opcode so some assemblers simply code
       // it as 10. There is also no indication in the number of required clock cycles of a a read of an additional byte.
-      cpu->stop = true;
+      if ((m->cgbMode == COLOUR) && (m->speedController->key1 & 1)) {
+        if ((m->speedController->key1 & (1 << 7))) {
+          m->speedController->key1 = 0;
+          info("Entering NORMAL speed mode\n");
+        } else {
+          m->speedController->key1 = (1 << 7);
+          info("Entering DOUBLE speed mode\n");
+        }
+        m->interruptController->e = 0;
+        lcdSpeedChange(m->lcdController);
+      } else {
+        cpu->stop = true;
+      }
       cycles += 4;
       break;
     }
