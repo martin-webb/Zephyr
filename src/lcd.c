@@ -10,6 +10,7 @@
 void initLCDController(LCDController* lcdController, uint8_t* vram, uint8_t* oam, uint8_t* frameBuffer)
 {
   lcdController->stat = 0;
+  lcdController->vbk = 0;
   lcdController->vram = vram;
   lcdController->oam = oam;
   lcdController->frameBuffer = frameBuffer;

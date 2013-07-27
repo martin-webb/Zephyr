@@ -162,7 +162,12 @@ uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
   {
     uint8_t lcdMode = memoryController->lcdController->stat & STAT_MODE_FLAG_BITS;
     if (lcdMode != 3) { // LCD Controller is not reading from VRAM and OAM so read access is okay
-      return memoryController->vram[address - 0x8000];
+      if (memoryController->cgbMode == COLOUR) {
+        uint16_t bankOffset = (memoryController->lcdController->vbk * 8 * 1024);
+        return memoryController->vram[bankOffset + address - 0x8000];
+      } else {
+        return memoryController->vram[address - 0x8000];
+      }
     } else {
       return 0xFF;
     }
@@ -238,6 +243,8 @@ uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
         return memoryController->timerController->tac;
       case IO_REG_ADDRESS_IF:
         return memoryController->interruptController->f;
+      case IO_REG_ADDRESS_VBK:
+        return memoryController->lcdController->vbk;
       case IO_REG_ADDRESS_SVBK:
         return memoryController->svbk;
         break;
@@ -267,7 +274,12 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
   {
     uint8_t lcdMode = memoryController->lcdController->stat & STAT_MODE_FLAG_BITS;
     if (lcdMode != 3) { // LCD Controller is not reading from VRAM and OAM so write access is okay
-      memoryController->vram[address - 0x8000] = value;
+      if (memoryController->cgbMode == COLOUR) {
+        uint16_t bankOffset = (memoryController->lcdController->vbk * 8 * 1024);
+        memoryController->vram[bankOffset + address - 0x8000] = value;
+      } else {
+        memoryController->vram[address - 0x8000] = value;
+      }
     } else {
       warning("Invalid write of value 0x%02X to VRAM address 0x%04X while LCD is in Mode %u\n", value, address, lcdMode);
     }
@@ -391,6 +403,9 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
         break;
       case IO_REG_ADDRESS_IF:
         memoryController->interruptController->f = value;
+        break;
+      case IO_REG_ADDRESS_VBK:
+        memoryController->lcdController->vbk = value & 1;
         break;
       case IO_REG_ADDRESS_SVBK:
         if (value == 0) {

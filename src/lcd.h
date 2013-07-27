@@ -24,6 +24,8 @@
 #define IO_REG_ADDRESS_WY 0xFF4A
 #define IO_REG_ADDRESS_WX 0xFF4B
 
+#define IO_REG_ADDRESS_VBK 0xFF4F
+
 #define LCD_DISPLAY_ENABLE_BIT (1 << 7)
 #define LCD_WINDOW_TILE_MAP_DISPLAY_SELECT_BIT (1 << 6)
 #define LCD_WINDOW_DISPLAY_ENABLE_BIT (1 << 5)
@@ -67,6 +69,7 @@ typedef struct {
   uint8_t obp1; // FF49 - Object Palette 1 Data (R/W) - Non CGB Mode Only
   uint8_t wy;   // FF4A - Window Y Position (R/W)
   uint8_t wx;   // FF4B - Window X Position - 7 (R/W)
+  uint8_t vbk;  // FF4F - VRAM Bank - CGB Mode Only (R/W)
 
   uint8_t* vram;
   uint8_t* oam;
