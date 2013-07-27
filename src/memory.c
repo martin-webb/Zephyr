@@ -252,7 +252,6 @@ uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
         return memoryController->lcdController->vbk;
       case IO_REG_ADDRESS_SVBK:
         return memoryController->svbk;
-        break;
       default:
         // warning("Read from unhandled I/O register address 0x%04X\n", address);
         return 0;
