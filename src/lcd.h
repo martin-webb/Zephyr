@@ -2,6 +2,7 @@
 #define LCD_H_
 
 #include "interrupts.h"
+#include "pixel.h"
 #include "speed.h"
 
 #include <stdint.h>
@@ -73,7 +74,7 @@ typedef struct {
 
   uint8_t* vram;
   uint8_t* oam;
-  uint8_t* frameBuffer;
+  Pixel* frameBuffer;
 
   uint16_t mode3Cycles;
   uint32_t clockCycles;
@@ -83,7 +84,7 @@ typedef struct {
   time_t last60VBlanksTime;
 } LCDController;
 
-void initLCDController(LCDController* lcdController, uint8_t* vram, uint8_t* oam, uint8_t* frameBuffer);
+void initLCDController(LCDController* lcdController, uint8_t* vram, uint8_t* oam, Pixel* frameBuffer);
 void lcdUpdate(LCDController* lcdController, InterruptController* interruptController, SpeedMode speedMode, uint8_t cyclesExecuted);
 void lcdSpeedChange(LCDController* lcdController);
 

@@ -1,6 +1,7 @@
 #include "cartridge.h"
 #include "gameboy.h"
 #include "lcdgl.h"
+#include "pixel.h"
 #include "utils/os.h"
 
 #include <GLUT/glut.h>
@@ -15,7 +16,7 @@
 
 GameBoy gameBoy;
 
-uint8_t frameBuffer[LCD_WIDTH * LCD_HEIGHT];
+Pixel frameBuffer[LCD_WIDTH * LCD_HEIGHT];
 
 bool fast = false;
 

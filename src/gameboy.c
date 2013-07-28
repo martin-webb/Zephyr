@@ -11,7 +11,7 @@
 #define OAM_SIZE_BYTES 160
 #define HRAM_SIZE_BYTES 127
 
-void gbInitialise(GameBoy* gameBoy, GameBoyType gameBoyType, uint8_t* cartridgeData, uint8_t* frameBuffer, const char* romFilename)
+void gbInitialise(GameBoy* gameBoy, GameBoyType gameBoyType, uint8_t* cartridgeData, Pixel* frameBuffer, const char* romFilename)
 {
   CGBMode cgbMode;
   uint8_t cgbFlag = cartridgeGetCGBMode(cartridgeData);

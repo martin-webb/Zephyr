@@ -7,7 +7,7 @@
 
 #include <stdlib.h>
 
-void initLCDController(LCDController* lcdController, uint8_t* vram, uint8_t* oam, uint8_t* frameBuffer)
+void initLCDController(LCDController* lcdController, uint8_t* vram, uint8_t* oam, Pixel* frameBuffer)
 {
   lcdController->stat = 0;
   lcdController->vbk = 0;
@@ -50,6 +50,24 @@ uint8_t lcdMonochromeColourForPixel(uint8_t pixelX, uint8_t lowByte, uint8_t hig
   }
 }
 
+static void lcdAssignPixelRGBForMonochromeShade(Pixel* pixel, uint8_t shade)
+{
+  switch (shade) {
+    case 0:
+      pixel->r = pixel->g = pixel->b = 1.0;
+      break;
+    case 1:
+      pixel->r = pixel->g = pixel->b = 0.66;
+      break;
+    case 2:
+      pixel->r = pixel->g = pixel->b = 0.33;
+      break;
+    case 3:
+      pixel->r = pixel->g = pixel->b = 0.0;
+      break;
+  }
+}
+
 void lcdDrawScanlineBackground(LCDController* lcdController)
 {
   if (lcdController->lcdc & LCD_BG_DISPLAY_BIT)
@@ -88,10 +106,10 @@ void lcdDrawScanlineBackground(LCDController* lcdController)
         uint8_t shade = (lcdController->bgp >> (colourNumber * 2)) & 3;
 
         // Draw a pixel!
-        // NOTE: We encode the colour number in the top nibble of the byte so that it can be used
-        // to determine the OBJ-to-BG priority (and we can't determine the original colour number
-        // based on the shade and the palette, because multiple colours could map to the same shade)
-        lcdController->frameBuffer[lcdController->ly * LCD_WIDTH + scanlineX] = (colourNumber << 4) | shade;
+        Pixel* pixel = &lcdController->frameBuffer[lcdController->ly * LCD_WIDTH + scanlineX];
+
+        pixel->colour = colourNumber;
+        lcdAssignPixelRGBForMonochromeShade(pixel, shade);
 
         // Don't increment this for the last pixel of the current tile, the increment in the outer loop will do this for us
         if (pixelX != 7) {
@@ -104,7 +122,8 @@ void lcdDrawScanlineBackground(LCDController* lcdController)
   else // The background is disabled so with a monochrome Game Boy every pixel is white
   {
     for (int scanlineX = 0; scanlineX < LCD_WIDTH; scanlineX++) {
-      lcdController->frameBuffer[lcdController->ly * LCD_WIDTH + scanlineX] = 0;
+      Pixel* pixel = &lcdController->frameBuffer[lcdController->ly * LCD_WIDTH + scanlineX];
+      lcdAssignPixelRGBForMonochromeShade(pixel, 0);
     }
   }
 }
@@ -156,10 +175,10 @@ void lcdDrawScanlineWindow(LCDController* lcdController)
       uint8_t shade = (lcdController->bgp >> (colourNumber * 2)) & 3;
 
       // Draw a pixel!
-      // NOTE: We encode the colour number in the top nibble of the byte so that it can be used
-      // to determine the OBJ-to-BG priority (and we can't determine the original colour number
-      // based on the shade and the palette, because multiple colours could map to the same shade)
-      lcdController->frameBuffer[lcdController->ly * LCD_WIDTH + scanlineX] = (colourNumber << 4) | shade;
+      Pixel* pixel = &lcdController->frameBuffer[lcdController->ly * LCD_WIDTH + scanlineX];
+
+      pixel->colour = colourNumber;
+      lcdAssignPixelRGBForMonochromeShade(pixel, shade);
 
       // Don't increment this for the last pixel of the current tile, the increment in the outer loop will do this for us
       if (pixelX != 7) {
@@ -273,15 +292,16 @@ void lcdDrawScanlineObjects(LCDController* lcdController, SpeedMode speedMode)
       uint16_t pixelPos = lcdController->ly * LCD_WIDTH + (sprite.xPosition - 8) + lineX;
 
       // TODO: Check GB/GBC mode
+      Pixel* pixel = &lcdController->frameBuffer[pixelPos];
 
-      uint8_t bgOrWinColourNumber = lcdController->frameBuffer[pixelPos] >> 4;
+      uint8_t bgOrWinColour = pixel->colour;
       uint8_t spriteColourNumber = lcdMonochromeColourForPixel(realX, lineBytes[0], lineBytes[1]);
 
-      if ((bgOrWinColourNumber == 0 || !(sprite.attributes & SPRITE_ATTR_BITS_OBJ_TO_BG_PRIORITY)) && spriteColourNumber != 0) {
+      if ((bgOrWinColour == 0 || !(sprite.attributes & SPRITE_ATTR_BITS_OBJ_TO_BG_PRIORITY)) && spriteColourNumber != 0) {
         uint8_t palette = ((sprite.attributes & SPRITE_ATTR_BITS_MONOCHROME_PALETTE_NUMBER) ? lcdController->obp1 : lcdController->obp0);
         uint8_t shade = (palette >> (spriteColourNumber * 2)) & 3;
 
-        lcdController->frameBuffer[pixelPos] = shade;
+        lcdAssignPixelRGBForMonochromeShade(pixel, shade);
       }
     }
   }

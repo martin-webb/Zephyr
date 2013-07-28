@@ -1,13 +1,14 @@
 #include "lcdgl.h"
 
 #include "lcd.h"
+#include "pixel.h"
 
 #include <GLUT/glut.h>
 
 #define PIXEL_DATA_ARRAY_NUM_ELEMENTS_PER_VERTEX 2
 #define PIXEL_DATA_ARRAY_NUM_ELEMENTS_PER_COLOUR 3
 
-extern uint8_t frameBuffer[LCD_WIDTH * LCD_HEIGHT];
+extern Pixel frameBuffer[LCD_WIDTH * LCD_HEIGHT];
 
 static float PIXEL_VERTICES[PIXEL_DATA_ARRAY_NUM_ELEMENTS * PIXEL_DATA_ARRAY_NUM_ELEMENTS_PER_VERTEX];
 static float PIXEL_COLOURS[PIXEL_DATA_ARRAY_NUM_ELEMENTS * PIXEL_DATA_ARRAY_NUM_ELEMENTS_PER_COLOUR];
@@ -51,33 +52,15 @@ static void lcdGLFillColourArray()
   // colours of each line because only the last colour of each triangle determines the colour.
   // TODO: Eliminate duplication of colour values
   int i = 6;
-
-  float r, g, b;
   for (int y = 0; y < LCD_HEIGHT; y++) {
     for (int x = 0; x <= LCD_WIDTH; x++) {
-      // Mask out the top nibble of the value in the framebuffer because for pixels that contain
-      // only background and/or window shades the colour number will still be in the top nibble of
-      // the byte (it is not included for sprite/object shades because it is not needed later)
-      switch (frameBuffer[y * LCD_WIDTH + x] & 0x0F) {
-        case 0:
-          r = g = b = 1.0;
-          break;
-        case 1:
-          r = g = b = 0.66;
-          break;
-        case 2:
-          r = g = b = 0.33;
-          break;
-        case 3:
-          r = g = b = 0.0;
-          break;
-      }
-      PIXEL_COLOURS[i++] = r;
-      PIXEL_COLOURS[i++] = g;
-      PIXEL_COLOURS[i++] = b;
-      PIXEL_COLOURS[i++] = r;
-      PIXEL_COLOURS[i++] = g;
-      PIXEL_COLOURS[i++] = b;
+      Pixel pixel = frameBuffer[y * LCD_WIDTH + x];
+      PIXEL_COLOURS[i++] = pixel.r;
+      PIXEL_COLOURS[i++] = pixel.g;
+      PIXEL_COLOURS[i++] = pixel.b;
+      PIXEL_COLOURS[i++] = pixel.r;
+      PIXEL_COLOURS[i++] = pixel.g;
+      PIXEL_COLOURS[i++] = pixel.b;
     }
     i += 6; // Skip past the two degenerate triangles because the colour doesn't matter
   }

@@ -4,6 +4,7 @@
 #include "cgbmode.h"
 #include "cpu.h"
 #include "timer.h"
+#include "pixel.h"
 
 #include <stdint.h>
 
@@ -25,7 +26,7 @@ typedef struct {
   uint8_t* hram;
 } GameBoy;
 
-void gbInitialise(GameBoy* gameBoy, GameBoyType gameBoyType, uint8_t* cartridgeData, uint8_t* frameBuffer, const char* romFilename);
+void gbInitialise(GameBoy* gameBoy, GameBoyType gameBoyType, uint8_t* cartridgeData, Pixel* frameBuffer, const char* romFilename);
 void gbFinalise(GameBoy* gameBoy);
 
 GameBoyType gbGetGameType(uint8_t* cartridgeData);
