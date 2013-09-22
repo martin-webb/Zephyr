@@ -6,6 +6,12 @@
 
 #define IO_REG_ADDRESS_DMA 0xFF46
 
+#define IO_REG_ADDRESS_HDMA1 0xFF51
+#define IO_REG_ADDRESS_HDMA2 0xFF52
+#define IO_REG_ADDRESS_HDMA3 0xFF53
+#define IO_REG_ADDRESS_HDMA4 0xFF54
+#define IO_REG_ADDRESS_HDMA5 0xFF55
+
 #include "speedcontroller.h"
 #include "memorycontroller.h"
 
@@ -36,5 +42,8 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
 
 void cartridgeUpdate(MemoryController* memoryController, uint8_t cyclesExecuted, SpeedMode speedMode);
 void dmaUpdate(MemoryController* memoryController, uint8_t cyclesExecuted);
+void hdmaUpdate(MemoryController* memoryController, uint8_t cyclesExecuted);
+
+bool generalPurposeDMAIsActive(MemoryController* memoryController);
 
 #endif // MEMORY_H_

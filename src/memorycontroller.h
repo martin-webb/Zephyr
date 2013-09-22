@@ -2,6 +2,7 @@
 #define MEMORYCONTROLLER_H_
 
 #include "cgbmode.h"
+#include "hdmatransfer.h"
 #include "interrupts.h"
 #include "joypad.h"
 #include "lcd.h"
@@ -26,6 +27,14 @@ struct MemoryController {
   uint8_t dma; // FF46 - DMA - DMA Transfer and Start Address (W)
   bool dmaIsActive;
   uint16_t dmaNextAddress;
+
+  uint8_t hdma1; // FF51 - HDMA1 - New DMA Source, High - CGB Mode Only
+  uint8_t hdma2; // FF52 - HDMA1 - New DMA Source, Low - CGB Mode Only
+  uint8_t hdma3; // FF53 - HDMA1 - New DMA Source, High - CGB Mode Only
+  uint8_t hdma4; // FF54 - HDMA1 - New DMA Source, High - CGB Mode Only
+  uint8_t hdma5; // FF55 - HDMA1 - New DMA Source, High - CGB Mode Only
+
+  HDMATransfer hdmaTransfer;
 
   uint8_t svbk; // FF70 - SVBK - WRAM Bank - CGB Mode Only (R/W)
 

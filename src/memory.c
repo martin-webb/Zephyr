@@ -5,11 +5,23 @@
 #include "cartridge-types/mbc3.h"
 #include "cartridge-types/mbc5.h"
 #include "cartridge-types/romonly.h"
+#include "hdmatransfer.h"
 #include "logging.h"
 #include "speedcontroller.h"
 #include "timer.h"
 
 #include <stdlib.h>
+
+#define HBLANK_DMA_TRANSFER_LENGTH 16
+
+const HDMATransfer HDMA_TRANSFER_DEFAULT =
+{
+  .type = GENERAL,
+  .isActive = false,
+  .length = 0,
+  .nextSourceAddr = 0,
+  .nextDestinationAddr = 0
+};
 
 MemoryController InitMemoryController(
   uint8_t cartridgeType,
@@ -37,6 +49,12 @@ MemoryController InitMemoryController(
     0,
     false,
     0x0000,
+    0,
+    0,
+    0,
+    0,
+    0,
+    HDMA_TRANSFER_DEFAULT,
     1, // SVBK should be initialised to 1 because writes of 0 are always translated to 1
     NULL,
     NULL,
@@ -250,6 +268,24 @@ uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
         return memoryController->speedController->key1;
       case IO_REG_ADDRESS_VBK:
         return memoryController->lcdController->vbk;
+      case IO_REG_ADDRESS_HDMA1:
+        return memoryController->hdma1;
+      case IO_REG_ADDRESS_HDMA2:
+        return memoryController->hdma2;
+      case IO_REG_ADDRESS_HDMA3:
+        return memoryController->hdma3;
+      case IO_REG_ADDRESS_HDMA4:
+        return memoryController->hdma4;
+      case IO_REG_ADDRESS_HDMA5:
+        return memoryController->hdma5;
+      case IO_REG_ADDRESS_BCPS:
+        return memoryController->lcdController->bcps;
+      case IO_REG_ADDRESS_BCPD:
+        return memoryController->lcdController->backgroundPaletteMemory[memoryController->lcdController->bcps & 0x3F];
+      case IO_REG_ADDRESS_OCPS:
+        return memoryController->lcdController->ocps;
+      case IO_REG_ADDRESS_OCPD:
+        return memoryController->lcdController->objectPaletteMemory[memoryController->lcdController->ocps & 0x3F];
       case IO_REG_ADDRESS_SVBK:
         return memoryController->svbk;
       default:
@@ -335,7 +371,7 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
           // Nintendo is reported to reject any games that didn't follow this rule.
           uint8_t lcdMode = memoryController->lcdController->stat & STAT_MODE_FLAG_BITS;
           if (lcdMode != 1) {
-            critical("LCD was DISABLED outside of VBLANK period!\n");
+            critical("LCD was DISABLED outside of VBLANK period (clocks=%u)!\n", memoryController->lcdController->clockCycles);
             exit(EXIT_FAILURE);
           }
           debug("LCD was DISABLED by write of value 0x%02X to LCDC\n", value);
@@ -414,6 +450,61 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
       case IO_REG_ADDRESS_VBK:
         memoryController->lcdController->vbk = value & 1;
         break;
+      case IO_REG_ADDRESS_HDMA1:
+        if (!memoryController->hdmaTransfer.isActive) {
+          memoryController->hdma1 = value;
+        }
+        break;
+      case IO_REG_ADDRESS_HDMA2:
+        if (!memoryController->hdmaTransfer.isActive) {
+          memoryController->hdma2 = value;
+        }
+        break;
+      case IO_REG_ADDRESS_HDMA3:
+        if (!memoryController->hdmaTransfer.isActive) {
+          memoryController->hdma3 = value;
+        }
+        break;
+      case IO_REG_ADDRESS_HDMA4:
+        if (!memoryController->hdmaTransfer.isActive) {
+          memoryController->hdma4 = value;
+        }
+        break;
+      case IO_REG_ADDRESS_HDMA5:
+        memoryController->hdma5 = value;
+
+        uint16_t length = ((value & 0x7F) + 1) * 16;
+        uint16_t sourceStartAddr = (memoryController->hdma1 << 8) | (memoryController->hdma2 & 0xF0);
+        uint16_t destinationStartAddr = 0x8000 + (((memoryController->hdma3 & 0x1F) << 8) | (memoryController->hdma4 & 0xF0));
+
+        memoryController->hdmaTransfer.type = ((value & (1 << 7)) ? HBLANK : GENERAL);
+        memoryController->hdmaTransfer.isActive = true;
+        memoryController->hdmaTransfer.length = length;
+        memoryController->hdmaTransfer.nextSourceAddr = sourceStartAddr;
+        memoryController->hdmaTransfer.nextDestinationAddr = destinationStartAddr;
+        break;
+      case IO_REG_ADDRESS_BCPS:
+        memoryController->lcdController->bcps = value;
+        break;
+      case IO_REG_ADDRESS_BCPD: {
+        uint8_t bcps = memoryController->lcdController->bcps;
+        memoryController->lcdController->backgroundPaletteMemory[bcps & 0x3F] = value;
+        if (bcps & (1 << 7)) {
+          memoryController->lcdController->bcps = (bcps & 0x80) | (((bcps & 0x3F) + 1) & 0x3F);
+        }
+        break;
+      }
+      case IO_REG_ADDRESS_OCPS:
+        memoryController->lcdController->ocps = value;
+        break;
+      case IO_REG_ADDRESS_OCPD: {
+        uint8_t ocps = memoryController->lcdController->ocps;
+        memoryController->lcdController->objectPaletteMemory[ocps & 0x3F] = value;
+        if (ocps & (1 << 7)) {
+          memoryController->lcdController->ocps = (ocps & 0x80) | (((ocps & 0x3F) + 1) & 0x3F);
+        }
+        break;
+      }
       case IO_REG_ADDRESS_SVBK:
         if (value == 0) {
           memoryController->svbk = 1;
@@ -471,4 +562,34 @@ void dmaUpdate(MemoryController* memoryController, uint8_t cyclesExecuted)
       }
     }
   }
+}
+
+void hdmaUpdate(MemoryController* memoryController, uint8_t cyclesExecuted)
+{
+  HDMATransfer* transfer = &memoryController->hdmaTransfer;
+
+  if (transfer->isActive) {
+    if (transfer->type == GENERAL) {
+      bool isDoubleSpeed = memoryController->speedController->key1 & (1 << 7);
+      uint8_t numBytesToCopy = 2 * ((isDoubleSpeed) ? (cyclesExecuted / 2) : cyclesExecuted); // 2 bytes per usec
+
+      for (int i = 0; i < numBytesToCopy && transfer->length > 0; i++, transfer->length--) {
+        writeByte(memoryController, transfer->nextDestinationAddr++, readByte(memoryController, transfer->nextSourceAddr++));
+      }
+    } else if ((transfer->type == HBLANK) && ((memoryController->lcdController->stat & 3) == 0) && (memoryController->lcdController->ly <= 143)) {
+      for (int i = 0; i < HBLANK_DMA_TRANSFER_LENGTH && transfer->length > 0; i++, transfer->length--) {
+        writeByte(memoryController, transfer->nextDestinationAddr++, readByte(memoryController, transfer->nextSourceAddr++));
+      }
+    }
+
+    if (transfer->length == 0) {
+      transfer->isActive = false;
+      memoryController->hdma5 = 0xFF;
+    }
+  }
+}
+
+bool generalPurposeDMAIsActive(MemoryController* memoryController)
+{
+  return (memoryController->hdmaTransfer.isActive) && (memoryController->hdmaTransfer.type == GENERAL);
 }

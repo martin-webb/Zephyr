@@ -36,7 +36,7 @@ void gbInitialise(GameBoy* gameBoy, GameBoyType gameBoyType, uint8_t* cartridgeD
   memset(gameBoy->oam,  0, OAM_SIZE_BYTES);
   memset(gameBoy->hram, 0, HRAM_SIZE_BYTES);
 
-  initLCDController(&gameBoy->lcdController, gameBoy->vram, gameBoy->oam, frameBuffer);
+  initLCDController(&gameBoy->lcdController, gameBoy->vram, gameBoy->oam, frameBuffer, gameBoyType, cgbMode);
   initJoypadController(&gameBoy->joypadController);
   initTimerController(&gameBoy->timerController);
   initInterruptController(&gameBoy->interruptController);
@@ -116,6 +116,7 @@ void gbRunNFrames(GameBoy* gameBoy, const int frames)
     cpuUpdateIME(cpu);
     cartridgeUpdate(memoryController, cyclesExecuted, gameBoy->speedMode);
     dmaUpdate(memoryController, cyclesExecuted);
+    hdmaUpdate(memoryController, cyclesExecuted);
     timerUpdateDivider(timerController, cyclesExecuted);
     timerUpdateTimer(timerController, interruptController, gameBoy->speedMode, cyclesExecuted);
     lcdUpdate(lcdController, interruptController, gameBoy->speedMode, cyclesExecuted);

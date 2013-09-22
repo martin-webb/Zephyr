@@ -508,6 +508,10 @@ uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
     return 1;
   }
 
+  if (generalPurposeDMAIsActive(m)) {
+    return 4;
+  }
+
   uint8_t opcode = readByte(m, cpu->registers.pc++);
   // debug("\b[0x%04X][0x%02X] %s\n", cpu->registers.pc - 1, opcode, OPCODE_MNEMONICS[opcode]);
 

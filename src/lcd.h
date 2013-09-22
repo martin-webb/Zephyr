@@ -1,10 +1,13 @@
 #ifndef LCD_H_
 #define LCD_H_
 
+#include "cgbmode.h"
+#include "gbtype.h"
 #include "interrupts.h"
 #include "pixel.h"
 #include "speed.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <time.h>
 
@@ -26,6 +29,12 @@
 #define IO_REG_ADDRESS_WX 0xFF4B
 
 #define IO_REG_ADDRESS_VBK 0xFF4F
+
+#define IO_REG_ADDRESS_BCPS 0xFF68
+#define IO_REG_ADDRESS_BCPD 0xFF69
+
+#define IO_REG_ADDRESS_OCPS 0xFF6A
+#define IO_REG_ADDRESS_OCPD 0xFF6B
 
 #define LCD_DISPLAY_ENABLE_BIT (1 << 7)
 #define LCD_WINDOW_TILE_MAP_DISPLAY_SELECT_BIT (1 << 6)
@@ -59,6 +68,9 @@
 #define MODE_3_CYCLES_PER_SPRITE ((MODE_3_CYCLES_MAX - MODE_3_CYCLES_MIN) / MAX_SPRITES_PER_LINE)
 
 typedef struct {
+  GameBoyType gameBoyType;
+  CGBMode cgbMode;
+
   uint8_t lcdc; // FF40 - LCD Control (R/W)
   uint8_t stat; // FF41 - LCDC Status (R/W)
   uint8_t scy;  // FF42 - Scroll Y (R/W)
@@ -72,6 +84,12 @@ typedef struct {
   uint8_t wx;   // FF4B - Window X Position - 7 (R/W)
   uint8_t vbk;  // FF4F - VRAM Bank - CGB Mode Only (R/W)
 
+  uint8_t bcps; // FF68 - Background Palette Index - CGB Mode Only (R/W)
+  uint8_t ocps; // FF6A - Object Palette Index - CGB Mode Only (R/W)
+
+  uint8_t backgroundPaletteMemory[64];
+  uint8_t objectPaletteMemory[64];
+
   uint8_t* vram;
   uint8_t* oam;
   Pixel* frameBuffer;
@@ -84,7 +102,7 @@ typedef struct {
   time_t last60VBlanksTime;
 } LCDController;
 
-void initLCDController(LCDController* lcdController, uint8_t* vram, uint8_t* oam, Pixel* frameBuffer);
+void initLCDController(LCDController* lcdController, uint8_t* vram, uint8_t* oam, Pixel* frameBuffer, GameBoyType gameBoyType, CGBMode cgbMode);
 void lcdUpdate(LCDController* lcdController, InterruptController* interruptController, SpeedMode speedMode, uint8_t cyclesExecuted);
 void lcdSpeedChange(LCDController* lcdController);
 
