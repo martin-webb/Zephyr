@@ -2,7 +2,7 @@ Import("env")
 
 env.AppendUnique(FRAMEWORKS=["OpenGL", "GLUT"])
 
-env.Program("gbemu1", [
+env.Program("zephyr", [
   "battery.c",
   "cartridge.c",
   "cartridge-types/mbc1.c",

@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define EMULATOR_NAME "GBEmu1"
+#define EMULATOR_NAME "Zephyr"
 
 #define TARGET_WINDOW_WIDTH_DEFAULT 1024
 #define WINDOW_SCALE_FACTOR (TARGET_WINDOW_WIDTH_DEFAULT * 1.0 / LCD_WIDTH)

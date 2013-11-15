@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define PATH_TO_BATTERY_SAVE_DIR "/Library/Application Support/GBEmu1/Battery/"
+#define PATH_TO_BATTERY_SAVE_DIR "/Library/Application Support/Zephyr/Battery/"
 #define BATTERY_SAVE_FILE_EXTENSION ".bat"
 
 static const char* batterySaveLocation(const char* romFilename)
