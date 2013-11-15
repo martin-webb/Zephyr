@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define EMULATOR_NAME "GBEmu1"
+
 #define TARGET_WINDOW_WIDTH_DEFAULT 1024
 #define WINDOW_SCALE_FACTOR (TARGET_WINDOW_WIDTH_DEFAULT * 1.0 / LCD_WIDTH)
 
@@ -161,7 +163,13 @@ int main(int argc, const char* argv[])
     (glutGet(GLUT_SCREEN_HEIGHT) - (LCD_HEIGHT * WINDOW_SCALE_FACTOR)) / 2
   );
 
-  glutCreateWindow("GBEmu1");
+  // Prepare window title
+  const char* windowTitlePrefix = EMULATOR_NAME " - ";
+  char* windowTitle = (char*)malloc(strlen(windowTitlePrefix) + strlen(romFilename) + 1);
+  strcpy(windowTitle, windowTitlePrefix);
+  strcat(windowTitle, romFilename);
+
+  glutCreateWindow(windowTitle);
 
   glutReshapeFunc(reshape);
   glutDisplayFunc(lcdGLDrawScreen);
@@ -179,6 +187,7 @@ int main(int argc, const char* argv[])
 
   gbFinalise(&gameBoy);
 
+  free((void*)windowTitle);
   free((void*)romFilename);
   free(cartridgeData);
 
