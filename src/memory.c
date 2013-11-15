@@ -221,8 +221,8 @@ uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
   }
   else if (address >= 0xFEA0 && address <= 0xFEFF) // Not Usable
   {
-    critical("Read from unusable address 0x%04X\n", address);
-    exit(EXIT_FAILURE);
+    warning("Read from unusable address 0x%04X\n", address);
+    return 0;
   }
   else if (address >= 0xFF00 && address <= 0xFF7F) // I/O Ports
   {
@@ -352,8 +352,7 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
   }
   else if (address >= 0xFEA0 && address <= 0xFEFF) // Not Usable
   {
-    critical("Write to unusable address 0x%04X\n", address);
-    exit(EXIT_FAILURE);
+    warning("Write to unusable address 0x%04X\n", address);
   }
   else if (address >= 0xFF00 && address <= 0xFF7F) // I/O Ports
   {
