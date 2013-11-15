@@ -1,6 +1,6 @@
 env = Environment()
 
-buildType = ARGUMENTS.get("BuildType", "DEBUG").upper()
+buildType = ARGUMENTS.get("BuildType", "RELEASE").upper()
 if buildType == "DEBUG":
   env.AppendUnique(CCFLAGS="-g")
 elif buildType == "RELEASE":
