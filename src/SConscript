@@ -1,0 +1,27 @@
+Import("env")
+
+env.AppendUnique(FRAMEWORKS=["OpenGL", "GLUT"])
+
+env.Program("zephyr", [
+  "battery.c",
+  "cartridge.c",
+  "cartridge-types/mbc1.c",
+  "cartridge-types/mbc3.c",
+  "cartridge-types/mbc5.c",
+  "cartridge-types/romonly.c",
+  "cpu.c",
+  "gameboy.c",
+  "interrupts.c",
+  "joypad.c",
+  "lcd.c",
+  "lcdgl.c",
+  "logging.c",
+  "main.c",
+  "memory.c",
+  "speedcontroller.c",
+  "sprites.c",
+  "timer.c",
+  "timercontroller.c",
+  "timing.c",
+  "utils/os.c"
+])
