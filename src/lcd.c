@@ -61,7 +61,7 @@ static TileLineData getTileLineData(LCDController* lcdController, uint16_t addre
 }
 
 
-void initLCDController(LCDController* lcdController, uint8_t* vram, uint8_t* oam, Pixel* frameBuffer, GameBoyType gameBoyType, CGBMode cgbMode)
+void initLCDController(LCDController* lcdController, InterruptController* interruptController, uint8_t* vram, uint8_t* oam, Pixel* frameBuffer, GameBoyType gameBoyType, CGBMode cgbMode)
 {
   lcdController->gameBoyType = gameBoyType;
   lcdController->cgbMode = cgbMode;
@@ -72,6 +72,7 @@ void initLCDController(LCDController* lcdController, uint8_t* vram, uint8_t* oam
   lcdController->frameBuffer = frameBuffer;
   lcdController->clockCycles = 0;
   lcdController->vblankCounter = 0;
+  lcdController->interruptController = interruptController;
 }
 
 
@@ -633,7 +634,7 @@ static uint16_t getHorizontalScanClocks(LCDController* lcdController)
 }
 
 
-void updateLY(LCDController* lcdController, InterruptController* interruptController)
+void updateLY(LCDController* lcdController)
 {
   // Update LY and LYC (even in VBLANK), triggering a STAT interrupt for LY=LYC if enabled
   // NOTE: Apparently, for lines 0-143, LY is updated in the transition to Mode 2, however functionally
@@ -658,7 +659,7 @@ void updateLY(LCDController* lcdController, InterruptController* interruptContro
     lcdController->stat |= STAT_COINCIDENCE_FLAG_BIT;
     if (lcdController->stat & STAT_COINCIDENCE_INTERRUPT_ENABLE_BIT && ly != lcdController->ly) {
       // The ly != lcdController->ly check ensures that the LCDC Status interrupt is generated only once per LY=LYC event
-      interruptFlag(interruptController, LCDC_STATUS_INTERRUPT_BIT);
+      interruptFlag(lcdController->interruptController, LCDC_STATUS_INTERRUPT_BIT);
     }
   } else {
     lcdController->stat &= ~STAT_COINCIDENCE_FLAG_BIT;
@@ -667,7 +668,7 @@ void updateLY(LCDController* lcdController, InterruptController* interruptContro
 }
 
 
-void updateMode(LCDController* lcdController, InterruptController* interruptController)
+void updateMode(LCDController* lcdController)
 {
   uint8_t mode = lcdController->stat & STAT_MODE_FLAG_BITS; // NOTE: This is an 'out-of-date' value of mode from the previous update
   uint16_t horizontalScanClocks = getHorizontalScanClocks(lcdController);
@@ -677,7 +678,7 @@ void updateMode(LCDController* lcdController, InterruptController* interruptCont
       if (mode == 0 || mode == 1) { // Handle mode change from HBLANK or VBLANK
         lcdStatSetMode(lcdController, 2);
         if (lcdController->stat & STAT_MODE_2_OAM_INTERRUPT_ENABLE_BIT) {
-          interruptFlag(interruptController, LCDC_STATUS_INTERRUPT_BIT);
+          interruptFlag(lcdController->interruptController, LCDC_STATUS_INTERRUPT_BIT);
         }
         lcdController->mode3Cycles = MODE_3_CYCLES_MAX;
       } else if (mode == 2) { // No mode change
@@ -698,7 +699,7 @@ void updateMode(LCDController* lcdController, InterruptController* interruptCont
       if (mode == 3) { // Handle mode change from mode 3
         lcdStatSetMode(lcdController, 0);
         if (lcdController->stat & STAT_MODE_0_HBLANK_INTERRUPT_ENABLE_BIT) {
-          interruptFlag(interruptController, LCDC_STATUS_INTERRUPT_BIT);
+          interruptFlag(lcdController->interruptController, LCDC_STATUS_INTERRUPT_BIT);
         }
       } else if (mode == 0) { // No mode change
       } else {
@@ -719,11 +720,11 @@ void updateMode(LCDController* lcdController, InterruptController* interruptCont
       lcdStatSetMode(lcdController, 1);
 
       // Trigger a VBLANK interrupt
-      interruptFlag(interruptController, VBLANK_INTERRUPT_BIT);
+      interruptFlag(lcdController->interruptController, VBLANK_INTERRUPT_BIT);
 
       // Optionally trigger an LCDC Status interrupt
       if (lcdController->stat & STAT_MODE_1_VBLANK_INTERRUPT_ENABLE_BIT) {
-        interruptFlag(interruptController, LCDC_STATUS_INTERRUPT_BIT);
+        interruptFlag(lcdController->interruptController, LCDC_STATUS_INTERRUPT_BIT);
       }
 
       // Debug
@@ -756,15 +757,15 @@ void updateMode(LCDController* lcdController, InterruptController* interruptCont
 }
 
 
-void lcdUpdate(LCDController* lcdController, InterruptController* interruptController, uint8_t cyclesExecuted)
+void lcdUpdate(LCDController* lcdController, uint8_t cyclesExecuted)
 {
   if (!lcdIsEnabled(lcdController)) {
     return;
   }
 
   updateInternalClockCycles(lcdController, cyclesExecuted);
-  updateLY(lcdController, interruptController);
-  updateMode(lcdController, interruptController);
+  updateLY(lcdController);
+  updateMode(lcdController);
 }
 
 
