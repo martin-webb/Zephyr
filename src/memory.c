@@ -48,6 +48,7 @@ MemoryController InitMemoryController(
     cartridge,
     0,
     false,
+    0,
     0x0000,
     0,
     0,
@@ -413,6 +414,7 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
       case IO_REG_ADDRESS_DMA:
         memoryController->dma = value;
         memoryController->dmaIsActive = true;
+        memoryController->dmaUpdateCycles = 0;
         memoryController->dmaNextAddress = value * 0x100;
         break;
       case IO_REG_ADDRESS_BGP:
@@ -532,22 +534,19 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
   }
 }
 
-void cartridgeUpdate(MemoryController* memoryController, uint8_t cyclesExecuted, SpeedMode speedMode)
+void cartridgeUpdate(MemoryController* memoryController, uint8_t cyclesExecuted)
 {
   if (memoryController->cartridgeUpdateImpl != NULL) {
-    memoryController->cartridgeUpdateImpl(memoryController, cyclesExecuted, speedMode);
+    memoryController->cartridgeUpdateImpl(memoryController, cyclesExecuted);
   }
 }
 
 void dmaUpdate(MemoryController* memoryController, uint8_t cyclesExecuted)
 {
   if (memoryController->dmaIsActive) {
-    if (cyclesExecuted % 4 != 0) {
-      critical("%s called with cycle count not divisible by four.", __func__);
-      exit(EXIT_FAILURE);
-    }
+    memoryController->dmaUpdateCycles += cyclesExecuted;
 
-    for (int i = 0; i < cyclesExecuted / 4; i++) {
+    while (memoryController->dmaUpdateCycles >= 4) {
       uint16_t sourceAddress = memoryController->dmaNextAddress;
       uint16_t destinationAddress = 0xFE00 + (sourceAddress & 0x00FF);
 
@@ -561,6 +560,7 @@ void dmaUpdate(MemoryController* memoryController, uint8_t cyclesExecuted)
         memoryController->dmaIsActive = false;
         break;
       }
+      memoryController->dmaUpdateCycles -= 4;
     }
   }
 }

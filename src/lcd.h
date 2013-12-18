@@ -5,7 +5,6 @@
 #include "gbtype.h"
 #include "interrupts.h"
 #include "pixel.h"
-#include "speed.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -103,7 +102,7 @@ typedef struct {
 } LCDController;
 
 void initLCDController(LCDController* lcdController, uint8_t* vram, uint8_t* oam, Pixel* frameBuffer, GameBoyType gameBoyType, CGBMode cgbMode);
-void lcdUpdate(LCDController* lcdController, InterruptController* interruptController, SpeedMode speedMode, uint8_t cyclesExecuted);
+void lcdUpdate(LCDController* lcdController, InterruptController* interruptController, uint8_t cyclesExecuted);
 void lcdSpeedChange(LCDController* lcdController);
 
 #endif // LCD_H_

@@ -2,7 +2,6 @@
 #define TIMER_H_
 
 #include "cpu.h"
-#include "speed.h"
 #include "timercontroller.h"
 
 #define IO_REG_ADDRESS_DIV 0xFF04
@@ -25,6 +24,6 @@
 #define TIMER_OVERFLOW_INTERRUPT_BIT (1 << 2)
 
 void timerUpdateDivider(TimerController* timerController, uint8_t cyclesExecuted);
-void timerUpdateTimer(TimerController* timerController, InterruptController* interruptController, SpeedMode speedMode, uint8_t cyclesExecuted);
+void timerUpdateTimer(TimerController* timerController, InterruptController* interruptController, uint8_t cyclesExecuted);
 
 #endif // TIMER_H_

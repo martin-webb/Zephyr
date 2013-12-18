@@ -505,7 +505,9 @@ void cpuPrintState(CPU* cpu)
 uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
 {
   if (cpu->halt) {
-    return 1;
+    // In double speed mode this value will be halved before other components are updated, so don't return 1
+    // because we don't want 0 (integer division) to be the update value for other components.
+    return 2;
   }
 
   if (generalPurposeDMAIsActive(m)) {

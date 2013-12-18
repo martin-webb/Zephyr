@@ -2,7 +2,6 @@
 
 #include "cpu.h"
 #include "logging.h"
-#include "speed.h"
 #include "sprites.h"
 
 #include <stdlib.h>
@@ -493,7 +492,7 @@ static bool spritePixelVisibleInColourMode(LCDController* lcdController, uint8_t
 }
 
 
-static void lcdDrawScanlineObjects(LCDController* lcdController, SpeedMode speedMode)
+static void lcdDrawScanlineObjects(LCDController* lcdController)
 {
   Sprite sprites[MAX_SPRITES];
 
@@ -502,8 +501,8 @@ static void lcdDrawScanlineObjects(LCDController* lcdController, SpeedMode speed
   // Fetch sprites that we know to be in the visible scanline
   const uint8_t spriteCount = lcdCopySpritesVisibleInScanline(lcdController, sprites, spriteHeight);
 
-  // For non CGB mode, order sprites that are in the scanline by X position and then order in the sprite table
-  if (speedMode == NORMAL) {
+  // For non CGB mode, order sprites that are in the scanline first by X position and then by order in the sprite table
+  if (lcdController->cgbMode == MONOCHROME) {
     qsort((void*)sprites, spriteCount, sizeof(Sprite), spritesCompareByXPosition);
   }
 
@@ -592,63 +591,57 @@ static void lcdDrawScanlineObjects(LCDController* lcdController, SpeedMode speed
 }
 
 
-static void lcdDrawScanline(LCDController* lcdController, SpeedMode speedMode)
+static void lcdDrawScanline(LCDController* lcdController)
 {
   lcdDrawScanlineBackground(lcdController);
   if (lcdController->lcdc & LCD_WINDOW_DISPLAY_ENABLE_BIT) {
     lcdDrawScanlineWindow(lcdController);
   }
   if (lcdController->lcdc & LCD_OBJ_DISPLAY_ENABLE_BIT) {
-    lcdDrawScanlineObjects(lcdController, speedMode);
+    lcdDrawScanlineObjects(lcdController);
   }
 }
 
 
-static bool hclocksIndicateMode2(LCDController* lcdController, uint16_t horizontalScanClocks, uint8_t speedMultiplier)
+static bool hclocksIndicateMode2(LCDController* lcdController, uint16_t horizontalScanClocks)
 {
-  return (horizontalScanClocks < (80 * speedMultiplier));
+  return (horizontalScanClocks < 80);
 }
 
 
-static bool hclocksIndicateMode3(LCDController* lcdController, uint16_t horizontalScanClocks, uint8_t speedMultiplier)
+static bool hclocksIndicateMode3(LCDController* lcdController, uint16_t horizontalScanClocks)
 {
-  return (
-    horizontalScanClocks >= (80 * speedMultiplier) &&
-    horizontalScanClocks < ((80 + lcdController->mode3Cycles) * speedMultiplier)
-  );
+  return (horizontalScanClocks >= 80 && horizontalScanClocks < (80 + lcdController->mode3Cycles));
 }
 
 
-static bool hclocksIndicateMode0(LCDController* lcdController, uint16_t horizontalScanClocks, uint8_t speedMultiplier)
+static bool hclocksIndicateMode0(LCDController* lcdController, uint16_t horizontalScanClocks)
 {
-  return (
-    horizontalScanClocks >= ((80 + lcdController->mode3Cycles) * speedMultiplier) &&
-    horizontalScanClocks < (SINGLE_HORIZONTAL_SCAN_CLOCK_CYCLES * speedMultiplier)
-  );
+  return (horizontalScanClocks >= (80 + lcdController->mode3Cycles) && horizontalScanClocks < SINGLE_HORIZONTAL_SCAN_CLOCK_CYCLES);
 }
 
 
-static void updateInternalClockCycles(LCDController* lcdController, uint8_t cyclesExecuted, int speedMultiplier)
+static void updateInternalClockCycles(LCDController* lcdController, uint8_t cyclesExecuted)
 {
-  lcdController->clockCycles = (lcdController->clockCycles + cyclesExecuted) % (FULL_FRAME_CLOCK_CYCLES * speedMultiplier);
+  lcdController->clockCycles = (lcdController->clockCycles + cyclesExecuted) % FULL_FRAME_CLOCK_CYCLES;
 }
 
 
-static uint16_t getHorizontalScanClocks(LCDController* lcdController, uint8_t speedMultiplier)
+static uint16_t getHorizontalScanClocks(LCDController* lcdController)
 {
-  return (lcdController->clockCycles % (SINGLE_HORIZONTAL_SCAN_CLOCK_CYCLES * speedMultiplier));
+  return (lcdController->clockCycles % SINGLE_HORIZONTAL_SCAN_CLOCK_CYCLES);
 }
 
 
-void updateLY(LCDController* lcdController, InterruptController* interruptController, uint8_t speedMultiplier)
+void updateLY(LCDController* lcdController, InterruptController* interruptController)
 {
   // Update LY and LYC (even in VBLANK), triggering a STAT interrupt for LY=LYC if enabled
   // NOTE: Apparently, for lines 0-143, LY is updated in the transition to Mode 2, however functionally
   // there is no difference if we do this here, and additionally this still works while in Mode 1
   // (VBLANK) and no extra checks are required in the Mode 1 code to keep LY up-to-date.
-  uint8_t ly = lcdController->clockCycles / (SINGLE_HORIZONTAL_SCAN_CLOCK_CYCLES * speedMultiplier);
+  uint8_t ly = lcdController->clockCycles / SINGLE_HORIZONTAL_SCAN_CLOCK_CYCLES;
 
-  uint16_t horizontalScanClocks = getHorizontalScanClocks(lcdController, speedMultiplier);
+  uint16_t horizontalScanClocks = getHorizontalScanClocks(lcdController);
 
   // Line 153 is interesting, in that LY apparently stays at 153 for ~4 clock cycles then rolls over early to 0.
   // This is noticeable in the introductory sequence to The Legend of Zelda: Link's Awakening where,
@@ -657,7 +650,7 @@ void updateLY(LCDController* lcdController, InterruptController* interruptContro
   // line 0, instead of the actual line 153.
   // TODO: I read that this was a hardware bug present only in the GB hardware. Is this verified?
   // NOTE: The "&& horizontalScanClocks >= 4" check below seems unnecessary for functionally correct behaviour
-  if (ly == 153 && horizontalScanClocks >= (4 * speedMultiplier)) {
+  if (ly == 153 && horizontalScanClocks >= 4) {
     ly = 0;
   }
 
@@ -674,13 +667,13 @@ void updateLY(LCDController* lcdController, InterruptController* interruptContro
 }
 
 
-void updateMode(LCDController* lcdController, InterruptController* interruptController, SpeedMode speedMode, uint8_t speedMultiplier)
+void updateMode(LCDController* lcdController, InterruptController* interruptController)
 {
   uint8_t mode = lcdController->stat & STAT_MODE_FLAG_BITS; // NOTE: This is an 'out-of-date' value of mode from the previous update
-  uint16_t horizontalScanClocks = getHorizontalScanClocks(lcdController, speedMultiplier);
+  uint16_t horizontalScanClocks = getHorizontalScanClocks(lcdController);
 
-  if (lcdController->clockCycles < (HORIZONTAL_SCANNING_CLOCK_CYCLES * speedMultiplier)) { // Horizontal scanning mode (modes 2, 3 and 0)
-    if (hclocksIndicateMode2(lcdController, horizontalScanClocks, speedMultiplier)) { // Mode 2
+  if (lcdController->clockCycles < HORIZONTAL_SCANNING_CLOCK_CYCLES) { // Horizontal scanning mode (modes 2, 3 and 0)
+    if (hclocksIndicateMode2(lcdController, horizontalScanClocks)) { // Mode 2
       if (mode == 0 || mode == 1) { // Handle mode change from HBLANK or VBLANK
         lcdStatSetMode(lcdController, 2);
         if (lcdController->stat & STAT_MODE_2_OAM_INTERRUPT_ENABLE_BIT) {
@@ -692,16 +685,16 @@ void updateMode(LCDController* lcdController, InterruptController* interruptCont
         critical("%s: Invalid LCDC mode transition from %u to %u (hclocks=%u vclocks=%u)\n", __func__, mode, 2, horizontalScanClocks, lcdController->clockCycles);
         exit(EXIT_FAILURE);
       }
-    } else if (hclocksIndicateMode3(lcdController, horizontalScanClocks, speedMultiplier)) { // Mode 3
+    } else if (hclocksIndicateMode3(lcdController, horizontalScanClocks)) { // Mode 3
       if (mode == 2) { // Handle mode change from mode 2
         lcdStatSetMode(lcdController, 3);
-        lcdDrawScanline(lcdController, speedMode);
+        lcdDrawScanline(lcdController);
       } else if (mode == 3) { // No mode change
       } else {
         critical("%s: Invalid LCDC mode transition from %u to %u (hclocks=%u vclocks=%u)\n", __func__, mode, 3, horizontalScanClocks, lcdController->clockCycles);
         exit(EXIT_FAILURE);
       }
-    } else if (hclocksIndicateMode0(lcdController, horizontalScanClocks, speedMultiplier)) { // Mode 0
+    } else if (hclocksIndicateMode0(lcdController, horizontalScanClocks)) { // Mode 0
       if (mode == 3) { // Handle mode change from mode 3
         lcdStatSetMode(lcdController, 0);
         if (lcdController->stat & STAT_MODE_0_HBLANK_INTERRUPT_ENABLE_BIT) {
@@ -715,8 +708,8 @@ void updateMode(LCDController* lcdController, InterruptController* interruptCont
     } else {
       critical("%s: Horizontal scan cycle count exceeded expected maximum (expected max %u, actual value %u)\n",
         __func__,
-        (SINGLE_HORIZONTAL_SCAN_CLOCK_CYCLES - 1) * speedMultiplier,
-        horizontalScanClocks * speedMultiplier
+        SINGLE_HORIZONTAL_SCAN_CLOCK_CYCLES - 1,
+        horizontalScanClocks
       );
       exit(EXIT_FAILURE);
     }
@@ -763,19 +756,15 @@ void updateMode(LCDController* lcdController, InterruptController* interruptCont
 }
 
 
-void lcdUpdate(LCDController* lcdController, InterruptController* interruptController, SpeedMode speedMode, uint8_t cyclesExecuted)
+void lcdUpdate(LCDController* lcdController, InterruptController* interruptController, uint8_t cyclesExecuted)
 {
   if (!lcdIsEnabled(lcdController)) {
     return;
   }
 
-  // LCD timings are based off the CPU clock speed, so because the LCD isn't affected by CGB's
-  // double speed mode we have to take this into account when updating the LCD state based on clock cycles
-  const uint8_t speedMultiplier = ((speedMode == DOUBLE) ? 2 : 1);
-
-  updateInternalClockCycles(lcdController, cyclesExecuted, speedMultiplier);
-  updateLY(lcdController, interruptController, speedMultiplier);
-  updateMode(lcdController, interruptController, speedMode, speedMultiplier);
+  updateInternalClockCycles(lcdController, cyclesExecuted);
+  updateLY(lcdController, interruptController);
+  updateMode(lcdController, interruptController);
 }
 
 

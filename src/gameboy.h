@@ -18,7 +18,6 @@ typedef struct {
   SpeedController speedController;
   GameBoyType gameBoyType;
   CGBMode cgbMode;
-  SpeedMode speedMode;
 
   uint8_t* vram;
   uint8_t* wram;
