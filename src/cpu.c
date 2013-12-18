@@ -420,9 +420,16 @@ void resetC(CPU* cpu)
   cpu->registers.f &= ~(1 << FLAG_REGISTER_C_BIT_SHIFT);
 }
 
-void cpuReset(CPU* cpu, MemoryController* m, GameBoyType gameBoyType)
+void initCPU(CPU* cpu, MemoryController* memoryController, InterruptController* interruptController, GameBoyType gameBoyType)
 {
-  cpu->registers.a = (gameBoyType == CGB) ? 0x11 : 0x01;
+  cpu->memoryController = memoryController;
+  cpu->interruptController = interruptController;
+  cpu->gameBoyType = gameBoyType;
+}
+
+void cpuReset(CPU* cpu)
+{
+  cpu->registers.a = (cpu->gameBoyType == CGB) ? 0x11 : 0x01;
   cpu->registers.f = 0xB0;
   cpu->registers.b = 0x00;
   cpu->registers.c = 0x13;
@@ -435,47 +442,47 @@ void cpuReset(CPU* cpu, MemoryController* m, GameBoyType gameBoyType)
   cpu->registers.pc = 0x100;
   cpu->_pcFrozen = false;
 
-  writeByte(m, IO_REG_ADDRESS_TIMA, 0x00);
-  writeByte(m, IO_REG_ADDRESS_TMA, 0x00);
-  writeByte(m, IO_REG_ADDRESS_TAC, 0x00);
-  writeByte(m, 0xFF10, 0x80);
-  writeByte(m, 0xFF11, 0xBF);
-  writeByte(m, 0xFF12, 0xF3);
-  writeByte(m, 0xFF14, 0xBF);
-  writeByte(m, 0xFF16, 0x3F);
-  writeByte(m, 0xFF17, 0x00);
-  writeByte(m, 0xFF19, 0xBF);
-  writeByte(m, 0xFF1A, 0x7F);
-  writeByte(m, 0xFF1B, 0xFF);
-  writeByte(m, 0xFF1C, 0x9F);
-  writeByte(m, 0xFF1E, 0xBF);
-  writeByte(m, 0xFF20, 0xFF);
-  writeByte(m, 0xFF21, 0x00);
-  writeByte(m, 0xFF22, 0x00);
-  writeByte(m, 0xFF23, 0xBF);
-  writeByte(m, 0xFF24, 0x77);
-  writeByte(m, 0xFF25, 0xF3);
-  switch (gameBoyType) {
+  writeByte(cpu->memoryController, IO_REG_ADDRESS_TIMA, 0x00);
+  writeByte(cpu->memoryController, IO_REG_ADDRESS_TMA, 0x00);
+  writeByte(cpu->memoryController, IO_REG_ADDRESS_TAC, 0x00);
+  writeByte(cpu->memoryController, 0xFF10, 0x80);
+  writeByte(cpu->memoryController, 0xFF11, 0xBF);
+  writeByte(cpu->memoryController, 0xFF12, 0xF3);
+  writeByte(cpu->memoryController, 0xFF14, 0xBF);
+  writeByte(cpu->memoryController, 0xFF16, 0x3F);
+  writeByte(cpu->memoryController, 0xFF17, 0x00);
+  writeByte(cpu->memoryController, 0xFF19, 0xBF);
+  writeByte(cpu->memoryController, 0xFF1A, 0x7F);
+  writeByte(cpu->memoryController, 0xFF1B, 0xFF);
+  writeByte(cpu->memoryController, 0xFF1C, 0x9F);
+  writeByte(cpu->memoryController, 0xFF1E, 0xBF);
+  writeByte(cpu->memoryController, 0xFF20, 0xFF);
+  writeByte(cpu->memoryController, 0xFF21, 0x00);
+  writeByte(cpu->memoryController, 0xFF22, 0x00);
+  writeByte(cpu->memoryController, 0xFF23, 0xBF);
+  writeByte(cpu->memoryController, 0xFF24, 0x77);
+  writeByte(cpu->memoryController, 0xFF25, 0xF3);
+  switch (cpu->gameBoyType) {
     case GB:
-      writeByte(m, 0xFF26, 0xF1);
+      writeByte(cpu->memoryController, 0xFF26, 0xF1);
       break;
     case SGB:
-      writeByte(m, 0xFF26, 0xF0);
+      writeByte(cpu->memoryController, 0xFF26, 0xF0);
       break;
     default:
       // TODO: Are there values for the GBP and GBC here?
       break;
   }
-  writeByte(m, 0xFF40, 0x91);
-  writeByte(m, 0xFF42, 0x00);
-  writeByte(m, 0xFF43, 0x00);
-  writeByte(m, 0xFF45, 0x00);
-  writeByte(m, 0xFF47, 0xFC);
-  writeByte(m, 0xFF48, 0xFF);
-  writeByte(m, 0xFF49, 0xFF);
-  writeByte(m, 0xFF4A, 0x00);
-  writeByte(m, 0xFF4B, 0x00);
-  writeByte(m, IO_REG_ADDRESS_IE, 0x00);
+  writeByte(cpu->memoryController, 0xFF40, 0x91);
+  writeByte(cpu->memoryController, 0xFF42, 0x00);
+  writeByte(cpu->memoryController, 0xFF43, 0x00);
+  writeByte(cpu->memoryController, 0xFF45, 0x00);
+  writeByte(cpu->memoryController, 0xFF47, 0xFC);
+  writeByte(cpu->memoryController, 0xFF48, 0xFF);
+  writeByte(cpu->memoryController, 0xFF49, 0xFF);
+  writeByte(cpu->memoryController, 0xFF4A, 0x00);
+  writeByte(cpu->memoryController, 0xFF4B, 0x00);
+  writeByte(cpu->memoryController, IO_REG_ADDRESS_IE, 0x00);
 }
 
 void cpuPrintState(CPU* cpu)
@@ -502,8 +509,10 @@ void cpuPrintState(CPU* cpu)
   );
 }
 
-uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m)
+uint8_t cpuRunSingleOp(CPU* cpu)
 {
+  MemoryController* m = cpu->memoryController;
+
   if (cpu->halt) {
     // In double speed mode this value will be halved before other components are updated, so don't return 1
     // because we don't want 0 (integer division) to be the update value for other components.
@@ -2351,8 +2360,10 @@ void cpuUpdateIME(CPU* cpu)
   }
 }
 
-void cpuHandleInterrupts(CPU* cpu, InterruptController* interruptController, MemoryController* memoryController, GameBoyType gameBoyType)
+void cpuHandleInterrupts(CPU* cpu)
 {
+  InterruptController* interruptController = cpu->interruptController;
+
   if (cpu->ime && interruptController->e != 0 && interruptController->f != 0)
   {
     for (uint8_t bitOffset = 0; bitOffset < 5; bitOffset++)
@@ -2364,8 +2375,8 @@ void cpuHandleInterrupts(CPU* cpu, InterruptController* interruptController, Mem
         cpu->halt = false;
 
         // Push the program counter onto the stack
-        writeByte(memoryController, --cpu->registers.sp, ((cpu->registers.pc & 0xFF00) >> 8));
-        writeByte(memoryController, --cpu->registers.sp, (cpu->registers.pc & 0x00FF));
+        writeByte(cpu->memoryController, --cpu->registers.sp, ((cpu->registers.pc & 0xFF00) >> 8));
+        writeByte(cpu->memoryController, --cpu->registers.sp, (cpu->registers.pc & 0x00FF));
 
         // Jump to the starting address of the interrupt - here the interrupt address is at the offset of the matching bit location in the IE register
         const uint16_t interruptAddresses[] = {
@@ -2393,7 +2404,7 @@ void cpuHandleInterrupts(CPU* cpu, InterruptController* interruptController, Mem
         cpu->halt = false;
 
         // The DI-HALT bug
-        if (gameBoyType != CGB) {
+        if (cpu->gameBoyType != CGB) {
           cpu->_pcFrozen = true;
         }
         break;

@@ -66,12 +66,17 @@ typedef struct {
   uint8_t di; // Control value to trigger a disable of interrupts "after the instruction after DI is executed"
   uint8_t ei; // Control value to trigger an enable of interrupts "after the instruction after EI is executed"
   bool _pcFrozen; // Emulator internal value used to implement the DI+HALT bug
+
+  MemoryController* memoryController;
+  InterruptController* interruptController;
+  GameBoyType gameBoyType;
 } CPU;
 
-void cpuReset(CPU* cpu, MemoryController* m, GameBoyType gameBoyType);
+void initCPU(CPU* cpu, MemoryController* memoryController, InterruptController* interruptController, GameBoyType gameBoyType);
+void cpuReset(CPU* cpu);
 void cpuPrintState(CPU* cpu);
-uint8_t cpuRunSingleOp(CPU* cpu, MemoryController* m);
+uint8_t cpuRunSingleOp(CPU* cpu);
 void cpuUpdateIME(CPU* cpu);
-void cpuHandleInterrupts(CPU* cpu, InterruptController* interruptController, MemoryController* memoryController, GameBoyType gameBoyType);
+void cpuHandleInterrupts(CPU* cpu);
 
 #endif // CPU_H_

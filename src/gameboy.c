@@ -36,6 +36,7 @@ void gbInitialise(GameBoy* gameBoy, GameBoyType gameBoyType, uint8_t* cartridgeD
   memset(gameBoy->oam,  0, OAM_SIZE_BYTES);
   memset(gameBoy->hram, 0, HRAM_SIZE_BYTES);
 
+  initCPU(&gameBoy->cpu, &gameBoy->memoryController, &gameBoy->interruptController, gameBoyType);
   initLCDController(&gameBoy->lcdController, gameBoy->vram, gameBoy->oam, frameBuffer, gameBoyType, cgbMode);
   initJoypadController(&gameBoy->joypadController);
   initTimerController(&gameBoy->timerController);
@@ -67,7 +68,7 @@ void gbInitialise(GameBoy* gameBoy, GameBoyType gameBoyType, uint8_t* cartridgeD
   gameBoy->gameBoyType = gameBoyType;
   gameBoy->cgbMode = cgbMode;
 
-  cpuReset(&gameBoy->cpu, &gameBoy->memoryController, gameBoy->gameBoyType);
+  cpuReset(&gameBoy->cpu);
 }
 
 void gbFinalise(GameBoy* gameBoy)
@@ -99,13 +100,12 @@ void gbRunNFrames(GameBoy* gameBoy, const int frames)
   TimerController* timerController = &gameBoy->timerController;
   MemoryController* memoryController = &gameBoy->memoryController;
   SpeedController* speedController = &gameBoy->speedController;
-  GameBoyType gameBoyType = gameBoy->gameBoyType;
 
   // Execute instructions until we have reached the minimum required number of cycles that would have occurred
   const int targetCycles = frames * FULL_FRAME_CLOCK_CYCLES;
   uint32_t totalCyclesExecuted = 0;
   while (totalCyclesExecuted < targetCycles) {
-    uint8_t cpuCyclesExecuted = cpuRunSingleOp(cpu, memoryController);
+    uint8_t cpuCyclesExecuted = cpuRunSingleOp(cpu);
 
     // Component timings are based off clock cycles instead of "real time", but because most components aren't
     // affected by the CGB's double speed mode (because they are driven by a real timer) we have to take this
@@ -119,7 +119,7 @@ void gbRunNFrames(GameBoy* gameBoy, const int frames)
     timerUpdateDivider(timerController, cpuCyclesExecuted); // Not using speed adjusted cycles because the divider runs twice as fast in double speed mode
     timerUpdateTimer(timerController, interruptController, baseCyclesExecuted);
     lcdUpdate(lcdController, interruptController, baseCyclesExecuted);
-    cpuHandleInterrupts(cpu, interruptController, memoryController, gameBoyType);
+    cpuHandleInterrupts(cpu);
 
     totalCyclesExecuted += baseCyclesExecuted;
   }
