@@ -24,6 +24,6 @@
 #define TIMER_OVERFLOW_INTERRUPT_BIT (1 << 2)
 
 void timerUpdateDivider(TimerController* timerController, uint8_t cyclesExecuted);
-void timerUpdateTimer(TimerController* timerController, InterruptController* interruptController, uint8_t cyclesExecuted);
+void timerUpdateTimer(TimerController* timerController, uint8_t cyclesExecuted);
 
 #endif // TIMER_H_

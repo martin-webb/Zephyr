@@ -18,7 +18,7 @@ void timerUpdateDivider(TimerController* timerController, uint8_t cyclesExecuted
   timerController->dividerCounter = (timerController->dividerCounter + cyclesExecuted) % DIV_INCREMENT_CLOCK_CYCLES;
 }
 
-void timerUpdateTimer(TimerController* timerController, InterruptController* interruptController, uint8_t cyclesExecuted)
+void timerUpdateTimer(TimerController* timerController, uint8_t cyclesExecuted)
 {
   // Only update the timer if the enable bit is set in the TAC I/O register
   if (timerController->tac & TAC_TIMER_STOP_BIT) {
@@ -41,7 +41,7 @@ void timerUpdateTimer(TimerController* timerController, InterruptController* int
         if (timerController->tima == 0) {
           // debug("TIMA INTERRUPT! TAC=0x%02X\n", timerController->tac);
           timerController->tima = timerController->tma;
-          interruptFlag(interruptController, TIMER_OVERFLOW_INTERRUPT_BIT);
+          interruptFlag(timerController->interruptController, TIMER_OVERFLOW_INTERRUPT_BIT);
         }
       }
       timerController->timerCounter = (timerController->timerCounter + updateCycles) % timerIncrementClockCycles;
