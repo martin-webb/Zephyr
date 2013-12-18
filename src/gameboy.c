@@ -37,7 +37,7 @@ void gbInitialise(GameBoy* gameBoy, GameBoyType gameBoyType, uint8_t* cartridgeD
   memset(gameBoy->hram, 0, HRAM_SIZE_BYTES);
 
   initCPU(&gameBoy->cpu, &gameBoy->memoryController, &gameBoy->interruptController, gameBoyType);
-  initLCDController(&gameBoy->lcdController, gameBoy->vram, gameBoy->oam, frameBuffer, gameBoyType, cgbMode);
+  initLCDController(&gameBoy->lcdController, &gameBoy->interruptController, gameBoy->vram, gameBoy->oam, frameBuffer, gameBoyType, cgbMode);
   initJoypadController(&gameBoy->joypadController);
   initTimerController(&gameBoy->timerController, &gameBoy->interruptController);
   initInterruptController(&gameBoy->interruptController);
@@ -96,7 +96,6 @@ void gbRunNFrames(GameBoy* gameBoy, const int frames)
 {
   CPU* cpu = &gameBoy->cpu;
   LCDController* lcdController = &gameBoy->lcdController;
-  InterruptController* interruptController = &gameBoy->interruptController;
   TimerController* timerController = &gameBoy->timerController;
   MemoryController* memoryController = &gameBoy->memoryController;
   SpeedController* speedController = &gameBoy->speedController;
@@ -118,7 +117,7 @@ void gbRunNFrames(GameBoy* gameBoy, const int frames)
     hdmaUpdate(memoryController, baseCyclesExecuted);
     timerUpdateDivider(timerController, cpuCyclesExecuted); // Not using speed adjusted cycles because the divider runs twice as fast in double speed mode
     timerUpdateTimer(timerController, baseCyclesExecuted);
-    lcdUpdate(lcdController, interruptController, baseCyclesExecuted);
+    lcdUpdate(lcdController, baseCyclesExecuted);
     cpuHandleInterrupts(cpu);
 
     totalCyclesExecuted += baseCyclesExecuted;

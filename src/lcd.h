@@ -99,10 +99,12 @@ typedef struct {
   // Values for debug/profiling statistics
   uint32_t vblankCounter;
   time_t last60VBlanksTime;
+
+  InterruptController* interruptController;
 } LCDController;
 
-void initLCDController(LCDController* lcdController, uint8_t* vram, uint8_t* oam, Pixel* frameBuffer, GameBoyType gameBoyType, CGBMode cgbMode);
-void lcdUpdate(LCDController* lcdController, InterruptController* interruptController, uint8_t cyclesExecuted);
+void initLCDController(LCDController* lcdController, InterruptController* interruptController, uint8_t* vram, uint8_t* oam, Pixel* frameBuffer, GameBoyType gameBoyType, CGBMode cgbMode);
+void lcdUpdate(LCDController* lcdController, uint8_t cyclesExecuted);
 void lcdSpeedChange(LCDController* lcdController);
 
 #endif // LCD_H_
