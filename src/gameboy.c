@@ -66,7 +66,6 @@ void gbInitialise(GameBoy* gameBoy, GameBoyType gameBoyType, uint8_t* cartridgeD
 
   gameBoy->gameBoyType = gameBoyType;
   gameBoy->cgbMode = cgbMode;
-  gameBoy->speedMode = NORMAL;
 
   cpuReset(&gameBoy->cpu, &gameBoy->memoryController, gameBoy->gameBoyType);
 }
@@ -94,8 +93,6 @@ GameBoyType gbGetGameType(uint8_t* cartridgeData)
 
 void gbRunNFrames(GameBoy* gameBoy, const int frames)
 {
-  const int targetCycles = frames * FULL_FRAME_CLOCK_CYCLES * ((gameBoy->speedMode == DOUBLE) ? 2 : 1);
-
   CPU* cpu = &gameBoy->cpu;
   LCDController* lcdController = &gameBoy->lcdController;
   InterruptController* interruptController = &gameBoy->interruptController;
@@ -105,21 +102,25 @@ void gbRunNFrames(GameBoy* gameBoy, const int frames)
   GameBoyType gameBoyType = gameBoy->gameBoyType;
 
   // Execute instructions until we have reached the minimum required number of cycles that would have occurred
+  const int targetCycles = frames * FULL_FRAME_CLOCK_CYCLES;
   uint32_t totalCyclesExecuted = 0;
   while (totalCyclesExecuted < targetCycles) {
-    uint8_t cyclesExecuted = cpuRunSingleOp(cpu, memoryController);
+    uint8_t cpuCyclesExecuted = cpuRunSingleOp(cpu, memoryController);
 
-    // Detect speed switch
-    gameBoy->speedMode = ((speedController->key1 & (1 << 7)) ? DOUBLE : NORMAL);
+    // Component timings are based off clock cycles instead of "real time", but because most components aren't
+    // affected by the CGB's double speed mode (because they are driven by a real timer) we have to take this
+    // into account when updating them based on clock cycles.
+    uint8_t baseCyclesExecuted = cpuCyclesExecuted / ((speedController->key1 & (1 << 7)) ? 2 : 1);
 
-    totalCyclesExecuted += cyclesExecuted;
     cpuUpdateIME(cpu);
-    cartridgeUpdate(memoryController, cyclesExecuted, gameBoy->speedMode);
-    dmaUpdate(memoryController, cyclesExecuted);
-    hdmaUpdate(memoryController, cyclesExecuted);
-    timerUpdateDivider(timerController, cyclesExecuted);
-    timerUpdateTimer(timerController, interruptController, gameBoy->speedMode, cyclesExecuted);
-    lcdUpdate(lcdController, interruptController, gameBoy->speedMode, cyclesExecuted);
+    cartridgeUpdate(memoryController, baseCyclesExecuted);
+    dmaUpdate(memoryController, cpuCyclesExecuted); // Not using speed adjusted cycles because the divider runs twice as fast in double speed mode
+    hdmaUpdate(memoryController, baseCyclesExecuted);
+    timerUpdateDivider(timerController, cpuCyclesExecuted); // Not using speed adjusted cycles because the divider runs twice as fast in double speed mode
+    timerUpdateTimer(timerController, interruptController, baseCyclesExecuted);
+    lcdUpdate(lcdController, interruptController, baseCyclesExecuted);
     cpuHandleInterrupts(cpu, interruptController, memoryController, gameBoyType);
+
+    totalCyclesExecuted += baseCyclesExecuted;
   }
 }

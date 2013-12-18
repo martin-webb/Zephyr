@@ -341,11 +341,11 @@ static void mbc3IncrementSeconds(MBC3* mbc3)
   }
 }
 
-static void mbc3CartridgeUpdate(MemoryController* memoryController, uint32_t cyclesExecuted, SpeedMode speedMode)
+static void mbc3CartridgeUpdate(MemoryController* memoryController, uint32_t cyclesExecuted)
 {
   MBC3* mbc3 = (MBC3*)memoryController->mbc;
 
-  const int cyclesPerSecond = RTC_TICK_FREQUENCY * ((speedMode == DOUBLE) ? 2 : 1);
+  const int cyclesPerSecond = RTC_TICK_FREQUENCY;
 
   if (mbc3->timer) {
     if (((mbc3->rtc.dayHigh & DAY_HIGH_HALT_BIT_SELECT) == 0) && ((mbc3->cycles + cyclesExecuted) >= cyclesPerSecond)) {

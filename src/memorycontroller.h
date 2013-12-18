@@ -6,7 +6,6 @@
 #include "interrupts.h"
 #include "joypad.h"
 #include "lcd.h"
-#include "speed.h"
 #include "speedcontroller.h"
 #include "timercontroller.h"
 
@@ -26,6 +25,7 @@ struct MemoryController {
 
   uint8_t dma; // FF46 - DMA - DMA Transfer and Start Address (W)
   bool dmaIsActive;
+  uint8_t dmaUpdateCycles;
   uint16_t dmaNextAddress;
 
   uint8_t hdma1; // FF51 - HDMA1 - New DMA Source, High - CGB Mode Only
@@ -40,7 +40,7 @@ struct MemoryController {
 
   uint8_t (*readByteImpl)(MemoryController* memoryController, uint16_t address);
   void (*writeByteImpl)(MemoryController* memoryController, uint16_t address, uint8_t value);
-  void (*cartridgeUpdateImpl)(MemoryController* memoryController, uint32_t cyclesExecuted, SpeedMode speedMode);
+  void (*cartridgeUpdateImpl)(MemoryController* memoryController, uint32_t cyclesExecuted);
 
   void* mbc;
 

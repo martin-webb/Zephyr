@@ -18,7 +18,7 @@ void timerUpdateDivider(TimerController* timerController, uint8_t cyclesExecuted
   timerController->dividerCounter = (timerController->dividerCounter + cyclesExecuted) % DIV_INCREMENT_CLOCK_CYCLES;
 }
 
-void timerUpdateTimer(TimerController* timerController, InterruptController* interruptController, SpeedMode speedMode, uint8_t cyclesExecuted)
+void timerUpdateTimer(TimerController* timerController, InterruptController* interruptController, uint8_t cyclesExecuted)
 {
   // Only update the timer if the enable bit is set in the TAC I/O register
   if (timerController->tac & TAC_TIMER_STOP_BIT) {
