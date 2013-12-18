@@ -1,6 +1,8 @@
 #ifndef TIMERCONTROLLER_H_
 #define TIMERCONTROLLER_H_
 
+#include "interrupts.h"
+
 #include <stdint.h>
 
 typedef struct {
@@ -11,8 +13,10 @@ typedef struct {
 
   uint32_t dividerCounter;
   uint32_t timerCounter;
+
+  InterruptController* interruptController;
 } TimerController;
 
-void initTimerController(TimerController* timerController);
+void initTimerController(TimerController* timerController, InterruptController* interruptController);
 
 #endif // TIMERCONTROLLER_H_

@@ -39,7 +39,7 @@ void gbInitialise(GameBoy* gameBoy, GameBoyType gameBoyType, uint8_t* cartridgeD
   initCPU(&gameBoy->cpu, &gameBoy->memoryController, &gameBoy->interruptController, gameBoyType);
   initLCDController(&gameBoy->lcdController, gameBoy->vram, gameBoy->oam, frameBuffer, gameBoyType, cgbMode);
   initJoypadController(&gameBoy->joypadController);
-  initTimerController(&gameBoy->timerController);
+  initTimerController(&gameBoy->timerController, &gameBoy->interruptController);
   initInterruptController(&gameBoy->interruptController);
   initSpeedController(&gameBoy->speedController);
 
@@ -117,7 +117,7 @@ void gbRunNFrames(GameBoy* gameBoy, const int frames)
     dmaUpdate(memoryController, cpuCyclesExecuted); // Not using speed adjusted cycles because the divider runs twice as fast in double speed mode
     hdmaUpdate(memoryController, baseCyclesExecuted);
     timerUpdateDivider(timerController, cpuCyclesExecuted); // Not using speed adjusted cycles because the divider runs twice as fast in double speed mode
-    timerUpdateTimer(timerController, interruptController, baseCyclesExecuted);
+    timerUpdateTimer(timerController, baseCyclesExecuted);
     lcdUpdate(lcdController, interruptController, baseCyclesExecuted);
     cpuHandleInterrupts(cpu);
 
