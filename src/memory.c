@@ -186,6 +186,24 @@ uint8_t dmaReadByte(MemoryController* memoryController, uint16_t address)
 }
 
 
+uint8_t hdmaReadByte(MemoryController* memoryController, uint16_t address)
+{
+  if (address == IO_REG_ADDRESS_HDMA1) { // 0xFF51
+    return memoryController->hdma1;
+  } else if (address == IO_REG_ADDRESS_HDMA2) { // 0xFF52
+    return memoryController->hdma2;
+  } else if (address == IO_REG_ADDRESS_HDMA3) { // 0xFF53
+    return memoryController->hdma3;
+  } else if (address == IO_REG_ADDRESS_HDMA4) { // 0xFF54
+    return memoryController->hdma4;
+  } else if (address == IO_REG_ADDRESS_HDMA5) { // 0xFF55
+    return memoryController->hdma5;
+  } else {
+    return 0x00;
+  }
+}
+
+
 uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
 {
   if (address >= 0x8000 && address <= 0x9FFF) // Read from VRAM
@@ -253,18 +271,7 @@ uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
     } else if (address == IO_REG_ADDRESS_KEY1) { // 0xFF4D
       return memoryController->speedController->key1;
     } else if (address >= IO_REG_ADDRESS_HDMA1 && address <= IO_REG_ADDRESS_HDMA5) { // 0xFF51 - 0xFF55
-      switch (address) {
-        case IO_REG_ADDRESS_HDMA1: // 0xFF51
-          return memoryController->hdma1;
-        case IO_REG_ADDRESS_HDMA2: // 0xFF52
-          return memoryController->hdma2;
-        case IO_REG_ADDRESS_HDMA3: // 0xFF53
-          return memoryController->hdma3;
-        case IO_REG_ADDRESS_HDMA4: // 0xFF54
-          return memoryController->hdma4;
-        case IO_REG_ADDRESS_HDMA5: // 0xFF55
-          return memoryController->hdma5;
-      }
+      return hdmaReadByte(memoryController, address);
     } else if (address == IO_REG_ADDRESS_SVBK) { // 0xFF70
       return memoryController->svbk;
     } else {
@@ -292,6 +299,41 @@ void dmaWriteByte(MemoryController* memoryController, uint16_t address, uint8_t 
   memoryController->dmaIsActive = true;
   memoryController->dmaUpdateCycles = 0;
   memoryController->dmaNextAddress = value * 0x100;
+}
+
+
+void hdmaWriteByte(MemoryController* memoryController, uint16_t address, uint8_t value)
+{
+  if (address == IO_REG_ADDRESS_HDMA1) { // 0xFF51
+    if (!memoryController->hdmaTransfer.isActive) {
+      memoryController->hdma1 = value;
+    }
+  } else if (address == IO_REG_ADDRESS_HDMA2) { // 0xFF52
+    if (!memoryController->hdmaTransfer.isActive) {
+      memoryController->hdma2 = value;
+    }
+  } else if (address == IO_REG_ADDRESS_HDMA3) { // 0xFF53
+    if (!memoryController->hdmaTransfer.isActive) {
+      memoryController->hdma3 = value;
+    }
+  } else if (address == IO_REG_ADDRESS_HDMA4) { // 0xFF54
+    if (!memoryController->hdmaTransfer.isActive) {
+      memoryController->hdma4 = value;
+    }
+  } else if (address == IO_REG_ADDRESS_HDMA5) { // 0xFF55
+    // TODO: What happens if an HDMA transfer is active?
+    memoryController->hdma5 = value;
+
+    uint16_t length = ((value & 0x7F) + 1) * 16;
+    uint16_t sourceStartAddr = (memoryController->hdma1 << 8) | (memoryController->hdma2 & 0xF0);
+    uint16_t destinationStartAddr = 0x8000 + (((memoryController->hdma3 & 0x1F) << 8) | (memoryController->hdma4 & 0xF0));
+
+    memoryController->hdmaTransfer.type = ((value & (1 << 7)) ? HBLANK : GENERAL);
+    memoryController->hdmaTransfer.isActive = true;
+    memoryController->hdmaTransfer.length = length;
+    memoryController->hdmaTransfer.nextSourceAddr = sourceStartAddr;
+    memoryController->hdmaTransfer.nextDestinationAddr = destinationStartAddr;
+  }
 }
 
 
@@ -359,41 +401,7 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
     } else if (address == IO_REG_ADDRESS_KEY1) { // 0xFF4D
       memoryController->speedController->key1 = (memoryController->speedController->key1 | (value & 1));
     } else if (address >= IO_REG_ADDRESS_HDMA1 && address <= IO_REG_ADDRESS_HDMA5) { // 0xFF51 - 0xFF55
-      switch (address) {
-        case IO_REG_ADDRESS_HDMA1: // 0xFF51
-          if (!memoryController->hdmaTransfer.isActive) {
-            memoryController->hdma1 = value;
-          }
-          break;
-        case IO_REG_ADDRESS_HDMA2: // 0xFF52
-          if (!memoryController->hdmaTransfer.isActive) {
-            memoryController->hdma2 = value;
-          }
-          break;
-        case IO_REG_ADDRESS_HDMA3: // 0xFF53
-          if (!memoryController->hdmaTransfer.isActive) {
-            memoryController->hdma3 = value;
-          }
-          break;
-        case IO_REG_ADDRESS_HDMA4: // 0xFF54
-          if (!memoryController->hdmaTransfer.isActive) {
-            memoryController->hdma4 = value;
-          }
-          break;
-        case IO_REG_ADDRESS_HDMA5: // 0xFF51
-          memoryController->hdma5 = value;
-
-          uint16_t length = ((value & 0x7F) + 1) * 16;
-          uint16_t sourceStartAddr = (memoryController->hdma1 << 8) | (memoryController->hdma2 & 0xF0);
-          uint16_t destinationStartAddr = 0x8000 + (((memoryController->hdma3 & 0x1F) << 8) | (memoryController->hdma4 & 0xF0));
-
-          memoryController->hdmaTransfer.type = ((value & (1 << 7)) ? HBLANK : GENERAL);
-          memoryController->hdmaTransfer.isActive = true;
-          memoryController->hdmaTransfer.length = length;
-          memoryController->hdmaTransfer.nextSourceAddr = sourceStartAddr;
-          memoryController->hdmaTransfer.nextDestinationAddr = destinationStartAddr;
-          break;
-      }
+      hdmaWriteByte(memoryController, address, value);
     } else if (address == IO_REG_ADDRESS_SVBK) { // 0xFF70
       if (value == 0) {
         memoryController->svbk = 1;
