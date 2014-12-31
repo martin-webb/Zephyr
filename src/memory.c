@@ -232,7 +232,7 @@ uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
     } else if (address >= IO_REG_ADDRESS_DIV && address <= IO_REG_ADDRESS_TAC) { // 0xFF04 - 0xFF07
       return timerReadByte(memoryController->timerController, address);
     } else if (address == IO_REG_ADDRESS_IF) { // 0xFF0F
-      return memoryController->interruptController->f;
+      return interruptReadByte(memoryController->interruptController, address);
     } else if (address == 0xFF1A) {
       return 0x80;
     } else if (address == IO_REG_ADDRESS_DMA) { // 0xFF46
@@ -271,7 +271,7 @@ uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
   }
   else if (address == IO_REG_ADDRESS_IE) // Interrupt Enable Register 0xFFFF
   {
-    return memoryController->interruptController->e;
+    return interruptReadByte(memoryController->interruptController, address);
   }
 
   warning("Read from unhandled address 0x%04X\n", address);
@@ -331,7 +331,7 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
     } else if (address >= IO_REG_ADDRESS_DIV && address <= IO_REG_ADDRESS_TAC) { // 0xFF04 - 0xFF07
       timerWriteByte(memoryController->timerController, address, value);
     } else if (address == IO_REG_ADDRESS_IF) { // 0xFF0F
-      memoryController->interruptController->f = value;
+      interruptWriteByte(memoryController->interruptController, address, value);
     } else if (address == IO_REG_ADDRESS_DMA) { // 0xFF46
       memoryController->dma = value;
       memoryController->dmaIsActive = true;
@@ -396,7 +396,7 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
   }
   else if (address == IO_REG_ADDRESS_IE) // Interrupt Enable Register 0xFFFF
   {
-    memoryController->interruptController->e = value;
+    interruptWriteByte(memoryController->interruptController, address, value);
   }
   else
   {

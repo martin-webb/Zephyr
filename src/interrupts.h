@@ -13,6 +13,9 @@ typedef struct {
 
 void initInterruptController(InterruptController* interruptController);
 
+uint8_t interruptReadByte(InterruptController* interruptController, uint16_t address);
+void interruptWriteByte(InterruptController* interruptController, uint16_t address, uint8_t value);
+
 void interruptFlag(InterruptController* interruptController, uint8_t interruptBit);
 void interruptReset(InterruptController* interruptController, uint8_t interruptBit);
 
