@@ -204,6 +204,12 @@ uint8_t hdmaReadByte(MemoryController* memoryController, uint16_t address)
 }
 
 
+uint8_t svbkReadByte(MemoryController* memoryController, uint16_t address)
+{
+  return memoryController->svbk;
+}
+
+
 uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
 {
   if (address >= 0x8000 && address <= 0x9FFF) // Read from VRAM
@@ -273,7 +279,7 @@ uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
     } else if (address >= IO_REG_ADDRESS_HDMA1 && address <= IO_REG_ADDRESS_HDMA5) { // 0xFF51 - 0xFF55
       return hdmaReadByte(memoryController, address);
     } else if (address == IO_REG_ADDRESS_SVBK) { // 0xFF70
-      return memoryController->svbk;
+      return svbkReadByte(memoryController, address);
     } else {
       warning("Read from unhandled I/O register address 0x%04X\n", address);
       return 0;
@@ -333,6 +339,16 @@ void hdmaWriteByte(MemoryController* memoryController, uint16_t address, uint8_t
     memoryController->hdmaTransfer.length = length;
     memoryController->hdmaTransfer.nextSourceAddr = sourceStartAddr;
     memoryController->hdmaTransfer.nextDestinationAddr = destinationStartAddr;
+  }
+}
+
+
+void svbkWriteByte(MemoryController* memoryController, uint16_t address, uint8_t value)
+{
+  if (value == 0) {
+    memoryController->svbk = 1;
+  } else {
+    memoryController->svbk = (value & 7);
   }
 }
 
@@ -403,11 +419,7 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
     } else if (address >= IO_REG_ADDRESS_HDMA1 && address <= IO_REG_ADDRESS_HDMA5) { // 0xFF51 - 0xFF55
       hdmaWriteByte(memoryController, address, value);
     } else if (address == IO_REG_ADDRESS_SVBK) { // 0xFF70
-      if (value == 0) {
-        memoryController->svbk = 1;
-      } else {
-        memoryController->svbk = (value & 7);
-      }
+      svbkWriteByte(memoryController, address, value);
     } else {
       warning("Write of value 0x%02X to unhandled I/O register address 0x%04X\n", value, address);
     }
