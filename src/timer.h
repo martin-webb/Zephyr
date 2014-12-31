@@ -23,6 +23,9 @@
 
 #define TIMER_OVERFLOW_INTERRUPT_BIT (1 << 2)
 
+uint8_t timerReadByte(TimerController* timerController, uint16_t address);
+void timerWriteByte(TimerController* timerController, uint16_t address, uint8_t value);
+
 void timerUpdateDivider(TimerController* timerController, uint8_t cyclesExecuted);
 void timerUpdateTimer(TimerController* timerController, uint8_t cyclesExecuted);
 

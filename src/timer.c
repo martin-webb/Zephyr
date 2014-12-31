@@ -2,6 +2,36 @@
 
 static const uint32_t INPUT_CLOCKS[] = {4096, 262144, 65536, 16384};
 
+uint8_t timerReadByte(TimerController* timerController, uint16_t address)
+{
+  if (address == IO_REG_ADDRESS_DIV) { // 0xFF04
+    return timerController->div;
+  } else if (address == IO_REG_ADDRESS_TIMA) { // 0xFF05
+    return timerController->tima;
+  } else if (address == IO_REG_ADDRESS_TMA) { // 0xFF06
+    return timerController->tma;
+  } else if (address == IO_REG_ADDRESS_TAC) { // 0xFF07
+    return timerController->tac;
+  } else {
+    return 0x00;
+  }
+}
+
+
+void timerWriteByte(TimerController* timerController, uint16_t address, uint8_t value)
+{
+  if (address == IO_REG_ADDRESS_DIV) { // 0xFF04
+    timerController->div = 0x00;
+  } else if (address == IO_REG_ADDRESS_TIMA) { // 0xFF05
+    timerController->tima = value;
+  } else if (address == IO_REG_ADDRESS_TMA) { // 0xFF06
+    timerController->tma = value;
+  } else if (address == IO_REG_ADDRESS_TAC) { // 0xFF07
+    timerController->tac = value;
+  }
+}
+
+
 void timerUpdateDivider(TimerController* timerController, uint8_t cyclesExecuted)
 {
   // If we have executed enough clock cycles-worth of time since the last update then increment the DIV register

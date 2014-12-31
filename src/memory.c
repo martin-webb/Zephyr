@@ -230,16 +230,7 @@ uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
     if (address == IO_REG_ADDRESS_P1) { // 0xFF00
       return memoryController->joypadController->p1;
     } else if (address >= IO_REG_ADDRESS_DIV && address <= IO_REG_ADDRESS_TAC) { // 0xFF04 - 0xFF07
-      switch (address) {
-        case IO_REG_ADDRESS_DIV: // 0xFF04
-          return memoryController->timerController->div;
-        case IO_REG_ADDRESS_TIMA: // 0xFF05
-          return memoryController->timerController->tima;
-        case IO_REG_ADDRESS_TMA: // 0xFF06
-          return memoryController->timerController->tma;
-        case IO_REG_ADDRESS_TAC: // 0xFF07
-          return memoryController->timerController->tac;
-      }
+      return timerReadByte(memoryController->timerController, address);
     } else if (address == IO_REG_ADDRESS_IF) { // 0xFF0F
       return memoryController->interruptController->f;
     } else if (address == 0xFF1A) {
@@ -381,20 +372,7 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
         if (memoryController->joypadController->_right) memoryController->joypadController->p1 &= ~(1 << 0);
       }
     } else if (address >= IO_REG_ADDRESS_DIV && address <= IO_REG_ADDRESS_TAC) { // 0xFF04 - 0xFF07
-      switch (address) {
-        case IO_REG_ADDRESS_DIV: // 0xFF04
-          memoryController->timerController->div = 0x00;
-          break;
-        case IO_REG_ADDRESS_TIMA: // 0xFF05
-          memoryController->timerController->tima = value;
-          break;
-        case IO_REG_ADDRESS_TMA: // 0xFF06
-          memoryController->timerController->tma = value;
-          break;
-        case IO_REG_ADDRESS_TAC: // 0xFF07
-          memoryController->timerController->tac = value;
-          break;
-      }
+      timerWriteByte(memoryController->timerController, address, value);
     } else if (address == IO_REG_ADDRESS_IF) { // 0xFF0F
       memoryController->interruptController->f = value;
     } else if (address == IO_REG_ADDRESS_DMA) { // 0xFF46
