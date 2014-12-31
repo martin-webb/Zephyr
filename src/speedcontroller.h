@@ -11,4 +11,7 @@ typedef struct {
 
 void initSpeedController(SpeedController* speedController);
 
+uint8_t speedReadByte(SpeedController* speedController, uint16_t address);
+void speedWriteByte(SpeedController* speedController, uint16_t address, uint8_t value);
+
 #endif // SPEEDCONTROLLER_H_
