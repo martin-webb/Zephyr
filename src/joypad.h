@@ -22,4 +22,7 @@ typedef struct {
 
 void initJoypadController(JoypadController* joypadController);
 
+uint8_t joypadReadByte(JoypadController* joypadController, uint16_t address);
+void joypadWriteByte(JoypadController* joypadController, uint16_t address, uint8_t value);
+
 #endif // JOYPAD_H_

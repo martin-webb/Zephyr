@@ -228,7 +228,7 @@ uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
   else if (address >= 0xFF00 && address <= 0xFF7F) // I/O Ports
   {
     if (address == IO_REG_ADDRESS_P1) { // 0xFF00
-      return memoryController->joypadController->p1;
+      return joypadReadByte(memoryController->joypadController, address);
     } else if (address >= IO_REG_ADDRESS_DIV && address <= IO_REG_ADDRESS_TAC) { // 0xFF04 - 0xFF07
       return timerReadByte(memoryController->timerController, address);
     } else if (address == IO_REG_ADDRESS_IF) { // 0xFF0F
@@ -327,18 +327,7 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
   else if (address >= 0xFF00 && address <= 0xFF7F) // I/O Ports
   {
     if (address == IO_REG_ADDRESS_P1) { // 0xFF00
-      memoryController->joypadController->p1 = (value & 0x30) | 0x0F; // TODO: Do we need to preserve or reset (set to 1) the low 4 bits here?
-      if ((value & (1 << 5)) == 0) {
-        if (memoryController->joypadController->_start) memoryController->joypadController->p1 &= ~(1 << 3);
-        if (memoryController->joypadController->_select) memoryController->joypadController->p1 &= ~(1 << 2);
-        if (memoryController->joypadController->_b) memoryController->joypadController->p1 &= ~(1 << 1);
-        if (memoryController->joypadController->_a) memoryController->joypadController->p1 &= ~(1 << 0);
-      } else if ((value & (1 << 4)) == 0) {
-        if (memoryController->joypadController->_down) memoryController->joypadController->p1 &= ~(1 << 3);
-        if (memoryController->joypadController->_up) memoryController->joypadController->p1 &= ~(1 << 2);
-        if (memoryController->joypadController->_left) memoryController->joypadController->p1 &= ~(1 << 1);
-        if (memoryController->joypadController->_right) memoryController->joypadController->p1 &= ~(1 << 0);
-      }
+      joypadWriteByte(memoryController->joypadController, address, value);
     } else if (address >= IO_REG_ADDRESS_DIV && address <= IO_REG_ADDRESS_TAC) { // 0xFF04 - 0xFF07
       timerWriteByte(memoryController->timerController, address, value);
     } else if (address == IO_REG_ADDRESS_IF) { // 0xFF0F
