@@ -275,7 +275,7 @@ uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
                (address == IO_REG_ADDRESS_VBK)) {                                     // 0xFF4F
       return lcdReadByte(memoryController->lcdController, address);
     } else if (address == IO_REG_ADDRESS_KEY1) { // 0xFF4D
-      return memoryController->speedController->key1;
+      return speedReadByte(memoryController->speedController, address);
     } else if (address >= IO_REG_ADDRESS_HDMA1 && address <= IO_REG_ADDRESS_HDMA5) { // 0xFF51 - 0xFF55
       return hdmaReadByte(memoryController, address);
     } else if (address == IO_REG_ADDRESS_SVBK) { // 0xFF70
@@ -415,7 +415,7 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
                (address == IO_REG_ADDRESS_VBK)) {                                     // 0xFF4F
       lcdWriteByte(memoryController->lcdController, address, value);
     } else if (address == IO_REG_ADDRESS_KEY1) { // 0xFF4D
-      memoryController->speedController->key1 = (memoryController->speedController->key1 | (value & 1));
+      speedWriteByte(memoryController->speedController, address, value);
     } else if (address >= IO_REG_ADDRESS_HDMA1 && address <= IO_REG_ADDRESS_HDMA5) { // 0xFF51 - 0xFF55
       hdmaWriteByte(memoryController, address, value);
     } else if (address == IO_REG_ADDRESS_SVBK) { // 0xFF70
