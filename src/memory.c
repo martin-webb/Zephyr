@@ -178,6 +178,14 @@ void writeWord(MemoryController* memoryController, uint16_t address, uint16_t va
   memoryController->writeByteImpl(memoryController, address + 1, (value & 0xFF00) >> 8);
 }
 
+
+uint8_t dmaReadByte(MemoryController* memoryController, uint16_t address)
+{
+  warning("Read from DMA I/O register (write only).\n");
+  return memoryController->dma;
+}
+
+
 uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
 {
   if (address >= 0x8000 && address <= 0x9FFF) // Read from VRAM
@@ -236,8 +244,7 @@ uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
     } else if (address == 0xFF1A) {
       return 0x80;
     } else if (address == IO_REG_ADDRESS_DMA) { // 0xFF46
-      warning("Read from DMA I/O register (write only).\n");
-      return memoryController->dma;
+      return dmaReadByte(memoryController, address);
     } else if ((address >= IO_REG_ADDRESS_LCDC && address <= IO_REG_ADDRESS_LYC)  ||  // 0xFF40 - 0xFF45
                (address >= IO_REG_ADDRESS_BGP  && address <= IO_REG_ADDRESS_WX)   ||  // 0xFF47 - 0xFF4B
                (address >= IO_REG_ADDRESS_BCPS && address <= IO_REG_ADDRESS_OCPD) ||  // 0xFF68 - 0xFF6B
@@ -277,6 +284,16 @@ uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
   warning("Read from unhandled address 0x%04X\n", address);
   return 0;
 }
+
+
+void dmaWriteByte(MemoryController* memoryController, uint16_t address, uint8_t value)
+{
+  memoryController->dma = value;
+  memoryController->dmaIsActive = true;
+  memoryController->dmaUpdateCycles = 0;
+  memoryController->dmaNextAddress = value * 0x100;
+}
+
 
 void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8_t value)
 {
@@ -333,10 +350,7 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
     } else if (address == IO_REG_ADDRESS_IF) { // 0xFF0F
       interruptWriteByte(memoryController->interruptController, address, value);
     } else if (address == IO_REG_ADDRESS_DMA) { // 0xFF46
-      memoryController->dma = value;
-      memoryController->dmaIsActive = true;
-      memoryController->dmaUpdateCycles = 0;
-      memoryController->dmaNextAddress = value * 0x100;
+      dmaWriteByte(memoryController, address, value);
     } else if ((address >= IO_REG_ADDRESS_LCDC && address <= IO_REG_ADDRESS_LYC)  ||  // 0xFF40 - 0xFF45
                (address >= IO_REG_ADDRESS_BGP  && address <= IO_REG_ADDRESS_WX)   ||  // 0xFF47 - 0xFF4B
                (address >= IO_REG_ADDRESS_BCPS && address <= IO_REG_ADDRESS_OCPD) ||  // 0xFF68 - 0xFF6B
