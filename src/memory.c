@@ -238,45 +238,13 @@ uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
     } else if (address == IO_REG_ADDRESS_DMA) { // 0xFF46
       warning("Read from DMA I/O register (write only).\n");
       return memoryController->dma;
-    } else if ((address >= IO_REG_ADDRESS_LCDC && address <= IO_REG_ADDRESS_LYC) ||  // 0xFF40 - 0xFF45
-               (address >= IO_REG_ADDRESS_BGP  && address <= IO_REG_ADDRESS_WX)  ||  // 0xFF47 - 0xFF4B
-               (address >= IO_REG_ADDRESS_BCPS && address <= IO_REG_ADDRESS_OCPD)) { // 0xFF68 - 0xFF6B
-      switch (address) {
-        case IO_REG_ADDRESS_LCDC: // 0xFF40
-          return memoryController->lcdController->lcdc;
-        case IO_REG_ADDRESS_STAT: // 0xFF41
-          return memoryController->lcdController->stat;
-        case IO_REG_ADDRESS_SCY: // 0xFF42
-          return memoryController->lcdController->scy;
-        case IO_REG_ADDRESS_SCX: // 0xFF43
-          return memoryController->lcdController->scx;
-        case IO_REG_ADDRESS_LY: // 0xFF44
-          return memoryController->lcdController->ly;
-        case IO_REG_ADDRESS_LYC: // 0xFF45
-          return memoryController->lcdController->lyc;
-        case IO_REG_ADDRESS_BGP: // 0xFF47
-          return memoryController->lcdController->bgp;
-        case IO_REG_ADDRESS_OBP0: // 0xFF48
-          return memoryController->lcdController->obp0;
-        case IO_REG_ADDRESS_OBP1: // 0xFF49
-          return memoryController->lcdController->obp1;
-        case IO_REG_ADDRESS_WY: // 0xFF4A
-          return memoryController->lcdController->wy;
-        case IO_REG_ADDRESS_WX: // 0xFF4B
-          return memoryController->lcdController->wx;
-        case IO_REG_ADDRESS_BCPS: // 0xFF68
-          return memoryController->lcdController->bcps;
-        case IO_REG_ADDRESS_BCPD: // 0xFF69
-          return memoryController->lcdController->backgroundPaletteMemory[memoryController->lcdController->bcps & 0x3F];
-        case IO_REG_ADDRESS_OCPS: // 0xFF6A
-          return memoryController->lcdController->ocps;
-        case IO_REG_ADDRESS_OCPD: // 0xFF6B
-          return memoryController->lcdController->objectPaletteMemory[memoryController->lcdController->ocps & 0x3F];
-      }
+    } else if ((address >= IO_REG_ADDRESS_LCDC && address <= IO_REG_ADDRESS_LYC)  ||  // 0xFF40 - 0xFF45
+               (address >= IO_REG_ADDRESS_BGP  && address <= IO_REG_ADDRESS_WX)   ||  // 0xFF47 - 0xFF4B
+               (address >= IO_REG_ADDRESS_BCPS && address <= IO_REG_ADDRESS_OCPD) ||  // 0xFF68 - 0xFF6B
+               (address == IO_REG_ADDRESS_VBK)) {                                     // 0xFF4F
+      return lcdReadByte(memoryController->lcdController, address);
     } else if (address == IO_REG_ADDRESS_KEY1) { // 0xFF4D
       return memoryController->speedController->key1;
-    } else if (address == IO_REG_ADDRESS_VBK) { // 0xFF4F
-      return memoryController->lcdController->vbk;
     } else if (address >= IO_REG_ADDRESS_HDMA1 && address <= IO_REG_ADDRESS_HDMA5) { // 0xFF51 - 0xFF55
       switch (address) {
         case IO_REG_ADDRESS_HDMA1: // 0xFF51
@@ -380,89 +348,13 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
       memoryController->dmaIsActive = true;
       memoryController->dmaUpdateCycles = 0;
       memoryController->dmaNextAddress = value * 0x100;
-    } else if ((address >= IO_REG_ADDRESS_LCDC && address <= IO_REG_ADDRESS_LYC) ||  // 0xFF40 - 0xFF45
-               (address >= IO_REG_ADDRESS_BGP  && address <= IO_REG_ADDRESS_WX)  ||  // 0xFF47 - 0xFF4B
-               (address >= IO_REG_ADDRESS_BCPS && address <= IO_REG_ADDRESS_OCPD)) { // 0xFF68 - 0xFF6B
-      switch (address) {
-        case IO_REG_ADDRESS_LCDC: { // 0xFF40
-          bool lcdEnabledBefore = memoryController->lcdController->lcdc & LCD_DISPLAY_ENABLE_BIT;
-          bool lcdEnabledAfter = value & LCD_DISPLAY_ENABLE_BIT;
-
-          memoryController->lcdController->lcdc = value;
-
-          if (!lcdEnabledBefore && lcdEnabledAfter) {
-            debug("LCD was ENABLED by write of value 0x%02X to LCDC\n", value);
-          } else if (lcdEnabledBefore && !lcdEnabledAfter) {
-            // Stopping LCD operation outside of the VBLANK period could damage the display hardware.
-            // Nintendo is reported to reject any games that didn't follow this rule.
-            uint8_t lcdMode = memoryController->lcdController->stat & STAT_MODE_FLAG_BITS;
-            if (lcdMode != 1) {
-              warning("LCD was DISABLED outside of VBLANK period (clocks=%u)!\n", memoryController->lcdController->clockCycles);
-              // exit(EXIT_FAILURE);
-            }
-            debug("LCD was DISABLED by write of value 0x%02X to LCDC\n", value);
-            // memoryController->lcdController->clockCycles = 0;
-          }
-          break;
-        }
-        case IO_REG_ADDRESS_STAT: // 0xFF41
-          memoryController->lcdController->stat = (value & 0xFC) | (memoryController->lcdController->stat & 0x03);
-          break;
-        case IO_REG_ADDRESS_SCY: // 0xFF42
-          memoryController->lcdController->scy = value;
-          break;
-        case IO_REG_ADDRESS_SCX: // 0xFF43
-          memoryController->lcdController->scx = value;
-          break;
-        case IO_REG_ADDRESS_LY: // 0xFF44
-          memoryController->lcdController->ly = 0;
-          debug("[MEMORY LOG]: WRITE TO LY!\n");
-          break;
-        case IO_REG_ADDRESS_LYC: // 0xFF45
-          memoryController->lcdController->lyc = value;
-          break;
-        case IO_REG_ADDRESS_BGP: // 0xFF47
-          memoryController->lcdController->bgp = value;
-          break;
-        case IO_REG_ADDRESS_OBP0: // 0xFF48
-          memoryController->lcdController->obp0 = value;
-          break;
-        case IO_REG_ADDRESS_OBP1: // 0xFF49
-          memoryController->lcdController->obp1 = value;
-          break;
-        case IO_REG_ADDRESS_WY: // 0xFF4A
-          memoryController->lcdController->wy = value;
-          break;
-        case IO_REG_ADDRESS_WX: // 0xFF4B
-          memoryController->lcdController->wx = value;
-          break;
-        case IO_REG_ADDRESS_BCPS: // 0xFF68
-          memoryController->lcdController->bcps = value;
-          break;
-        case IO_REG_ADDRESS_BCPD: { // 0xFF69
-          uint8_t bcps = memoryController->lcdController->bcps;
-          memoryController->lcdController->backgroundPaletteMemory[bcps & 0x3F] = value;
-          if (bcps & (1 << 7)) {
-            memoryController->lcdController->bcps = (bcps & 0x80) | (((bcps & 0x3F) + 1) & 0x3F);
-          }
-          break;
-        }
-        case IO_REG_ADDRESS_OCPS: // 0xFF6A
-          memoryController->lcdController->ocps = value;
-          break;
-        case IO_REG_ADDRESS_OCPD: { // 0xFF6B
-          uint8_t ocps = memoryController->lcdController->ocps;
-          memoryController->lcdController->objectPaletteMemory[ocps & 0x3F] = value;
-          if (ocps & (1 << 7)) {
-            memoryController->lcdController->ocps = (ocps & 0x80) | (((ocps & 0x3F) + 1) & 0x3F);
-          }
-          break;
-        }
-      }
+    } else if ((address >= IO_REG_ADDRESS_LCDC && address <= IO_REG_ADDRESS_LYC)  ||  // 0xFF40 - 0xFF45
+               (address >= IO_REG_ADDRESS_BGP  && address <= IO_REG_ADDRESS_WX)   ||  // 0xFF47 - 0xFF4B
+               (address >= IO_REG_ADDRESS_BCPS && address <= IO_REG_ADDRESS_OCPD) ||  // 0xFF68 - 0xFF6B
+               (address == IO_REG_ADDRESS_VBK)) {                                     // 0xFF4F
+      lcdWriteByte(memoryController->lcdController, address, value);
     } else if (address == IO_REG_ADDRESS_KEY1) { // 0xFF4D
       memoryController->speedController->key1 = (memoryController->speedController->key1 | (value & 1));
-    } else if (address == IO_REG_ADDRESS_VBK) { // 0xFF4F
-      memoryController->lcdController->vbk = value & 1;
     } else if (address >= IO_REG_ADDRESS_HDMA1 && address <= IO_REG_ADDRESS_HDMA5) { // 0xFF51 - 0xFF55
       switch (address) {
         case IO_REG_ADDRESS_HDMA1: // 0xFF51

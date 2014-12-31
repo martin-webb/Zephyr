@@ -76,6 +76,110 @@ void initLCDController(LCDController* lcdController, InterruptController* interr
 }
 
 
+uint8_t lcdReadByte(LCDController* lcdController, uint16_t address)
+{
+  if (address == IO_REG_ADDRESS_LCDC) { // 0xFF40
+    return lcdController->lcdc;
+  } else if (address == IO_REG_ADDRESS_STAT) { // 0xFF41
+    return lcdController->stat;
+  } else if (address == IO_REG_ADDRESS_SCY) { // 0xFF42
+    return lcdController->scy;
+  } else if (address == IO_REG_ADDRESS_SCX) { // 0xFF43
+    return lcdController->scx;
+  } else if (address == IO_REG_ADDRESS_LY) { // 0xFF44
+    return lcdController->ly;
+  } else if (address == IO_REG_ADDRESS_LYC) { // 0xFF45
+    return lcdController->lyc;
+  } else if (address == IO_REG_ADDRESS_BGP) { // 0xFF47
+    return lcdController->bgp;
+  } else if (address == IO_REG_ADDRESS_OBP0) { // 0xFF48
+    return lcdController->obp0;
+  } else if (address == IO_REG_ADDRESS_OBP1) { // 0xFF49
+    return lcdController->obp1;
+  } else if (address == IO_REG_ADDRESS_WY) { // 0xFF4A
+    return lcdController->wy;
+  } else if (address == IO_REG_ADDRESS_WX) { // 0xFF4B
+    return lcdController->wx;
+  } else if (address == IO_REG_ADDRESS_VBK) { // 0xFF4F
+    return lcdController->vbk;
+  } else if (address == IO_REG_ADDRESS_BCPS) { // 0xFF68
+    return lcdController->bcps;
+  } else if (address == IO_REG_ADDRESS_BCPD) { // 0xFF69
+    return lcdController->backgroundPaletteMemory[lcdController->bcps & 0x3F];
+  } else if (address == IO_REG_ADDRESS_OCPS) { // 0xFF6A
+    return lcdController->ocps;
+  } else if (address == IO_REG_ADDRESS_OCPD) { // 0xFF6B
+    return lcdController->objectPaletteMemory[lcdController->ocps & 0x3F];
+  } else {
+    return 0x00;
+  }
+}
+
+
+void lcdWriteByte(LCDController* lcdController, uint16_t address, uint8_t value)
+{
+  if (address == IO_REG_ADDRESS_LCDC) { // 0xFF40
+    bool lcdEnabledBefore = lcdController->lcdc & LCD_DISPLAY_ENABLE_BIT;
+    bool lcdEnabledAfter = value & LCD_DISPLAY_ENABLE_BIT;
+
+    lcdController->lcdc = value;
+
+    if (!lcdEnabledBefore && lcdEnabledAfter) {
+      debug("LCD was ENABLED by write of value 0x%02X to LCDC\n", value);
+    } else if (lcdEnabledBefore && !lcdEnabledAfter) {
+      // Stopping LCD operation outside of the VBLANK period could damage the display hardware.
+      // Nintendo is reported to reject any games that didn't follow this rule.
+      uint8_t lcdMode = lcdController->stat & STAT_MODE_FLAG_BITS;
+      if (lcdMode != 1) {
+        warning("LCD was DISABLED outside of VBLANK period (clocks=%u)!\n", lcdController->clockCycles);
+        // exit(EXIT_FAILURE);
+      }
+      debug("LCD was DISABLED by write of value 0x%02X to LCDC\n", value);
+      // lcdController->clockCycles = 0;
+    }
+  } else if (address == IO_REG_ADDRESS_STAT) { // 0xFF41
+    lcdController->stat = (value & 0xFC) | (lcdController->stat & 0x03);
+  } else if (address == IO_REG_ADDRESS_SCY) { // 0xFF42
+    lcdController->scy = value;
+  } else if (address == IO_REG_ADDRESS_SCX) { // 0xFF43
+    lcdController->scx = value;
+  } else if (address == IO_REG_ADDRESS_LY) { // 0xFF44
+    lcdController->ly = 0;
+    debug("[MEMORY LOG]: WRITE TO LY!\n");
+  } else if (address == IO_REG_ADDRESS_LYC) { // 0xFF45
+    lcdController->lyc = value;
+  } else if (address == IO_REG_ADDRESS_BGP) { // 0xFF47
+    lcdController->bgp = value;
+  } else if (address == IO_REG_ADDRESS_OBP0) { // 0xFF48
+    lcdController->obp0 = value;
+  } else if (address == IO_REG_ADDRESS_OBP1) { // 0xFF49
+    lcdController->obp1 = value;
+  } else if (address == IO_REG_ADDRESS_WY) { // 0xFF4A
+    lcdController->wy = value;
+  } else if (address == IO_REG_ADDRESS_WX) { // 0xFF4B
+    lcdController->wx = value;
+  } else if (address == IO_REG_ADDRESS_VBK) { // 0xFF4F
+    lcdController->vbk = value & 1;
+  } else if (address == IO_REG_ADDRESS_BCPS) { // 0xFF68
+    lcdController->bcps = value;
+  } else if (address == IO_REG_ADDRESS_BCPD) { // 0xFF69
+    uint8_t bcps = lcdController->bcps;
+    lcdController->backgroundPaletteMemory[bcps & 0x3F] = value;
+    if (bcps & (1 << 7)) {
+      lcdController->bcps = (bcps & 0x80) | (((bcps & 0x3F) + 1) & 0x3F);
+    }
+  } else if (address == IO_REG_ADDRESS_OCPS) { // 0xFF6A
+    lcdController->ocps = value;
+  } else if (address == IO_REG_ADDRESS_OCPD) { // 0xFF6B
+    uint8_t ocps = lcdController->ocps;
+    lcdController->objectPaletteMemory[ocps & 0x3F] = value;
+    if (ocps & (1 << 7)) {
+      lcdController->ocps = (ocps & 0x80) | (((ocps & 0x3F) + 1) & 0x3F);
+    }
+  }
+}
+
+
 static bool lcdIsEnabled(LCDController* lcdController)
 {
   return lcdController->lcdc & LCD_DISPLAY_ENABLE_BIT;

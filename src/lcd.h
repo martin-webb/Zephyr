@@ -104,6 +104,10 @@ typedef struct {
 } LCDController;
 
 void initLCDController(LCDController* lcdController, InterruptController* interruptController, uint8_t* vram, uint8_t* oam, Pixel* frameBuffer, GameBoyType gameBoyType, CGBMode cgbMode);
+
+uint8_t lcdReadByte(LCDController* lcdController, uint16_t address);
+void lcdWriteByte(LCDController* lcdController, uint16_t address, uint8_t value);
+
 void lcdUpdate(LCDController* lcdController, uint8_t cyclesExecuted);
 void lcdSpeedChange(LCDController* lcdController);
 
