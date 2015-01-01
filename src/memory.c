@@ -268,25 +268,16 @@ uint8_t hramReadByte(MemoryController* memoryController, uint16_t address)
 
 uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
 {
-  if (address >= 0x8000 && address <= 0x9FFF) // Read from VRAM
-  {
+  if (address >= 0x8000 && address <= 0x9FFF) { // Read from VRAM
     return vramReadByte(memoryController, address);
-  }
-  else if (address >= 0xC000 && address <= 0xFDFF) // Read from WRAM
-  {
+  } else if (address >= 0xC000 && address <= 0xFDFF) { // Read from WRAM
     return wramReadByte(memoryController, address);
-  }
-  else if (address >= 0xFE00 && address <= 0xFE9F) // Read from OAM
-  {
+  } else if (address >= 0xFE00 && address <= 0xFE9F) { // Read from OAM
     return oamReadByte(memoryController, address);
-  }
-  else if (address >= 0xFEA0 && address <= 0xFEFF) // Not Usable
-  {
+  } else if (address >= 0xFEA0 && address <= 0xFEFF) { // Not Usable
     warning("Read from unusable address 0x%04X\n", address);
     return 0;
-  }
-  else if (address >= 0xFF00 && address <= 0xFF7F) // I/O Ports
-  {
+  } else if (address >= 0xFF00 && address <= 0xFF7F) { // I/O Ports
     if (address == IO_REG_ADDRESS_P1) { // 0xFF00
       return joypadReadByte(memoryController->joypadController, address);
     } else if (address >= IO_REG_ADDRESS_DIV && address <= IO_REG_ADDRESS_TAC) { // 0xFF04 - 0xFF07
@@ -312,13 +303,9 @@ uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
       warning("Read from unhandled I/O register address 0x%04X\n", address);
       return 0;
     }
-  }
-  else if (address >= 0xFF80 && address <= 0xFFFE) // High RAM
-  {
+  } else if (address >= 0xFF80 && address <= 0xFFFE) { // High RAM
     return hramReadByte(memoryController, address);
-  }
-  else if (address == IO_REG_ADDRESS_IE) // Interrupt Enable Register 0xFFFF
-  {
+  } else if (address == IO_REG_ADDRESS_IE) { // Interrupt Enable Register 0xFFFF
     return interruptReadByte(memoryController->interruptController, address);
   }
 
@@ -433,24 +420,15 @@ void hramWriteByte(MemoryController* memoryController, uint16_t address, uint8_t
 
 void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8_t value)
 {
-  if (address >= 0x8000 && address <= 0x9FFF) // Write to VRAM
-  {
+  if (address >= 0x8000 && address <= 0x9FFF) { // Write to VRAM
     vramWriteByte(memoryController, address, value);
-  }
-  else if (address >= 0xC000 && address <= 0xFDFF) // Write to WRAM
-  {
+  } else if (address >= 0xC000 && address <= 0xFDFF) { // Write to WRAM
     wramWriteByte(memoryController, address, value);
-  }
-  else if (address >= 0xFE00 && address <= 0xFE9F) // Write to OAM
-  {
+  } else if (address >= 0xFE00 && address <= 0xFE9F) { // Write to OAM
     oamWriteByte(memoryController, address, value);
-  }
-  else if (address >= 0xFEA0 && address <= 0xFEFF) // Not Usable
-  {
+  } else if (address >= 0xFEA0 && address <= 0xFEFF) { // Not Usable
     warning("Write to unusable address 0x%04X\n", address);
-  }
-  else if (address >= 0xFF00 && address <= 0xFF7F) // I/O Ports
-  {
+  } else if (address >= 0xFF00 && address <= 0xFF7F) { // I/O Ports
     if (address == IO_REG_ADDRESS_P1) { // 0xFF00
       joypadWriteByte(memoryController->joypadController, address, value);
     } else if (address >= IO_REG_ADDRESS_DIV && address <= IO_REG_ADDRESS_TAC) { // 0xFF04 - 0xFF07
@@ -473,17 +451,11 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
     } else {
       warning("Write of value 0x%02X to unhandled I/O register address 0x%04X\n", value, address);
     }
-  }
-  else if (address >= 0xFF80 && address <= 0xFFFE) // High RAM
-  {
+  } else if (address >= 0xFF80 && address <= 0xFFFE) { // High RAM
     hramWriteByte(memoryController, address, value);
-  }
-  else if (address == IO_REG_ADDRESS_IE) // Interrupt Enable Register 0xFFFF
-  {
+  } else if (address == IO_REG_ADDRESS_IE) { // Interrupt Enable Register 0xFFFF
     interruptWriteByte(memoryController->interruptController, address, value);
-  }
-  else
-  {
+  } else {
     warning("Write to unhandled address 0x%04X\n", address);
   }
 }
