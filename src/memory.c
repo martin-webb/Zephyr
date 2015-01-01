@@ -147,6 +147,7 @@ MemoryController InitMemoryController(
   return memoryController;
 }
 
+
 uint8_t readByte(MemoryController* memoryController, uint16_t address)
 {
   if (memoryController->dmaIsActive && (address < 0xFF80 || address > 0xFFFE)) {
@@ -156,12 +157,14 @@ uint8_t readByte(MemoryController* memoryController, uint16_t address)
   return memoryController->readByteImpl(memoryController, address);
 }
 
+
 uint16_t readWord(MemoryController* memoryController, uint16_t address)
 {
   uint8_t lsByte = memoryController->readByteImpl(memoryController, address);
   uint8_t msByte = memoryController->readByteImpl(memoryController, address + 1);
   return (msByte << 8) | lsByte;
 }
+
 
 void writeByte(MemoryController* memoryController, uint16_t address, uint8_t value)
 {
@@ -171,6 +174,7 @@ void writeByte(MemoryController* memoryController, uint16_t address, uint8_t val
   }
   memoryController->writeByteImpl(memoryController, address, value);
 }
+
 
 void writeWord(MemoryController* memoryController, uint16_t address, uint16_t value)
 {
@@ -484,12 +488,14 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
   }
 }
 
+
 void cartridgeUpdate(MemoryController* memoryController, uint8_t cyclesExecuted)
 {
   if (memoryController->cartridgeUpdateImpl != NULL) {
     memoryController->cartridgeUpdateImpl(memoryController, cyclesExecuted);
   }
 }
+
 
 void dmaUpdate(MemoryController* memoryController, uint8_t cyclesExecuted)
 {
@@ -515,6 +521,7 @@ void dmaUpdate(MemoryController* memoryController, uint8_t cyclesExecuted)
   }
 }
 
+
 void hdmaUpdate(MemoryController* memoryController, uint8_t cyclesExecuted)
 {
   HDMATransfer* transfer = &memoryController->hdmaTransfer;
@@ -539,6 +546,7 @@ void hdmaUpdate(MemoryController* memoryController, uint8_t cyclesExecuted)
     }
   }
 }
+
 
 bool generalPurposeDMAIsActive(MemoryController* memoryController)
 {
