@@ -179,6 +179,52 @@ void writeWord(MemoryController* memoryController, uint16_t address, uint16_t va
 }
 
 
+uint8_t vramReadByte(MemoryController* memoryController, uint16_t address)
+{
+  uint8_t lcdMode = memoryController->lcdController->stat & STAT_MODE_FLAG_BITS;
+  if (lcdMode != 3) { // LCD Controller is not reading from VRAM and OAM so read access is okay
+    if (memoryController->cgbMode == COLOUR) {
+      uint16_t bankOffset = (memoryController->lcdController->vbk * 8 * 1024);
+      return memoryController->vram[bankOffset + address - 0x8000];
+    } else {
+      return memoryController->vram[address - 0x8000];
+    }
+  } else {
+    return 0xFF;
+  }
+}
+
+
+uint8_t wramReadByte(MemoryController* memoryController, uint16_t address)
+{
+  if (address >= 0xC000 && address <= 0xCFFF) { // Read from WRAM (Bank 0)
+    return memoryController->wram[address - 0xC000];
+  } else if (address >= 0xD000 && address <= 0xDFFF) { // Read from WRAM (Banks 1-7)
+    if (memoryController->cgbMode == COLOUR) {
+      uint16_t bankOffset = memoryController->svbk * 4 * 1024;
+      return memoryController->wram[bankOffset + (address - 0xD000)];
+    } else {
+      return memoryController->wram[address - 0xC000];
+    }
+  } else if (address >= 0xE000 && address <= 0xFDFF) { // Read from WRAM (echo)
+    return memoryController->wram[address - 0xE000];
+  } else {
+    return 0x00;
+  }
+}
+
+
+uint8_t oamReadByte(MemoryController* memoryController, uint16_t address)
+{
+  uint8_t lcdMode = memoryController->lcdController->stat & STAT_MODE_FLAG_BITS;
+  if (lcdMode == 0 || lcdMode == 1) { // LCD Controller is in HBLANK or VBLANK so read access is okay
+    return memoryController->oam[address - 0xFE00];
+  } else {
+    return 0xFF;
+  }
+}
+
+
 uint8_t dmaReadByte(MemoryController* memoryController, uint16_t address)
 {
   warning("Read from DMA I/O register (write only).\n");
@@ -210,47 +256,25 @@ uint8_t svbkReadByte(MemoryController* memoryController, uint16_t address)
 }
 
 
+uint8_t hramReadByte(MemoryController* memoryController, uint16_t address)
+{
+  return memoryController->hram[address - 0xFF80];
+}
+
+
 uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
 {
   if (address >= 0x8000 && address <= 0x9FFF) // Read from VRAM
   {
-    uint8_t lcdMode = memoryController->lcdController->stat & STAT_MODE_FLAG_BITS;
-    if (lcdMode != 3) { // LCD Controller is not reading from VRAM and OAM so read access is okay
-      if (memoryController->cgbMode == COLOUR) {
-        uint16_t bankOffset = (memoryController->lcdController->vbk * 8 * 1024);
-        return memoryController->vram[bankOffset + address - 0x8000];
-      } else {
-        return memoryController->vram[address - 0x8000];
-      }
-    } else {
-      return 0xFF;
-    }
+    return vramReadByte(memoryController, address);
   }
-  else if (address >= 0xC000 && address <= 0xCFFF) // Read from WRAM (Bank 0)
+  else if (address >= 0xC000 && address <= 0xFDFF) // Read from WRAM
   {
-    return memoryController->wram[address - 0xC000];
-  }
-  else if (address >= 0xD000 && address <= 0xDFFF) // Read from WRAM (Banks 1-7)
-  {
-    if (memoryController->cgbMode == COLOUR) {
-      uint16_t bankOffset = memoryController->svbk * 4 * 1024;
-      return memoryController->wram[bankOffset + (address - 0xD000)];
-    } else {
-      return memoryController->wram[address - 0xC000];
-    }
-  }
-  else if (address >= 0xE000 && address <= 0xFDFF) // Read from WRAM (echo)
-  {
-    return memoryController->wram[address - 0xE000];
+    return wramReadByte(memoryController, address);
   }
   else if (address >= 0xFE00 && address <= 0xFE9F) // Read from OAM
   {
-    uint8_t lcdMode = memoryController->lcdController->stat & STAT_MODE_FLAG_BITS;
-    if (lcdMode == 0 || lcdMode == 1) { // LCD Controller is in HBLANK or VBLANK so read access is okay
-      return memoryController->oam[address - 0xFE00];
-    } else {
-      return 0xFF;
-    }
+    return oamReadByte(memoryController, address);
   }
   else if (address >= 0xFEA0 && address <= 0xFEFF) // Not Usable
   {
@@ -287,7 +311,7 @@ uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
   }
   else if (address >= 0xFF80 && address <= 0xFFFE) // High RAM
   {
-    return memoryController->hram[address - 0xFF80];
+    return hramReadByte(memoryController, address);
   }
   else if (address == IO_REG_ADDRESS_IE) // Interrupt Enable Register 0xFFFF
   {
@@ -296,6 +320,50 @@ uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
 
   warning("Read from unhandled address 0x%04X\n", address);
   return 0;
+}
+
+
+void vramWriteByte(MemoryController* memoryController, uint16_t address, uint8_t value)
+{
+  uint8_t lcdMode = memoryController->lcdController->stat & STAT_MODE_FLAG_BITS;
+  if (lcdMode != 3) { // LCD Controller is not reading from VRAM and OAM so write access is okay
+    if (memoryController->cgbMode == COLOUR) {
+      uint16_t bankOffset = (memoryController->lcdController->vbk * 8 * 1024);
+      memoryController->vram[bankOffset + address - 0x8000] = value;
+    } else {
+      memoryController->vram[address - 0x8000] = value;
+    }
+  } else {
+    warning("Invalid write of value 0x%02X to VRAM address 0x%04X while LCD is in Mode %u\n", value, address, lcdMode);
+  }
+}
+
+
+void wramWriteByte(MemoryController* memoryController, uint16_t address, uint8_t value)
+{
+  if (address >= 0xC000 && address <= 0xCFFF) { // Write to WRAM (Bank 0)
+    memoryController->wram[address - 0xC000] = value;
+  } else if (address >= 0xD000 && address <= 0xDFFF) { // Write to WRAM (Banks 1-7)
+    if (memoryController->cgbMode == COLOUR) {
+      uint16_t bankOffset = memoryController->svbk * 4 * 1024;
+      memoryController->wram[bankOffset + (address - 0xD000)] = value;
+    } else {
+      memoryController->wram[address - 0xC000] = value;
+    }
+  } else if (address >= 0xE000 && address <= 0xFDFF) { // Write to WRAM (echo)
+    memoryController->wram[address - 0xE000] = value;
+  }
+}
+
+
+void oamWriteByte(MemoryController* memoryController, uint16_t address, uint8_t value)
+{
+  uint8_t lcdMode = memoryController->lcdController->stat & STAT_MODE_FLAG_BITS;
+  if (lcdMode == 0 || lcdMode == 1) { // LCD Controller is in HBLANK or VBLANK so write access is okay
+    memoryController->oam[address - 0xFE00] = value;
+  } else {
+    warning("Invalid write of value 0x%02X to OAM address 0x%04X while LCD is in Mode %u\n", value, address, lcdMode);
+  }
 }
 
 
@@ -353,47 +421,25 @@ void svbkWriteByte(MemoryController* memoryController, uint16_t address, uint8_t
 }
 
 
+void hramWriteByte(MemoryController* memoryController, uint16_t address, uint8_t value)
+{
+  memoryController->hram[address - 0xFF80] = value;
+}
+
+
 void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8_t value)
 {
   if (address >= 0x8000 && address <= 0x9FFF) // Write to VRAM
   {
-    uint8_t lcdMode = memoryController->lcdController->stat & STAT_MODE_FLAG_BITS;
-    if (lcdMode != 3) { // LCD Controller is not reading from VRAM and OAM so write access is okay
-      if (memoryController->cgbMode == COLOUR) {
-        uint16_t bankOffset = (memoryController->lcdController->vbk * 8 * 1024);
-        memoryController->vram[bankOffset + address - 0x8000] = value;
-      } else {
-        memoryController->vram[address - 0x8000] = value;
-      }
-    } else {
-      warning("Invalid write of value 0x%02X to VRAM address 0x%04X while LCD is in Mode %u\n", value, address, lcdMode);
-    }
+    vramWriteByte(memoryController, address, value);
   }
-  else if (address >= 0xC000 && address <= 0xCFFF) // Write to WRAM (Bank 0)
+  else if (address >= 0xC000 && address <= 0xFDFF) // Write to WRAM
   {
-    memoryController->wram[address - 0xC000] = value;
-  }
-  else if (address >= 0xD000 && address <= 0xDFFF) // Write to WRAM (Banks 1-7)
-  {
-    if (memoryController->cgbMode == COLOUR) {
-      uint16_t bankOffset = memoryController->svbk * 4 * 1024;
-      memoryController->wram[bankOffset + (address - 0xD000)] = value;
-    } else {
-      memoryController->wram[address - 0xC000] = value;
-    }
-  }
-  else if (address >= 0xE000 && address <= 0xFDFF) // Write to WRAM (echo)
-  {
-    memoryController->wram[address - 0xE000] = value;
+    wramWriteByte(memoryController, address, value);
   }
   else if (address >= 0xFE00 && address <= 0xFE9F) // Write to OAM
   {
-    uint8_t lcdMode = memoryController->lcdController->stat & STAT_MODE_FLAG_BITS;
-    if (lcdMode == 0 || lcdMode == 1) { // LCD Controller is in HBLANK or VBLANK so write access is okay
-      memoryController->oam[address - 0xFE00] = value;
-    } else {
-      warning("Invalid write of value 0x%02X to OAM address 0x%04X while LCD is in Mode %u\n", value, address, lcdMode);
-    }
+    oamWriteByte(memoryController, address, value);
   }
   else if (address >= 0xFEA0 && address <= 0xFEFF) // Not Usable
   {
@@ -426,7 +472,7 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
   }
   else if (address >= 0xFF80 && address <= 0xFFFE) // High RAM
   {
-    memoryController->hram[address - 0xFF80] = value;
+    hramWriteByte(memoryController, address, value);
   }
   else if (address == IO_REG_ADDRESS_IE) // Interrupt Enable Register 0xFFFF
   {
