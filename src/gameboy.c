@@ -113,7 +113,7 @@ void gbRunNFrames(GameBoy* gameBoy, const int frames)
 
     cpuUpdateIME(cpu);
     cartridgeUpdate(memoryController, baseCyclesExecuted);
-    dmaUpdate(memoryController, cpuCyclesExecuted); // Not using speed adjusted cycles because the divider runs twice as fast in double speed mode
+    dmaUpdate(memoryController, cpuCyclesExecuted); // Not using speed adjusted cycles because the DMA transfer runs twice as fast in double speed mode
     hdmaUpdate(memoryController, baseCyclesExecuted);
     timerUpdateDivider(timerController, cpuCyclesExecuted); // Not using speed adjusted cycles because the divider runs twice as fast in double speed mode
     timerUpdateTimer(timerController, cpuCyclesExecuted); // Not using speed adjusted cycles because the timer runs twice as fast in double speed mode
