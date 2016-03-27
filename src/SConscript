@@ -1,6 +1,6 @@
 Import("env")
 
-env.AppendUnique(FRAMEWORKS=["OpenGL", "GLUT"])
+env.AppendUnique(FRAMEWORKS=["AudioUnit", "OpenGL", "GLUT"])
 
 env.Program("zephyr", [
   "battery.c",
@@ -18,6 +18,14 @@ env.Program("zephyr", [
   "logging.c",
   "main.c",
   "memory.c",
+  "sound/audiosamplebuffer.c",
+  "sound/coreaudio.c",
+  "sound/dutycycles.c",
+  "sound/soundchannel1.c",
+  "sound/soundchannel2.c",
+  "sound/soundchannel3.c",
+  "sound/soundchannel4.c",
+  "sound/soundcontroller.c",
   "speedcontroller.c",
   "sprites.c",
   "timer.c",

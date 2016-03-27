@@ -2,6 +2,7 @@
 #include "gameboy.h"
 #include "lcdgl.h"
 #include "pixel.h"
+#include "sound/coreaudio.h"
 #include "utils/os.h"
 
 #include <GLUT/glut.h>
@@ -17,16 +18,15 @@
 #define WINDOW_SCALE_FACTOR (TARGET_WINDOW_WIDTH_DEFAULT * 1.0 / LCD_WIDTH)
 
 GameBoy gameBoy;
-
 Pixel frameBuffer[LCD_WIDTH * LCD_HEIGHT];
+AudioSampleBuffer audioSampleBuffer;
 
 bool fast = false;
 
 void runGBWithGLUT(int value)
 {
   glutTimerFunc(17, runGBWithGLUT, value);
-
-  gbRunNFrames(&gameBoy, (fast) ? 4 : 1);
+  gbRunNFrames(&gameBoy, &audioSampleBuffer, (fast) ? 4 : 1);
 
   glutPostRedisplay();
 }
@@ -60,6 +60,18 @@ void keyPressed(unsigned char key, int x, int y)
       break;
     case 32: // Space
       fast = true;
+      break;
+    case 49: // 1 - Toggle sound channel 1
+      gameBoy.soundController.channel1Master = !gameBoy.soundController.channel1Master;
+      break;
+    case 50: // 2 - Toggle sound channel 2
+      gameBoy.soundController.channel2Master = !gameBoy.soundController.channel2Master;
+      break;
+    case 51: // 3 - Toggle sound channel 3
+      gameBoy.soundController.channel3Master = !gameBoy.soundController.channel3Master;
+      break;
+    case 52: // 4 - Toggle sound channel 4
+      gameBoy.soundController.channel4Master = !gameBoy.soundController.channel4Master;
       break;
   }
 }
@@ -153,6 +165,10 @@ int main(int argc, const char* argv[])
     exit(EXIT_FAILURE);
   }
 
+  sampleBufferInitialise(&audioSampleBuffer, 512 * 10); // CoreAudio requests buffers of 512 samples, so ten times that
+
+  struct GBAudioInfo* audioInfo = initCoreAudioPlayback(&audioSampleBuffer);
+
   gbInitialise(&gameBoy, gameBoyType, cartridgeData, frameBuffer, romFilename);
 
   glutInit(&argc, (char**)argv);
@@ -187,6 +203,7 @@ int main(int argc, const char* argv[])
 
   gbFinalise(&gameBoy);
 
+  free((void*)audioInfo);
   free((void*)windowTitle);
   free((void*)romFilename);
   free(cartridgeData);

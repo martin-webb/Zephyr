@@ -33,6 +33,7 @@ MemoryController InitMemoryController(
   CGBMode cgbMode,
   JoypadController* joypadController,
   LCDController* lcdController,
+  SoundController* soundController,
   TimerController* timerController,
   InterruptController* interruptController,
   SpeedController* speedController,
@@ -64,6 +65,7 @@ MemoryController InitMemoryController(
     cgbMode,
     joypadController,
     lcdController,
+    soundController,
     timerController,
     interruptController,
     speedController
@@ -286,6 +288,10 @@ uint8_t commonReadByte(MemoryController* memoryController, uint16_t address)
       return interruptReadByte(memoryController->interruptController, address);
     } else if (address == 0xFF1A) {
       return 0x80;
+    } else if ((address >= IO_REG_ADDRESS_NR10 && address <= IO_REG_ADDRESS_NR52) || // 0xFF10 - 0xFF26
+               (address >= 0xFF27 && address <= 0xFF2F) || // 0xFF27 - 0xFF2F
+               (address >= IO_REG_ADDRESS_WAVE_PATTERN_RAM_BEGIN && address <= IO_REG_ADDRESS_WAVE_PATTERN_RAM_END)) { // 0xFF30 - 0xFF3F
+      return soundControllerReadByte(memoryController->soundController, address);
     } else if (address == IO_REG_ADDRESS_DMA) { // 0xFF46
       return dmaReadByte(memoryController, address);
     } else if ((address >= IO_REG_ADDRESS_LCDC && address <= IO_REG_ADDRESS_LYC)  ||  // 0xFF40 - 0xFF45
@@ -435,6 +441,10 @@ void commonWriteByte(MemoryController* memoryController, uint16_t address, uint8
       timerWriteByte(memoryController->timerController, address, value);
     } else if (address == IO_REG_ADDRESS_IF) { // 0xFF0F
       interruptWriteByte(memoryController->interruptController, address, value);
+    } else if ((address >= IO_REG_ADDRESS_NR10 && address <= IO_REG_ADDRESS_NR52) || // 0xFF10 - 0xFF26
+               (address >= 0xFF27 && address <= 0xFF2F) || // 0xFF27 - 0xFF2F
+               (address >= IO_REG_ADDRESS_WAVE_PATTERN_RAM_BEGIN && address <= IO_REG_ADDRESS_WAVE_PATTERN_RAM_END)) { // 0xFF30 - 0xFF3F
+      soundControllerWriteByte(memoryController->soundController, address, value);
     } else if (address == IO_REG_ADDRESS_DMA) { // 0xFF46
       dmaWriteByte(memoryController, address, value);
     } else if ((address >= IO_REG_ADDRESS_LCDC && address <= IO_REG_ADDRESS_LYC)  ||  // 0xFF40 - 0xFF45

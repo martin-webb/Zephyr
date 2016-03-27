@@ -6,6 +6,7 @@
 #include "interrupts.h"
 #include "joypad.h"
 #include "lcd.h"
+#include "sound/soundcontroller.h"
 #include "speedcontroller.h"
 #include "timercontroller.h"
 
@@ -47,6 +48,7 @@ struct MemoryController {
   CGBMode cgbMode;
   JoypadController* joypadController;
   LCDController* lcdController;
+  SoundController* soundController;
   TimerController* timerController;
   InterruptController* interruptController;
   SpeedController* speedController;
