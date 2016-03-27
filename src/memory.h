@@ -12,6 +12,7 @@
 #define IO_REG_ADDRESS_HDMA4 0xFF54
 #define IO_REG_ADDRESS_HDMA5 0xFF55
 
+#include "sound/soundcontroller.h"
 #include "speedcontroller.h"
 #include "memorycontroller.h"
 
@@ -25,6 +26,7 @@ MemoryController InitMemoryController(
   CGBMode cgbMode,
   JoypadController* joypadController,
   LCDController* lcdController,
+  SoundController* soundController,
   TimerController* timerController,
   InterruptController* interruptController,
   SpeedController* speedController,
