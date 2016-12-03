@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <time.h>
 
+
 #define LCD_WIDTH 160
 #define LCD_HEIGHT 144
 
@@ -66,6 +67,7 @@
 #define MODE_3_CYCLES_MIN 172
 #define MODE_3_CYCLES_PER_SPRITE ((MODE_3_CYCLES_MAX - MODE_3_CYCLES_MIN) / MAX_SPRITES_PER_LINE)
 
+
 typedef struct {
   GameBoyType gameBoyType;
   CGBMode cgbMode;
@@ -102,6 +104,7 @@ typedef struct {
 
   InterruptController* interruptController;
 } LCDController;
+
 
 void initLCDController(LCDController* lcdController, InterruptController* interruptController, uint8_t* vram, uint8_t* oam, Pixel* frameBuffer, GameBoyType gameBoyType, CGBMode cgbMode);
 

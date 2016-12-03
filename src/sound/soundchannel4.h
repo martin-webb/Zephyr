@@ -7,8 +7,10 @@
 #define IO_REG_ADDRESS_NR43 0xFF22
 #define IO_REG_ADDRESS_NR44 0xFF23
 
+
 #include <stdbool.h>
 #include <stdint.h>
+
 
 typedef struct
 {
@@ -37,6 +39,7 @@ typedef struct
 
   bool zombie;
 } SoundChannel4;
+
 
 void initSoundChannel4(SoundChannel4* channel, uint8_t* nr52);
 

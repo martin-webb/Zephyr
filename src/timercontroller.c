@@ -1,5 +1,6 @@
 #include "timercontroller.h"
 
+
 void initTimerController(TimerController* timerController, InterruptController* interruptController)
 {
   timerController->dividerCounter = 0;

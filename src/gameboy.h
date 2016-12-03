@@ -9,6 +9,7 @@
 
 #include <stdint.h>
 
+
 typedef struct {
   CPU cpu;
   JoypadController joypadController;
@@ -28,6 +29,7 @@ typedef struct {
 
   int cyclesBeforeNextAudioSample;
 } GameBoy;
+
 
 void gbInitialise(GameBoy* gameBoy, GameBoyType gameBoyType, uint8_t* cartridgeData, Pixel* frameBuffer, const char* romFilename);
 void gbFinalise(GameBoy* gameBoy);

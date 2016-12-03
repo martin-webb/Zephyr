@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+
 #define IO_REG_ADDRESS_DMA 0xFF46
 
 #define IO_REG_ADDRESS_HDMA1 0xFF51
@@ -12,9 +13,11 @@
 #define IO_REG_ADDRESS_HDMA4 0xFF54
 #define IO_REG_ADDRESS_HDMA5 0xFF55
 
+
 #include "sound/soundcontroller.h"
 #include "speedcontroller.h"
 #include "memorycontroller.h"
+
 
 MemoryController InitMemoryController(
   uint8_t cartridgeType,
@@ -33,6 +36,7 @@ MemoryController InitMemoryController(
   uint32_t externalRAMSizeBytes,
   const char* romFilename
 );
+
 
 uint8_t readByte(MemoryController* memoryController, uint16_t address);
 uint16_t readWord(MemoryController* memoryController, uint16_t address);

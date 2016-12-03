@@ -5,11 +5,13 @@
 
 #import <AudioToolbox/AudioToolbox.h>
 
+
 struct GBAudioInfo
 {
   AudioUnit outputUnit;
   AudioSampleBuffer* audioSampleBuffer;
 };
+
 
 struct GBAudioInfo* initCoreAudioPlayback(AudioSampleBuffer* audioSampleBuffer);
 

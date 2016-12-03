@@ -13,9 +13,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+
 #define IO_REG_ADDRESS_SVBK 0xFF70
 
+
 typedef struct MemoryController MemoryController;
+
 
 struct MemoryController {
   uint8_t* vram;

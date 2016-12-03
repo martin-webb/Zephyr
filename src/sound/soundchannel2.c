@@ -4,6 +4,7 @@
 
 #include <math.h>
 
+
 // #define LOG_IO_WRITES_TO_NR20
 // #define LOG_IO_WRITES_TO_NR21
 // #define LOG_IO_WRITES_TO_NR22
@@ -13,7 +14,9 @@
 // #define LOG_CHANNEL_TRIGGERS
 // #define LOG_ZOMBIE
 
+
 extern int16_t DUTY_CYCLES[][8];
+
 
 void initSoundChannel2(SoundChannel2* channel, uint8_t* nr52)
 {

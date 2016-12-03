@@ -1,5 +1,6 @@
 #include "soundcontroller.h"
 
+
 void initSoundController(SoundController* soundController)
 {
   soundControllerReset(soundController);

@@ -1,6 +1,8 @@
 #include "timer.h"
 
+
 static const uint32_t INPUT_CLOCKS[] = {4096, 262144, 65536, 16384};
+
 
 uint8_t timerReadByte(TimerController* timerController, uint16_t address)
 {
@@ -47,6 +49,7 @@ void timerUpdateDivider(TimerController* timerController, uint8_t cyclesExecuted
   }
   timerController->dividerCounter = (timerController->dividerCounter + cyclesExecuted) % DIV_INCREMENT_CLOCK_CYCLES;
 }
+
 
 void timerUpdateTimer(TimerController* timerController, uint8_t cyclesExecuted)
 {

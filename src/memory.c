@@ -12,7 +12,9 @@
 
 #include <stdlib.h>
 
+
 #define HBLANK_DMA_TRANSFER_LENGTH 16
+
 
 const HDMATransfer HDMA_TRANSFER_DEFAULT =
 {
@@ -22,6 +24,7 @@ const HDMATransfer HDMA_TRANSFER_DEFAULT =
   .nextSourceAddr = 0,
   .nextDestinationAddr = 0
 };
+
 
 MemoryController InitMemoryController(
   uint8_t cartridgeType,

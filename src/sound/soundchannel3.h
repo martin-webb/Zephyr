@@ -10,8 +10,10 @@
 #define IO_REG_ADDRESS_WAVE_PATTERN_RAM_BEGIN 0xFF30
 #define IO_REG_ADDRESS_WAVE_PATTERN_RAM_END 0xFF3F
 
+
 #include <stdbool.h>
 #include <stdint.h>
+
 
 typedef struct
 {
@@ -31,6 +33,7 @@ typedef struct
   uint16_t length;
   bool counterSelection;
 } SoundChannel3;
+
 
 void initSoundChannel3(SoundChannel3* channel, uint8_t* nr52);
 

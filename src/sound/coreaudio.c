@@ -2,6 +2,7 @@
 
 #include "../logging.h"
 
+
 static void CHECK_ERROR(OSStatus error, const char* operation)
 {
   if (error == noErr) {

@@ -10,6 +10,7 @@
 #include <math.h>
 #include <time.h>
 
+
 #define SECONDS_IN_MINUTE 60
 #define SECONDS_IN_HOUR (60 * SECONDS_IN_MINUTE)
 #define SECONDS_IN_DAY (24 * SECONDS_IN_HOUR)
@@ -23,6 +24,7 @@
 // We're using CPU cycles to increment the RTC which are clocked at a much higher frequency
 #define RTC_TICK_FREQUENCY (4 * 1024 * 1024)
 
+
 typedef struct {
   uint8_t seconds;
   uint8_t minutes;
@@ -30,6 +32,7 @@ typedef struct {
   uint8_t dayLow;
   uint8_t dayHigh;
 } RTC;
+
 
 typedef struct {
   uint8_t* externalRAM;
@@ -50,11 +53,13 @@ typedef struct {
   FILE* batteryFile;
 } MBC3;
 
+
 #define RTC_SAVE_SIZE \
   SIZEOF_MEMBER(MBC3, rtc) + \
   SIZEOF_MEMBER(MBC3, _rtc) + \
   SIZEOF_MEMBER(MBC3, cycles) + \
   sizeof(uint64_t)
+
 
 static void mbc3SaveBufferRead(MBC3* mbc3, uint8_t* saveBuffer)
 {
@@ -91,6 +96,7 @@ static void mbc3SaveBufferRead(MBC3* mbc3, uint8_t* saveBuffer)
   }
 }
 
+
 static void mbc3SaveBufferWrite(MBC3* mbc3, uint8_t* saveBuffer)
 {
   mbc3->lastSaveTime = time(NULL);
@@ -125,6 +131,7 @@ static void mbc3SaveBufferWrite(MBC3* mbc3, uint8_t* saveBuffer)
   }
 }
 
+
 static void mbc3UpdateLastSaveTime(MBC3* mbc3)
 {
   // The internal RTC values are updated based on clock cycles and NOT real time so that emulation
@@ -144,6 +151,7 @@ static void mbc3UpdateLastSaveTime(MBC3* mbc3)
   // So, we store the value of time() and always use this to forward-fast the RTC.
   mbc3->lastSaveTime = time(NULL);
 }
+
 
 static void mbc3SaveRTC(MBC3* mbc3)
 {
@@ -168,6 +176,7 @@ static void mbc3SaveRTC(MBC3* mbc3)
     batteryFileWriteByte(mbc3->batteryFile, saveAddress++, (((uint64_t)mbc3->lastSaveTime) >> (byte * 8)) & 0xFF);
   }
 }
+
 
 uint8_t mbc3ReadByte(MemoryController* memoryController, uint16_t address)
 {
@@ -218,6 +227,7 @@ uint8_t mbc3ReadByte(MemoryController* memoryController, uint16_t address)
     return commonReadByte(memoryController, address);
   }
 }
+
 
 void mbc3WriteByte(MemoryController* memoryController, uint16_t address, uint8_t value)
 {
@@ -305,6 +315,7 @@ void mbc3WriteByte(MemoryController* memoryController, uint16_t address, uint8_t
   }
 }
 
+
 static void mbc3IncrementDays(MBC3* mbc3)
 {
   uint16_t dayCounterBefore = ((mbc3->_rtc.dayHigh & 1) << 8) | mbc3->_rtc.dayLow;
@@ -317,6 +328,7 @@ static void mbc3IncrementDays(MBC3* mbc3)
   mbc3->_rtc.dayHigh = mbc3->_rtc.dayHigh | dayCounterCarry | dayCounterMostSignificantBit;
 }
 
+
 static void mbc3IncrementHours(MBC3* mbc3)
 {
   mbc3->_rtc.hours = (mbc3->_rtc.hours + 1) % 24;
@@ -324,6 +336,7 @@ static void mbc3IncrementHours(MBC3* mbc3)
     mbc3IncrementDays(mbc3);
   }
 }
+
 
 static void mbc3IncrementMinutes(MBC3* mbc3)
 {
@@ -333,6 +346,7 @@ static void mbc3IncrementMinutes(MBC3* mbc3)
   }
 }
 
+
 static void mbc3IncrementSeconds(MBC3* mbc3)
 {
   mbc3->_rtc.seconds = (mbc3->_rtc.seconds + 1) % 60;
@@ -340,6 +354,7 @@ static void mbc3IncrementSeconds(MBC3* mbc3)
     mbc3IncrementMinutes(mbc3);
   }
 }
+
 
 static void mbc3CartridgeUpdate(MemoryController* memoryController, uint32_t cyclesExecuted)
 {
@@ -364,6 +379,7 @@ static void mbc3CartridgeUpdate(MemoryController* memoryController, uint32_t cyc
     // is called we still have a point where we serialise the most up-to-date value of the entire timer state.
   }
 }
+
 
 static void mbc3FastForwardRTC(MemoryController* memoryController, MBC3* mbc3, time_t now)
 {
@@ -404,6 +420,7 @@ static void mbc3FastForwardRTC(MemoryController* memoryController, MBC3* mbc3, t
   mbc3UpdateLastSaveTime(mbc3);
   mbc3SaveRTC(mbc3);
 }
+
 
 void mbc3InitialiseMemoryController(
   MemoryController* memoryController,
@@ -491,6 +508,7 @@ void mbc3InitialiseMemoryController(
     mbc3FastForwardRTC(memoryController, mbc3, now);
   }
 }
+
 
 void mbc3FinaliseMemoryController(MemoryController* memoryController)
 {

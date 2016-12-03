@@ -12,16 +12,19 @@
 #include <stdlib.h>
 #include <string.h>
 
+
 #define EMULATOR_NAME "Zephyr"
 
 #define TARGET_WINDOW_WIDTH_DEFAULT 1024
 #define WINDOW_SCALE_FACTOR (TARGET_WINDOW_WIDTH_DEFAULT * 1.0 / LCD_WIDTH)
+
 
 GameBoy gameBoy;
 Pixel frameBuffer[LCD_WIDTH * LCD_HEIGHT];
 AudioSampleBuffer audioSampleBuffer;
 
 bool fast = false;
+
 
 void runGBWithGLUT(int value)
 {
@@ -30,6 +33,7 @@ void runGBWithGLUT(int value)
 
   glutPostRedisplay();
 }
+
 
 void reshape(int width, int height)
 {
@@ -42,6 +46,7 @@ void reshape(int width, int height)
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 }
+
 
 void keyPressed(unsigned char key, int x, int y)
 {
@@ -76,6 +81,7 @@ void keyPressed(unsigned char key, int x, int y)
   }
 }
 
+
 void keyUp(unsigned char key, int x, int y)
 {
   switch (key) {
@@ -97,6 +103,7 @@ void keyUp(unsigned char key, int x, int y)
   }
 }
 
+
 void specialKeyPressed(int key, int x, int y)
 {
   switch (key) {
@@ -114,6 +121,7 @@ void specialKeyPressed(int key, int x, int y)
       break;
   }
 }
+
 
 void specialKeyUp(int key, int x, int y)
 {
@@ -133,6 +141,7 @@ void specialKeyUp(int key, int x, int y)
   }
 }
 
+
 GameBoyType getGameBoyType(int argc, const char* argv[])
 {
   if (argc >= 3) {
@@ -147,6 +156,7 @@ GameBoyType getGameBoyType(int argc, const char* argv[])
     return GB;
   }
 }
+
 
 int main(int argc, const char* argv[])
 {

@@ -8,12 +8,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+
 #define VRAM_SIZE_BYTES (8 * 1024)
 #define WRAM_SIZE_BYTES (8 * 1024)
 #define OAM_SIZE_BYTES 160
 #define HRAM_SIZE_BYTES 127
 
 #define AUDIO_SAMPLE_RATE 44100
+
 
 void gbInitialise(GameBoy* gameBoy, GameBoyType gameBoyType, uint8_t* cartridgeData, Pixel* frameBuffer, const char* romFilename)
 {
@@ -79,6 +81,7 @@ void gbInitialise(GameBoy* gameBoy, GameBoyType gameBoyType, uint8_t* cartridgeD
   cpuReset(&gameBoy->cpu);
 }
 
+
 void gbFinalise(GameBoy* gameBoy)
 {
   free(gameBoy->vram);
@@ -86,6 +89,7 @@ void gbFinalise(GameBoy* gameBoy)
   free(gameBoy->oam);
   free(gameBoy->hram);
 }
+
 
 GameBoyType gbGetGameType(uint8_t* cartridgeData)
 {
@@ -99,6 +103,7 @@ GameBoyType gbGetGameType(uint8_t* cartridgeData)
     }
   }
 }
+
 
 void gbRunNFrames(GameBoy* gameBoy, AudioSampleBuffer* audioSampleBuffer, const int frames)
 {

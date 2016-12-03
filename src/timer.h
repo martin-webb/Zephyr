@@ -4,6 +4,7 @@
 #include "cpu.h"
 #include "timercontroller.h"
 
+
 #define IO_REG_ADDRESS_DIV 0xFF04
 #define IO_REG_ADDRESS_TIMA 0xFF05
 #define IO_REG_ADDRESS_TMA 0xFF06
@@ -22,6 +23,7 @@
 // an increment occurs.
 
 #define TIMER_OVERFLOW_INTERRUPT_BIT (1 << 2)
+
 
 uint8_t timerReadByte(TimerController* timerController, uint16_t address);
 void timerWriteByte(TimerController* timerController, uint16_t address, uint8_t value);

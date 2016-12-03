@@ -3,13 +3,16 @@
 
 #include <stdint.h>
 
+
 #define IO_REG_ADDRESS_IF 0xFF0F
 #define IO_REG_ADDRESS_IE 0xFFFF
+
 
 typedef struct {
   uint8_t f; // FF0F - Interrupt Flag (R/W)
   uint8_t e; // FFFF - Interrupt Enable (R/W)
 } InterruptController;
+
 
 void initInterruptController(InterruptController* interruptController);
 

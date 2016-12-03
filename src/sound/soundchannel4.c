@@ -4,6 +4,7 @@
 
 #include <math.h>
 
+
 // #define LOG_IO_WRITES_TO_NR40
 // #define LOG_IO_WRITES_TO_NR41
 // #define LOG_IO_WRITES_TO_NR42
@@ -12,6 +13,7 @@
 // #define LOG_IO_WRITES_TO_ALL
 // #define LOG_CHANNEL_TRIGGERS
 // #define LOG_ZOMBIE
+
 
 void initSoundChannel4(SoundChannel4* channel, uint8_t* nr52)
 {

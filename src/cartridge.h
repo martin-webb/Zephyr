@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
+
 #define CARTRIDGE_SIZE 0x8000
 
 #define NINTENDO_GRAPHIC_START_ADDRESS 0x104
@@ -56,6 +57,7 @@
 #define CARTRIDGE_TYPE_BANDAI_TAMA5 0xFD
 #define CARTRIDGE_TYPE_HuC3 0xFE
 #define CARTRIDGE_TYPE_HuC1_PLUS_RAM_PLUS_BATTERY 0xFF
+
 
 int cartridgeGetSize(FILE* cartridgeFile);
 uint8_t* cartridgeLoadData(const char* pathToROM);

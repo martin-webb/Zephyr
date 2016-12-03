@@ -6,6 +6,7 @@
 
 #include <stdlib.h>
 
+
 #define BACKGROUND_WIDTH 256
 #define BACKGROUND_HEIGHT 256
 
@@ -13,11 +14,13 @@
 #define LOW_3_BITS 7
 #define LOW_5_BITS 31
 
+
 typedef struct
 {
   int x;
   int y;
 } Point;
+
 
 typedef struct
 {
@@ -25,12 +28,14 @@ typedef struct
   int high;
 } TileLineData;
 
+
 typedef struct
 {
   int r;
   int g;
   int b;
 } Colour;
+
 
 typedef struct
 {
@@ -40,6 +45,7 @@ typedef struct
   bool verticalFlip;
   bool bgPriority;
 } BGMapAttributes;
+
 
 static const BGMapAttributes BG_MAP_ATTRIBUTES_DEFAULT =
 {
@@ -345,6 +351,7 @@ static void setBGMapAttributes(LCDController* lcdController, BGMapAttributes* at
   attributes->bgPriority = (attributesByte & (1 << 7));
 }
 
+
 static void setWindowMapAttributes(LCDController* lcdController, BGMapAttributes* attributes, uint16_t windowMapTileIndex)
 {
   uint8_t attributesByte = lcdController->vram[((lcdController->lcdc & LCD_WINDOW_TILE_MAP_DISPLAY_SELECT_BIT) ? 0x3C00 : 0x3800) + windowMapTileIndex];
@@ -355,6 +362,7 @@ static void setWindowMapAttributes(LCDController* lcdController, BGMapAttributes
   attributes->verticalFlip = (attributesByte & (1 << 6));
   attributes->bgPriority = (attributesByte & (1 << 7));
 }
+
 
 static Point getPositionInBackground(LCDController* lcdController, int scanlineX)
 {
