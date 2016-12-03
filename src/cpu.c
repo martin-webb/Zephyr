@@ -2364,12 +2364,9 @@ void cpuHandleInterrupts(CPU* cpu)
 {
   InterruptController* interruptController = cpu->interruptController;
 
-  if (cpu->ime && interruptController->e != 0 && interruptController->f != 0)
-  {
-    for (uint8_t bitOffset = 0; bitOffset < 5; bitOffset++)
-    {
-      if (interruptController->e & interruptController->f & (1 << bitOffset))
-      {
+  if (cpu->ime && interruptController->e != 0 && interruptController->f != 0) {
+    for (uint8_t bitOffset = 0; bitOffset < 5; bitOffset++) {
+      if (interruptController->e & interruptController->f & (1 << bitOffset)) {
         // Disable all interrupts during the interrupt and cancel low-power (HALT) mode
         cpu->ime = false;
         cpu->halt = false;
@@ -2394,13 +2391,9 @@ void cpuHandleInterrupts(CPU* cpu)
         break;
       }
     }
-  }
-  else if (cpu->halt && interruptController->f != 0)
-  {
-    for (uint8_t bitOffset = 0; bitOffset < 5; bitOffset++)
-    {
-      if (interruptController->f & (1 << bitOffset))
-      {
+  } else if (cpu->halt && interruptController->f != 0) {
+    for (uint8_t bitOffset = 0; bitOffset < 5; bitOffset++) {
+      if (interruptController->f & (1 << bitOffset)) {
         cpu->halt = false;
 
         // The DI-HALT bug
