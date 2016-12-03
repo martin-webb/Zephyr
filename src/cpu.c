@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
 /* Flag Set/Reset Generation Macros *************************************************************/
 #define SET_FLAG_TO_RESULT(FLAG, TEST) \
   if (TEST) { \
@@ -16,8 +17,8 @@
     reset ## FLAG(cpu); \
   } \
 
-/* Opcode Generation Macros *********************************************************************/
 
+/* Opcode Generation Macros *********************************************************************/
 #define MAKE_ADD_A_N_OPCODE_IMPL(SOURCE_REGISTER) \
   uint8_t old = cpu->registers.a; \
   uint8_t value = cpu->registers.SOURCE_REGISTER; \
@@ -29,6 +30,7 @@
   SET_FLAG_TO_RESULT(C, ((old & 0xFF) + (value & 0xFF)) > 0xFF) \
   cycles += 4; \
   break;
+
 
 #define MAKE_ADC_A_N_OPCODE_IMPL(SOURCE_REGISTER) \
   uint8_t old = cpu->registers.a; \
@@ -43,6 +45,7 @@
   cycles += 4; \
   break;
 
+
 #define MAKE_SUB_N_OPCODE_IMPL(SOURCE_REGISTER) \
   uint8_t oldA = cpu->registers.a; \
   int32_t newA = oldA - cpu->registers.SOURCE_REGISTER; \
@@ -53,6 +56,7 @@
   SET_FLAG_TO_RESULT(C, newA < 0) \
   cycles += 4; \
   break;
+
 
 #define MAKE_SBC_A_N_OPCODE_IMPL(SOURCE_REGISTER) \
   uint8_t oldA = cpu->registers.a; \
@@ -66,6 +70,7 @@
   cycles += 4; \
   break;
 
+
 #define MAKE_AND_N_OPCODE_IMPL(SOURCE_REGISTER) \
   cpu->registers.a &= cpu->registers.SOURCE_REGISTER; \
   SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0) \
@@ -74,6 +79,7 @@
   resetC(cpu); \
   cycles += 4; \
   break;
+
 
 #define MAKE_OR_N_OPCODE_IMPL(SOURCE_REGISTER) \
   cpu->registers.a |= cpu->registers.SOURCE_REGISTER; \
@@ -84,6 +90,7 @@
   cycles += 4; \
   break;
 
+
 #define MAKE_XOR_N_OPCODE_IMPL(SOURCE_REGISTER) \
   cpu->registers.a ^= cpu->registers.SOURCE_REGISTER; \
   SET_FLAG_TO_RESULT(Z, cpu->registers.a == 0) \
@@ -93,6 +100,7 @@
   cycles += 4; \
   break;
 
+
 #define MAKE_CP_N_OPCODE_IMPL(SOURCE_REGISTER) \
   int16_t result = cpu->registers.a - cpu->registers.SOURCE_REGISTER; \
   SET_FLAG_TO_RESULT(Z, result == 0) \
@@ -101,6 +109,7 @@
   SET_FLAG_TO_RESULT(C, result < 0) \
   cycles += 4; \
   break;
+
 
 #define MAKE_INC_N_OPCODE_IMPL(REGISTER) \
   uint8_t old = cpu->registers.REGISTER; \
@@ -112,6 +121,7 @@
   cycles += 4; \
   break;
 
+
 #define MAKE_DEC_N_OPCODE_IMPL(REGISTER) \
   uint8_t oldValue = cpu->registers.REGISTER; \
   int16_t newValue = oldValue - 1; \
@@ -121,6 +131,7 @@
   SET_FLAG_TO_RESULT(H, 1 > (oldValue & 0x0F)) \
   cycles += 4; \
   break;
+
 
 #define MAKE_ADD_HL_N_OPCODE_IMPL(REGISTER_HIGH, REGISTER_LOW) \
   uint16_t old = (cpu->registers.h << 8) | cpu->registers.l; \
@@ -134,6 +145,7 @@
   cycles += 8; \
   break;
 
+
 #define MAKE_INC_NN_OPCODE_IMPL(REGISTER_HIGH, REGISTER_LOW) \
   cpu->registers.REGISTER_LOW++; \
   if (cpu->registers.REGISTER_LOW == 0) { \
@@ -142,6 +154,7 @@
   cycles += 8; \
   break;
 
+
 #define MAKE_DEC_NN_OPCODE_IMPL(REGISTER_HIGH, REGISTER_LOW) \
   cpu->registers.REGISTER_LOW--; \
   if (cpu->registers.REGISTER_LOW == 0xFF) { \
@@ -149,6 +162,7 @@
   } \
   cycles += 8; \
   break;
+
 
 #define MAKE_SWAP_N_OPCODE_IMPL(REGISTER) \
   cpu->registers.REGISTER = ((cpu->registers.REGISTER & 0xF0) >> 4) | ((cpu->registers.REGISTER & 0x0F) << 4); \
@@ -159,6 +173,7 @@
   cycles += 8; \
   break;
 
+
 #define MAKE_RLC_N_OPCODE_IMPL(REGISTER) \
   SET_FLAG_TO_RESULT(C, cpu->registers.REGISTER & BIT_7); \
   cpu->registers.REGISTER = (cpu->registers.REGISTER << 1) | ((cpu->registers.REGISTER & BIT_7) >> BIT_7_SHIFT); \
@@ -167,6 +182,7 @@
   resetH(cpu); \
   cycles += 8; \
   break;
+
 
 #define MAKE_RL_N_OPCODE_IMPL(REGISTER) \
   uint8_t oldCarryBit = (cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT; \
@@ -178,6 +194,7 @@
   cycles += 8; \
   break;
 
+
 #define MAKE_RRC_N_OPCODE_IMPL(REGISTER) \
   SET_FLAG_TO_RESULT(C, cpu->registers.REGISTER & BIT_0) \
   cpu->registers.REGISTER = ((cpu->registers.REGISTER & BIT_0) << BIT_7_SHIFT) | (cpu->registers.REGISTER >> 1); \
@@ -186,6 +203,7 @@
   resetH(cpu); \
   cycles += 8; \
   break;
+
 
 #define MAKE_RR_N_OPCODE_IMPL(REGISTER) \
   uint8_t oldCarryBit = (cpu->registers.f & FLAG_REGISTER_C_BIT) >> FLAG_REGISTER_C_BIT_SHIFT; \
@@ -197,6 +215,7 @@
   cycles += 8; \
   break;
 
+
 #define MAKE_SLA_N_OPCODE_IMPL(REGISTER) \
   SET_FLAG_TO_RESULT(C, cpu->registers.REGISTER & BIT_7) \
   cpu->registers.REGISTER <<= 1; \
@@ -205,6 +224,7 @@
   resetH(cpu); \
   cycles += 8; \
   break;
+
 
 #define MAKE_SRA_N_OPCODE_IMPL(REGISTER) \
   SET_FLAG_TO_RESULT(C, cpu->registers.REGISTER & BIT_0) \
@@ -215,6 +235,7 @@
   cycles += 8; \
   break;
 
+
 #define MAKE_SRL_N_OPCODE_IMPL(REGISTER) \
   SET_FLAG_TO_RESULT(C, cpu->registers.REGISTER & BIT_0) \
   cpu->registers.REGISTER = cpu->registers.REGISTER >> 1; \
@@ -224,12 +245,14 @@
   cycles += 8; \
   break;
 
+
 #define MAKE_BIT_B_R_OPCODE_IMPL(B, REGISTER) \
   SET_FLAG_TO_RESULT(Z, ((cpu->registers.REGISTER & (0x1 << B)) >> B) == 0) \
   resetN(cpu); \
   setH(cpu); \
   cycles += 8; \
   break;
+
 
 #define MAKE_BIT_B_MEM_AT_HL_OPCODE_IMPL(B) \
   uint8_t value = readByte(m, (cpu->registers.h << 8) | cpu->registers.l); \
@@ -238,6 +261,7 @@
   setH(cpu); \
   cycles += 12; \
   break;
+
 
 #define MAKE_BIT_B_R_OPCODE_GROUP(B, BEGINNING_OPCODE) \
   case BEGINNING_OPCODE - 0: { \
@@ -265,10 +289,12 @@
     MAKE_BIT_B_MEM_AT_HL_OPCODE_IMPL(B) \
   }
 
+
 #define MAKE_SET_B_R_OPCODE_IMPL(B, REGISTER) \
   cpu->registers.REGISTER |= (0x1 << B); \
   cycles += 8; \
   break;
+
 
 #define MAKE_SET_B_MEM_AT_HL_OPCODE_IMPL(B) \
   uint8_t value = readByte(m, (cpu->registers.h << 8) | cpu->registers.l); \
@@ -276,6 +302,7 @@
   writeByte(m, (cpu->registers.h << 8) | cpu->registers.l, value); \
   cycles += 16; \
   break;
+
 
 #define MAKE_SET_B_R_OPCODE_GROUP(B, BEGINNING_OPCODE) \
   case BEGINNING_OPCODE - 0: { \
@@ -303,10 +330,12 @@
     MAKE_SET_B_MEM_AT_HL_OPCODE_IMPL(B) \
   }
 
+
 #define MAKE_RES_B_R_OPCODE_IMPL(B, REGISTER) \
   cpu->registers.REGISTER &= ~(1 << B); \
   cycles += 8; \
   break;
+
 
 #define MAKE_RES_B_MEM_AT_HL_OPCODE_IMPL(B) \
   uint8_t value = readByte(m, (cpu->registers.h << 8) | cpu->registers.l); \
@@ -314,6 +343,7 @@
   writeByte(m, (cpu->registers.h << 8) | cpu->registers.l, value); \
   cycles += 16; \
   break;
+
 
 #define MAKE_RES_B_R_OPCODE_GROUP(B, BEGINNING_OPCODE) \
   case BEGINNING_OPCODE - 0: { \
@@ -341,6 +371,7 @@
     MAKE_RES_B_MEM_AT_HL_OPCODE_IMPL(B) \
   }
 
+
 #define MAKE_CALL_CC_NN_OPCODE_IMPL(FLAG_REGISTER_BIT_MASK, FLAG_REGISTER_BIT_SHIFT, CONDITION_VALUE) \
   uint16_t address = readWord(m, cpu->registers.pc); \
   cpu->registers.pc += 2; \
@@ -352,6 +383,7 @@
   } \
   cycles += 12; \
   break;
+
 
 // TODO: Check the implementations here - the GB CPU Manual says to 'push present address onto
 // the stack' but if the 'present address' is the address of the opcode currently executing
@@ -368,6 +400,7 @@
   cycles += 16; \
   break;
 
+
 #define MAKE_RET_CC_OPCODE_IMPL(FLAG_REGISTER_BIT_MASK, FLAG_REGISTER_BIT_SHIFT, CONDITION_VALUE) \
   if (((cpu->registers.f & FLAG_REGISTER_BIT_MASK) >> FLAG_REGISTER_BIT_SHIFT) == CONDITION_VALUE) { \
     uint8_t addressLow = readByte(m, cpu->registers.sp++); \
@@ -377,48 +410,56 @@
   } \
   cycles += 8; \
   break;
-
 /* End Opcode Generation Macros *****************************************************************/
+
 
 void setZ(CPU* cpu)
 {
   cpu->registers.f |= (1 << FLAG_REGISTER_Z_BIT_SHIFT);
 }
 
+
 void setN(CPU* cpu)
 {
   cpu->registers.f |= (1 << FLAG_REGISTER_N_BIT_SHIFT);
 }
+
 
 void setH(CPU* cpu)
 {
   cpu->registers.f |= (1 << FLAG_REGISTER_H_BIT_SHIFT);
 }
 
+
 void setC(CPU* cpu)
 {
   cpu->registers.f |= (1 << FLAG_REGISTER_C_BIT_SHIFT);
 }
+
 
 void resetZ(CPU* cpu)
 {
   cpu->registers.f &= ~(1 << FLAG_REGISTER_Z_BIT_SHIFT);
 }
 
+
 void resetN(CPU* cpu)
 {
   cpu->registers.f &= ~(1 << FLAG_REGISTER_N_BIT_SHIFT);
 }
+
 
 void resetH(CPU* cpu)
 {
   cpu->registers.f &= ~(1 << FLAG_REGISTER_H_BIT_SHIFT);
 }
 
+
 void resetC(CPU* cpu)
 {
   cpu->registers.f &= ~(1 << FLAG_REGISTER_C_BIT_SHIFT);
 }
+
 
 void initCPU(CPU* cpu, MemoryController* memoryController, InterruptController* interruptController, GameBoyType gameBoyType)
 {
@@ -426,6 +467,7 @@ void initCPU(CPU* cpu, MemoryController* memoryController, InterruptController* 
   cpu->interruptController = interruptController;
   cpu->gameBoyType = gameBoyType;
 }
+
 
 void cpuReset(CPU* cpu)
 {
@@ -485,6 +527,7 @@ void cpuReset(CPU* cpu)
   writeByte(cpu->memoryController, IO_REG_ADDRESS_IE, 0x00);
 }
 
+
 void cpuPrintState(CPU* cpu)
 {
   printf("A: 0x%02X B: 0x%02X C: 0x%02X D: 0x%02X E: 0x%02X F: 0x%02X H: 0x%02X L: 0x%02X\n",
@@ -508,6 +551,7 @@ void cpuPrintState(CPU* cpu)
     (cpu->registers.f & FLAG_REGISTER_C_BIT) >> 4
   );
 }
+
 
 uint8_t cpuRunSingleOp(CPU* cpu)
 {
@@ -2343,6 +2387,7 @@ uint8_t cpuRunSingleOp(CPU* cpu)
   return cycles;
 }
 
+
 void cpuUpdateIME(CPU* cpu)
 {
   if (cpu->di == 1) {
@@ -2359,6 +2404,7 @@ void cpuUpdateIME(CPU* cpu)
     cpu->ei = 0;
   }
 }
+
 
 void cpuHandleInterrupts(CPU* cpu)
 {

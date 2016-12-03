@@ -4,6 +4,7 @@
 #include "../logging.h"
 #include "../memory.h"
 
+
 uint8_t romOnlyReadByte(MemoryController* memoryController, uint16_t address)
 {
   if (address < CARTRIDGE_SIZE) {
@@ -13,6 +14,7 @@ uint8_t romOnlyReadByte(MemoryController* memoryController, uint16_t address)
   }
 }
 
+
 void romOnlyWriteByte(MemoryController* memoryController, uint16_t address, uint8_t value)
 {
   if (address < CARTRIDGE_SIZE) {
@@ -21,6 +23,7 @@ void romOnlyWriteByte(MemoryController* memoryController, uint16_t address, uint
     commonWriteByte(memoryController, address, value);
   }
 }
+
 
 void romOnlyInitialiseMemoryController(MemoryController* memoryController)
 {

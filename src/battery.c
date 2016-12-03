@@ -7,8 +7,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+
 #define PATH_TO_BATTERY_SAVE_DIR "/Library/Application Support/Zephyr/Battery/"
 #define BATTERY_SAVE_FILE_EXTENSION ".bat"
+
 
 static const char* batterySaveLocation(const char* romFilename)
 {
@@ -38,6 +40,7 @@ static const char* batterySaveLocation(const char* romFilename)
   return pathToSaveFile;
 }
 
+
 static void batteryFileCreate(const char* pathToFile, uint8_t* data, uint32_t size)
 {
   const char* destinationDir = dirname(pathToFile);
@@ -55,6 +58,7 @@ static void batteryFileCreate(const char* pathToFile, uint8_t* data, uint32_t si
   }
 }
 
+
 static void batteryFileLoad(const char* pathToFile, uint8_t* data, uint32_t size)
 {
   FILE* saveFile = fopen(pathToFile, "rb");
@@ -65,6 +69,7 @@ static void batteryFileLoad(const char* pathToFile, uint8_t* data, uint32_t size
     warning("Battery file load incomplete - expected to read %u bytes, actually read %u bytes\n", size, bytesRead);
   }
 }
+
 
 FILE* batteryFileOpen(const char* romFilename, uint8_t* data, uint32_t size)
 {
@@ -81,6 +86,7 @@ FILE* batteryFileOpen(const char* romFilename, uint8_t* data, uint32_t size)
   free((void*)pathToFile);
   return saveFile;
 }
+
 
 void batteryFileWriteByte(FILE* saveFile, uint16_t address, uint8_t value)
 {

@@ -8,6 +8,7 @@
 
 #define PIXEL_DATA_ARRAY_NUM_ELEMENTS (PIXEL_DATA_ARRAY_NUM_ELEMENTS_PER_LINE * LCD_HEIGHT)
 
+
 void lcdGLInitPixelVerticesArray();
 void lcdGLInit();
 void lcdGLDrawScreen();

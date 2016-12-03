@@ -6,10 +6,12 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+
 bool exists(const char* path)
 {
   return access(path, F_OK) == 0;
 }
+
 
 const char* basename(const char* path)
 {
@@ -29,6 +31,7 @@ const char* basename(const char* path)
   return d;
 }
 
+
 const char* dirname(const char* path)
 {
   size_t endPos = strlen(path) - 1;
@@ -44,6 +47,7 @@ const char* dirname(const char* path)
 
   return d;
 }
+
 
 ExtSplitPathComponents splitext(const char* path)
 {
@@ -89,6 +93,7 @@ ExtSplitPathComponents splitext(const char* path)
 
   return extSplitPathComponents;
 }
+
 
 int mkdirp(const char* path)
 {

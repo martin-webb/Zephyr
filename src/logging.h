@@ -10,6 +10,7 @@ enum LogLevel
   LogLevelCritical
 };
 
+
 int debug(const char* format, ...);
 int info(const char* format, ...);
 int warning(const char* format, ...);

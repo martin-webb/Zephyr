@@ -1,5 +1,6 @@
 #include "joypad.h"
 
+
 void initJoypadController(JoypadController* joypadController)
 {
   joypadController->p1 = 0x3F;

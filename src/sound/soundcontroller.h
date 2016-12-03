@@ -9,9 +9,11 @@
 
 #include <stdint.h>
 
+
 #define IO_REG_ADDRESS_NR50 0xFF24
 #define IO_REG_ADDRESS_NR51 0xFF25
 #define IO_REG_ADDRESS_NR52 0xFF26
+
 
 typedef struct
 {
@@ -36,6 +38,7 @@ typedef struct
   bool channel3Master;
   bool channel4Master;
 } SoundController;
+
 
 void initSoundController(SoundController* soundController);
 

@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 
+
 int cartridgeGetSize(FILE* cartridgeFile)
 {
   long int size;
@@ -12,6 +13,7 @@ int cartridgeGetSize(FILE* cartridgeFile)
   fseek(cartridgeFile, 0, SEEK_SET);
   return size;
 }
+
 
 uint8_t* cartridgeLoadData(const char* pathToROM)
 {
@@ -32,6 +34,7 @@ uint8_t* cartridgeLoadData(const char* pathToROM)
 
   return cartridgeData;
 }
+
 
 const char* cartridgeGetGameTitle(const uint8_t* cartridgeData)
 {
@@ -60,15 +63,18 @@ const char* cartridgeGetGameTitle(const uint8_t* cartridgeData)
   return gameTitle;
 }
 
+
 uint8_t cartridgeGetCGBMode(const uint8_t* cartridgeData)
 {
   return cartridgeData[CGB_FLAG_ADDRESS];
 }
 
+
 uint8_t cartridgeGetType(const uint8_t* cartridgeData)
 {
   return cartridgeData[CARTRIDGE_TYPE_ADDRESS];
 }
+
 
 uint32_t RAMSizeInBytes(uint8_t ramSize)
 {
@@ -94,6 +100,7 @@ uint32_t RAMSizeInBytes(uint8_t ramSize)
       break;
   }
 }
+
 
 char* ROMSizeToString(uint8_t romSize)
 {
@@ -134,6 +141,7 @@ char* ROMSizeToString(uint8_t romSize)
   }
 }
 
+
 char* RAMSizeToString(uint8_t ramSize)
 {
   switch (ramSize) {
@@ -158,6 +166,7 @@ char* RAMSizeToString(uint8_t ramSize)
   }
 }
 
+
 char* DestinationCodeToString(uint8_t destinationCode)
 {
   switch (destinationCode) {
@@ -172,6 +181,7 @@ char* DestinationCodeToString(uint8_t destinationCode)
       break;
   }
 }
+
 
 char* CartridgeTypeToString(uint8_t cartridgeType)
 {

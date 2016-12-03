@@ -5,6 +5,7 @@
 
 #include <stdint.h>
 
+
 void mbc3InitialiseMemoryController(MemoryController* memoryController, uint32_t externalRAMSizeBytes, const char* romFilename, bool ram, bool timer, bool battery);
 void mbc3FinaliseMemoryController(MemoryController* memoryController);
 

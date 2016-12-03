@@ -2,7 +2,9 @@
 
 #include "../logging.h"
 
+
 #define WAVE_PATTERN_RAM_NUM_SAMPLES 32
+
 
 // #define LOG_IO_WRITES_TO_NR30
 // #define LOG_IO_WRITES_TO_NR31
@@ -11,6 +13,7 @@
 // #define LOG_IO_WRITES_TO_NR34
 // #define LOG_IO_WRITES_TO_ALL
 // #define LOG_CHANNEL_TRIGGERS
+
 
 void initSoundChannel3(SoundChannel3* channel, uint8_t* nr52)
 {

@@ -5,6 +5,7 @@
 
 #include <stdint.h>
 
+
 typedef struct {
   uint8_t div;  // FF04 - Divider Register (R/W)
   uint8_t tima; // FF05 - Timer Counter (R/W)
@@ -16,6 +17,7 @@ typedef struct {
 
   InterruptController* interruptController;
 } TimerController;
+
 
 void initTimerController(TimerController* timerController, InterruptController* interruptController);
 

@@ -4,11 +4,13 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+
 typedef enum
 {
   GENERAL,
   HBLANK
 } HDMATransferType;
+
 
 typedef struct
 {

@@ -1,6 +1,7 @@
 #ifndef GBTYPE_H_
 #define GBTYPE_H_
 
+
 // Enum with dual functionality
 typedef enum {
   GB,

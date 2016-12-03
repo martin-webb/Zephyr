@@ -3,10 +3,12 @@
 
 #include <stdbool.h>
 
+
 typedef struct {
   const char* left;
   const char* right;
 } ExtSplitPathComponents;
+
 
 bool exists(const char* path);
 const char* basename(const char* path); // NOTE: Caller owns memory

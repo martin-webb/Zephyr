@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+
 void sampleBufferInitialise(AudioSampleBuffer* buffer, int size)
 {
   buffer->data = (AudioSample*)malloc(size * sizeof(AudioSample));

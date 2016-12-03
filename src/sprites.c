@@ -1,5 +1,6 @@
 #include "sprites.h"
 
+
 int spritesCompareByXPosition(const void* a, const void* b)
 {
   const Sprite* spriteA = (const Sprite*)a;

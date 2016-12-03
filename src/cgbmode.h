@@ -1,6 +1,7 @@
 #ifndef CGBMODE_H_
 #define CGBMODE_H_
 
+
 typedef enum {
   MONOCHROME,
   COLOUR

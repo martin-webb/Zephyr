@@ -5,6 +5,7 @@
 
 #include <stdbool.h>
 
+
 typedef struct
 {
   AudioSample* data;
@@ -14,6 +15,7 @@ typedef struct
   int write;
   bool overflowed;
 } AudioSampleBuffer;
+
 
 void sampleBufferInitialise(AudioSampleBuffer* buffer, int size);
 void sampleBufferFinalise(AudioSampleBuffer* buffer);

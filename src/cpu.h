@@ -7,6 +7,7 @@
 
 #include <stdbool.h>
 
+
 #define CLOCK_CYCLE_FREQUENCY_NORMAL_SPEED 4194304
 #define CLOCK_CYCLE_TIME_SECS_NORMAL_SPEED (1.0 / CLOCK_CYCLE_FREQUENCY_NORMAL_SPEED)
 
@@ -45,6 +46,7 @@
 
 #define CPU_MIN_CYCLES_PER_SET 70224
 
+
 typedef struct {
   uint8_t a;
   uint8_t f;
@@ -57,6 +59,7 @@ typedef struct {
   uint16_t sp;
   uint16_t pc;
 } CPURegisters;
+
 
 typedef struct {
   CPURegisters registers;
@@ -71,6 +74,7 @@ typedef struct {
   InterruptController* interruptController;
   GameBoyType gameBoyType;
 } CPU;
+
 
 void initCPU(CPU* cpu, MemoryController* memoryController, InterruptController* interruptController, GameBoyType gameBoyType);
 void cpuReset(CPU* cpu);

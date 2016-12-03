@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
+
 const char* const LOG_LEVEL_NAMES[] =
 {
   "DEBUG",
@@ -13,6 +14,7 @@ const char* const LOG_LEVEL_NAMES[] =
   "ERROR",
   "CRITICAL"
 };
+
 
 int logImpl(enum LogLevel logLevel, const char* format, va_list args)
 {
@@ -44,6 +46,7 @@ int logImpl(enum LogLevel logLevel, const char* format, va_list args)
   }
 }
 
+
 int debug(const char* format, ...)
 {
   va_list args;
@@ -53,6 +56,7 @@ int debug(const char* format, ...)
 
   return chars;
 }
+
 
 int info(const char* format, ...)
 {
@@ -64,6 +68,7 @@ int info(const char* format, ...)
   return chars;
 }
 
+
 int warning(const char* format, ...)
 {
   va_list args;
@@ -74,6 +79,7 @@ int warning(const char* format, ...)
   return chars;
 }
 
+
 int error(const char* format, ...)
 {
   va_list args;
@@ -83,6 +89,7 @@ int error(const char* format, ...)
 
   return chars;
 }
+
 
 int critical(const char* format, ...)
 {

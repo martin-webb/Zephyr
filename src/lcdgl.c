@@ -5,13 +5,16 @@
 
 #include <GLUT/glut.h>
 
+
 #define PIXEL_DATA_ARRAY_NUM_ELEMENTS_PER_VERTEX 2
 #define PIXEL_DATA_ARRAY_NUM_ELEMENTS_PER_COLOUR 3
+
 
 extern Pixel frameBuffer[LCD_WIDTH * LCD_HEIGHT];
 
 static float PIXEL_VERTICES[PIXEL_DATA_ARRAY_NUM_ELEMENTS * PIXEL_DATA_ARRAY_NUM_ELEMENTS_PER_VERTEX];
 static float PIXEL_COLOURS[PIXEL_DATA_ARRAY_NUM_ELEMENTS * PIXEL_DATA_ARRAY_NUM_ELEMENTS_PER_COLOUR];
+
 
 void lcdGLInitPixelVerticesArray()
 {
@@ -33,6 +36,7 @@ void lcdGLInitPixelVerticesArray()
   }
 }
 
+
 void lcdGLInit()
 {
   glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -45,6 +49,7 @@ void lcdGLInit()
   glVertexPointer(2, GL_FLOAT, 0, PIXEL_VERTICES);
   glColorPointer(3, GL_FLOAT, 0, PIXEL_COLOURS);
 }
+
 
 static void lcdGLFillColourArray()
 {
@@ -65,6 +70,7 @@ static void lcdGLFillColourArray()
     i += 6; // Skip past the two degenerate triangles because the colour doesn't matter
   }
 }
+
 
 void lcdGLDrawScreen()
 {

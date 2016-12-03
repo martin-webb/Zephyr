@@ -3,6 +3,7 @@
 
 #include "../memorycontroller.h"
 
+
 void romOnlyInitialiseMemoryController(MemoryController* memoryController);
 
 #endif // CARTRIDGE_TYPES_ROMONLY_H_

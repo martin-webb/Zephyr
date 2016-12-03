@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
+
 typedef struct {
   uint8_t* externalRAM;
   uint32_t externalRAMSize;
@@ -18,6 +19,7 @@ typedef struct {
 
   FILE* batteryFile;
 } MBC5;
+
 
 uint8_t mbc5ReadByte(MemoryController* memoryController, uint16_t address)
 {
@@ -42,6 +44,7 @@ uint8_t mbc5ReadByte(MemoryController* memoryController, uint16_t address)
     return commonReadByte(memoryController, address);
   }
 }
+
 
 void mbc5WriteByte(MemoryController* memoryController, uint16_t address, uint8_t value)
 {
@@ -83,6 +86,7 @@ void mbc5WriteByte(MemoryController* memoryController, uint16_t address, uint8_t
   }
 }
 
+
 void mbc5InitialiseMemoryController(
   MemoryController* memoryController,
   uint32_t externalRAMSizeBytes,
@@ -121,6 +125,7 @@ void mbc5InitialiseMemoryController(
   memoryController->writeByteImpl = &mbc5WriteByte;
   memoryController->mbc = mbc5;
 }
+
 
 void mbc5FinaliseMemoryController(MemoryController* memoryController)
 {
