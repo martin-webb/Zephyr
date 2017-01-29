@@ -27,8 +27,8 @@ static OSStatus GBAudioUnitRenderProc(void* inRefCon, AudioUnitRenderActionFlags
                                       const AudioTimeStamp* inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames,
                                       AudioBufferList* ioData)
 {
-  struct GBAudioInfo* gbAudio = (struct GBAudioInfo*)inRefCon;
-  AudioSampleBuffer* audioSampleBuffer = gbAudio->audioSampleBuffer;
+  struct GBAudioContext* audioContext = (struct GBAudioContext*)inRefCon;
+  AudioSampleBuffer* audioSampleBuffer = audioContext->audioSampleBuffer;
 
   Float32* buffer0Data = (Float32*)ioData->mBuffers[0].mData;
   Float32* buffer1Data = (Float32*)ioData->mBuffers[1].mData;
@@ -63,11 +63,11 @@ static OSStatus GBAudioUnitRenderProc(void* inRefCon, AudioUnitRenderActionFlags
 }
 
 
-struct GBAudioInfo* initCoreAudioPlayback(AudioSampleBuffer* audioSampleBuffer)
+struct GBAudioContext* initCoreAudioPlayback(AudioSampleBuffer* audioSampleBuffer)
 {
-  struct GBAudioInfo* audioInfo = (struct GBAudioInfo*)malloc(1 * sizeof(struct GBAudioInfo));
-  memset(audioInfo, 0, sizeof(struct GBAudioInfo));
-  audioInfo->audioSampleBuffer = audioSampleBuffer;
+  struct GBAudioContext* audioContext = (struct GBAudioContext*)malloc(1 * sizeof(struct GBAudioContext));
+  memset(audioContext, 0, sizeof(struct GBAudioContext));
+  audioContext->audioSampleBuffer = audioSampleBuffer;
 
   AudioComponentDescription outputDescription = {0};
   outputDescription.componentType = kAudioUnitType_Output;
@@ -80,15 +80,15 @@ struct GBAudioInfo* initCoreAudioPlayback(AudioSampleBuffer* audioSampleBuffer)
     exit(1);
   }
 
-  CHECK_ERROR(AudioComponentInstanceNew(component, &audioInfo->outputUnit), "AudioComponentInstanceNew");
+  CHECK_ERROR(AudioComponentInstanceNew(component, &audioContext->outputUnit), "AudioComponentInstanceNew");
 
   AURenderCallbackStruct input;
   input.inputProc = GBAudioUnitRenderProc;
-  input.inputProcRefCon = &audioInfo->outputUnit;
+  input.inputProcRefCon = &audioContext->outputUnit;
 
-  CHECK_ERROR(AudioUnitSetProperty(audioInfo->outputUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &input, sizeof(input)), "AudioUnitSetProperty");
-  CHECK_ERROR(AudioUnitInitialize(audioInfo->outputUnit), "AudioUnitInitialize");
-  CHECK_ERROR(AudioOutputUnitStart(audioInfo->outputUnit), "AudioOutputUnitStart");
+  CHECK_ERROR(AudioUnitSetProperty(audioContext->outputUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &input, sizeof(input)), "AudioUnitSetProperty");
+  CHECK_ERROR(AudioUnitInitialize(audioContext->outputUnit), "AudioUnitInitialize");
+  CHECK_ERROR(AudioOutputUnitStart(audioContext->outputUnit), "AudioOutputUnitStart");
 
-  return audioInfo;
+  return audioContext;
 }

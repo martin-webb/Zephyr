@@ -177,7 +177,7 @@ int main(int argc, const char* argv[])
 
   sampleBufferInitialise(&audioSampleBuffer, 512 * 10); // CoreAudio requests buffers of 512 samples, so ten times that
 
-  struct GBAudioInfo* audioInfo = initCoreAudioPlayback(&audioSampleBuffer);
+  struct GBAudioContext* audioContext = initCoreAudioPlayback(&audioSampleBuffer);
 
   gbInitialise(&gameBoy, gameBoyType, cartridgeData, frameBuffer, romFilename);
 
@@ -213,7 +213,7 @@ int main(int argc, const char* argv[])
 
   gbFinalise(&gameBoy);
 
-  free((void*)audioInfo);
+  free((void*)audioContext);
   free((void*)windowTitle);
   free((void*)romFilename);
   free(cartridgeData);

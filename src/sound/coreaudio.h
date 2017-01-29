@@ -6,13 +6,13 @@
 #import <AudioToolbox/AudioToolbox.h>
 
 
-struct GBAudioInfo
+struct GBAudioContext
 {
   AudioUnit outputUnit;
   AudioSampleBuffer* audioSampleBuffer;
 };
 
 
-struct GBAudioInfo* initCoreAudioPlayback(AudioSampleBuffer* audioSampleBuffer);
+struct GBAudioContext* initCoreAudioPlayback(AudioSampleBuffer* audioSampleBuffer);
 
 #endif // COREAUDIO_H_
