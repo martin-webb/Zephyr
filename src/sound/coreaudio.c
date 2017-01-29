@@ -84,7 +84,7 @@ struct GBAudioContext* initCoreAudioPlayback(AudioSampleBuffer* audioSampleBuffe
 
   AURenderCallbackStruct input;
   input.inputProc = GBAudioUnitRenderProc;
-  input.inputProcRefCon = &audioContext->outputUnit;
+  input.inputProcRefCon = audioContext;
 
   CHECK_ERROR(AudioUnitSetProperty(audioContext->outputUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &input, sizeof(input)), "AudioUnitSetProperty");
   CHECK_ERROR(AudioUnitInitialize(audioContext->outputUnit), "AudioUnitInitialize");
