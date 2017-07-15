@@ -105,7 +105,7 @@ GameBoyType gbGetGameType(uint8_t* cartridgeData)
 }
 
 
-void gbRunNFrames(GameBoy* gameBoy, AudioSampleBuffer* audioSampleBuffer, const int frames)
+int gbRunAtLeastNCycles(GameBoy* gameBoy, AudioSampleBuffer* audioSampleBuffer, const int cycles)
 {
   CPU* cpu = &gameBoy->cpu;
   LCDController* lcdController = &gameBoy->lcdController;
@@ -116,12 +116,12 @@ void gbRunNFrames(GameBoy* gameBoy, AudioSampleBuffer* audioSampleBuffer, const 
 
   const int cyclesBetweenAudioSamples = CLOCK_CYCLE_FREQUENCY_NORMAL_SPEED / AUDIO_SAMPLE_RATE;
 
-  // Execute instructions until we have reached the minimum required number of cycles that would have occurred
-  const int targetCycles = frames * FULL_FRAME_CLOCK_CYCLES;
+  // Execute instructions until we have reached at least the target number (note that as we can't execute less than a
+  // complete instructions worth of cycles the actual number executed might be greater than the target)
   uint32_t totalCyclesExecuted = 0;
   uint32_t audioSampleCycles = gameBoy->cyclesBeforeNextAudioSample;
 
-  while (totalCyclesExecuted < targetCycles) {
+  while (totalCyclesExecuted < cycles) {
     uint8_t cpuCyclesExecuted = cpuRunSingleOp(cpu);
 
     // Component timings are based off clock cycles instead of "real time", but because most components aren't
@@ -157,4 +157,6 @@ void gbRunNFrames(GameBoy* gameBoy, AudioSampleBuffer* audioSampleBuffer, const 
 
   // Store the current number of cycles before the next audio sample, so the next run loop can take this into account
   gameBoy->cyclesBeforeNextAudioSample = (cyclesBetweenAudioSamples - audioSampleCycles);
+
+  return totalCyclesExecuted;
 }

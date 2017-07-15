@@ -1,6 +1,9 @@
 Import("env")
 
-env.AppendUnique(FRAMEWORKS=["AudioUnit", "OpenGL", "GLUT"])
+env.AppendUnique(CPPPATH=["/usr/local/include"])
+env.AppendUnique(LIBPATH=["/usr/local/lib"])
+env.AppendUnique(LIBS=["glfw"])
+env.AppendUnique(FRAMEWORKS=["AudioUnit", "CoreVideo", "OpenGL"])
 
 env.Program("zephyr", [
   "battery.c",
@@ -10,6 +13,7 @@ env.Program("zephyr", [
   "cartridge-types/mbc5.c",
   "cartridge-types/romonly.c",
   "cpu.c",
+  "displaylink.m",
   "gameboy.c",
   "interrupts.c",
   "joypad.c",
