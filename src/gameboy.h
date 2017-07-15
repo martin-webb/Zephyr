@@ -36,6 +36,6 @@ void gbFinalise(GameBoy* gameBoy);
 
 GameBoyType gbGetGameType(uint8_t* cartridgeData);
 
-void gbRunNFrames(GameBoy* gameBoy, AudioSampleBuffer* audioSampleBuffer, const int frames);
+int gbRunAtLeastNCycles(GameBoy* gameBoy, AudioSampleBuffer* audioSampleBuffer, const int cycles);
 
 #endif // GAMEBOY_H_

@@ -9,9 +9,6 @@
 #define PIXEL_DATA_ARRAY_NUM_ELEMENTS_PER_VERTEX 2
 #define PIXEL_DATA_ARRAY_NUM_ELEMENTS_PER_COLOUR 3
 
-
-extern Pixel frameBuffer[LCD_WIDTH * LCD_HEIGHT];
-
 static float PIXEL_VERTICES[PIXEL_DATA_ARRAY_NUM_ELEMENTS * PIXEL_DATA_ARRAY_NUM_ELEMENTS_PER_VERTEX];
 static float PIXEL_COLOURS[PIXEL_DATA_ARRAY_NUM_ELEMENTS * PIXEL_DATA_ARRAY_NUM_ELEMENTS_PER_COLOUR];
 
@@ -51,7 +48,7 @@ void lcdGLInit()
 }
 
 
-static void lcdGLFillColourArray()
+static void lcdGLFillColourArray(Pixel* frameBuffer)
 {
   // With GL_FLAT and GL_TRIANGLE_STRIP we don't need to set r, g, and b values for the first two
   // colours of each line because only the last colour of each triangle determines the colour.
@@ -72,13 +69,12 @@ static void lcdGLFillColourArray()
 }
 
 
-void lcdGLDrawScreen()
+void lcdGLDrawScreen(Pixel* frameBuffer)
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glLoadIdentity();
 
-  lcdGLFillColourArray();
+  lcdGLFillColourArray(frameBuffer);
 
   glDrawArrays(GL_TRIANGLE_STRIP, 0, PIXEL_DATA_ARRAY_NUM_ELEMENTS);
-  glutSwapBuffers();
 }

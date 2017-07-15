@@ -1,17 +1,20 @@
 #include "cartridge.h"
+#include "displaylink.h"
 #include "gameboy.h"
 #include "lcdgl.h"
+#include "logging.h"
 #include "pixel.h"
 #include "sound/coreaudio.h"
 #include "utils/os.h"
 
-#include <GLUT/glut.h>
+#include <GLFW/glfw3.h>
+
+#include <OpenGL/gl.h>
 
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 
 #define EMULATOR_NAME "Zephyr"
 
@@ -19,126 +22,38 @@
 #define WINDOW_SCALE_FACTOR (TARGET_WINDOW_WIDTH_DEFAULT * 1.0 / LCD_WIDTH)
 
 
-GameBoy gameBoy;
-Pixel frameBuffer[LCD_WIDTH * LCD_HEIGHT];
-AudioSampleBuffer audioSampleBuffer;
-
-bool fast = false;
-
-
-void runGBWithGLUT(int value)
+struct UserData
 {
-  glutTimerFunc(17, runGBWithGLUT, value);
-  gbRunNFrames(&gameBoy, &audioSampleBuffer, (fast) ? 4 : 1);
+  GameBoy* gameBoy;
+  Pixel* frameBuffer;
+};
 
-  glutPostRedisplay();
+
+static void refreshCallback(GLFWwindow* window)
+{
+  struct UserData* userData = glfwGetWindowUserPointer(window);
+
+  lcdGLDrawScreen(userData->frameBuffer);
+  glfwSwapBuffers(window);
 }
 
 
-void reshape(int width, int height)
+static void setViewportAndProjection(GLFWwindow* window, int width, int height)
 {
   glViewport(0, 0, width, height);
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluOrtho2D(0, LCD_WIDTH, 0, LCD_HEIGHT);
+  glOrtho(0, LCD_WIDTH, 0, LCD_HEIGHT, -1, 1);
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 }
 
 
-void keyPressed(unsigned char key, int x, int y)
+static void sizeCallback(GLFWwindow* window, int width, int height)
 {
-  switch (key) {
-    case 120: // X
-      gameBoy.joypadController._a = true;
-      break;
-    case 97: // A
-      gameBoy.joypadController._b = true;
-      break;
-    case 13: // Return
-      gameBoy.joypadController._start = true;
-      break;
-    case 9: // Tab
-      gameBoy.joypadController._select = true;
-      break;
-    case 32: // Space
-      fast = true;
-      break;
-    case 49: // 1 - Toggle sound channel 1
-      gameBoy.soundController.channel1Master = !gameBoy.soundController.channel1Master;
-      break;
-    case 50: // 2 - Toggle sound channel 2
-      gameBoy.soundController.channel2Master = !gameBoy.soundController.channel2Master;
-      break;
-    case 51: // 3 - Toggle sound channel 3
-      gameBoy.soundController.channel3Master = !gameBoy.soundController.channel3Master;
-      break;
-    case 52: // 4 - Toggle sound channel 4
-      gameBoy.soundController.channel4Master = !gameBoy.soundController.channel4Master;
-      break;
-  }
-}
-
-
-void keyUp(unsigned char key, int x, int y)
-{
-  switch (key) {
-    case 120: // X
-      gameBoy.joypadController._a = false;
-      break;
-    case 97: // A
-      gameBoy.joypadController._b = false;
-      break;
-    case 13: // Return
-      gameBoy.joypadController._start = false;
-      break;
-    case 9: // Tab
-      gameBoy.joypadController._select = false;
-      break;
-    case 32: // Space
-      fast = false;
-      break;
-  }
-}
-
-
-void specialKeyPressed(int key, int x, int y)
-{
-  switch (key) {
-    case GLUT_KEY_UP:
-      gameBoy.joypadController._up = true;
-      break;
-    case GLUT_KEY_DOWN:
-      gameBoy.joypadController._down = true;
-      break;
-    case GLUT_KEY_LEFT:
-      gameBoy.joypadController._left = true;
-      break;
-    case GLUT_KEY_RIGHT:
-      gameBoy.joypadController._right = true;
-      break;
-  }
-}
-
-
-void specialKeyUp(int key, int x, int y)
-{
-  switch (key) {
-    case GLUT_KEY_UP:
-      gameBoy.joypadController._up = false;
-      break;
-    case GLUT_KEY_DOWN:
-      gameBoy.joypadController._down = false;
-      break;
-    case GLUT_KEY_LEFT:
-      gameBoy.joypadController._left = false;
-      break;
-    case GLUT_KEY_RIGHT:
-      gameBoy.joypadController._right = false;
-      break;
-  }
+  setViewportAndProjection(window, width, height);
 }
 
 
@@ -158,6 +73,78 @@ GameBoyType getGameBoyType(int argc, const char* argv[])
 }
 
 
+static void errorCallback(int errorCode, const char* description)
+{
+  error("GLFW error: %s (%d)\n", description, errorCode);
+}
+
+
+static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+  struct UserData* userData = glfwGetWindowUserPointer(window);
+  GameBoy* gameBoy = userData->gameBoy;
+
+  switch (key) {
+    case GLFW_KEY_X: {
+      gameBoy->joypadController._a = (action != 0);
+      break;
+    }
+    case GLFW_KEY_A: {
+      gameBoy->joypadController._b = (action != 0);
+      break;
+    }
+    case GLFW_KEY_ENTER: {
+      gameBoy->joypadController._start = (action != 0);
+      break;
+    }
+    case GLFW_KEY_TAB: {
+      gameBoy->joypadController._select = (action != 0);
+      break;
+    }
+    case GLFW_KEY_UP: {
+      gameBoy->joypadController._up = (action != 0);
+      break;
+    }
+    case GLFW_KEY_DOWN: {
+      gameBoy->joypadController._down = (action != 0);
+      break;
+    }
+    case GLFW_KEY_LEFT: {
+      gameBoy->joypadController._left = (action != 0);
+      break;
+    }
+    case GLFW_KEY_RIGHT: {
+      gameBoy->joypadController._right = (action != 0);
+      break;
+    }
+    case GLFW_KEY_1: { // Toggle sound channel 1
+      if (action == 1) {
+        gameBoy->soundController.channel1Master = !gameBoy->soundController.channel1Master;
+      }
+      break;
+    }
+    case GLFW_KEY_2: { // Toggle sound channel 2
+      if (action == 1) {
+        gameBoy->soundController.channel2Master = !gameBoy->soundController.channel2Master;
+      }
+      break;
+    }
+    case GLFW_KEY_3: { // Toggle sound channel 3
+      if (action == 1) {
+        gameBoy->soundController.channel3Master = !gameBoy->soundController.channel3Master;
+      }
+      break;
+    }
+    case GLFW_KEY_4: { // Toggle sound channel 4
+      if (action == 1) {
+        gameBoy->soundController.channel4Master = !gameBoy->soundController.channel4Master;
+      }
+      break;
+    }
+  }
+}
+
+
 int main(int argc, const char* argv[])
 {
   if (argc < 2) {
@@ -168,26 +155,33 @@ int main(int argc, const char* argv[])
   const char* romFilename = basename(argv[1]);
   const GameBoyType gameBoyType = getGameBoyType(argc, argv);
 
+  // Create Game Boy state
+  GameBoy gameBoy;
+  Pixel frameBuffer[LCD_WIDTH * LCD_HEIGHT];
+  AudioSampleBuffer audioSampleBuffer;
+
   // Load all cartridge data
   uint8_t* cartridgeData = cartridgeLoadData(argv[1]);
   if (cartridgeData == NULL) {
-    fprintf(stderr, "Failed to read cartridge from '%s'\n", argv[1]);
+    error("Failed to read cartridge from '%s'\n", argv[1]);
     exit(EXIT_FAILURE);
   }
 
   sampleBufferInitialise(&audioSampleBuffer, 512 * 10); // CoreAudio requests buffers of 512 samples, so ten times that
 
-  struct GBAudioContext* audioContext = initCoreAudioPlayback(&audioSampleBuffer);
-
   gbInitialise(&gameBoy, gameBoyType, cartridgeData, frameBuffer, romFilename);
 
-  glutInit(&argc, (char**)argv);
-  glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGBA);
-  glutInitWindowSize(LCD_WIDTH * WINDOW_SCALE_FACTOR, LCD_HEIGHT * WINDOW_SCALE_FACTOR);
-  glutInitWindowPosition(
-    (glutGet(GLUT_SCREEN_WIDTH) - (LCD_WIDTH * WINDOW_SCALE_FACTOR)) / 2 - 100,
-    (glutGet(GLUT_SCREEN_HEIGHT) - (LCD_HEIGHT * WINDOW_SCALE_FACTOR)) / 2
-  );
+  struct GBAudioContext* audioContext = initCoreAudioPlayback(&audioSampleBuffer);
+
+  glfwSetErrorCallback(errorCallback);
+
+  if (!glfwInit()) {
+    error("Failed to initialise GLFW\n");
+    exit(EXIT_FAILURE);
+  }
+
+  const int windowWidth = LCD_WIDTH * WINDOW_SCALE_FACTOR;
+  const int windowHeight = LCD_HEIGHT * WINDOW_SCALE_FACTOR;
 
   // Prepare window title
   const char* windowTitlePrefix = EMULATOR_NAME " - ";
@@ -195,21 +189,75 @@ int main(int argc, const char* argv[])
   strcpy(windowTitle, windowTitlePrefix);
   strcat(windowTitle, romFilename);
 
-  glutCreateWindow(windowTitle);
+  GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, windowTitle, NULL, NULL);
+  if (!window) {
+    error("Failed to initialise window or OpenGL context\n");
+    glfwTerminate();
+    exit(EXIT_FAILURE);
+  }
 
-  glutReshapeFunc(reshape);
-  glutDisplayFunc(lcdGLDrawScreen);
-  glutTimerFunc(0, runGBWithGLUT, 0);
+  glfwMakeContextCurrent(window);
 
-  glutKeyboardFunc(keyPressed);
-  glutKeyboardUpFunc(keyUp);
-  glutSpecialFunc(specialKeyPressed);
-  glutSpecialUpFunc(specialKeyUp);
+  GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+  if (!monitor) {
+    error("Failed to get monitor\n");
+    glfwTerminate();
+    exit(EXIT_FAILURE);
+  }
+
+  const GLFWvidmode* videoMode = glfwGetVideoMode(monitor);
+  if (!videoMode) {
+    error("Failed to get video mode\n");
+    glfwTerminate();
+    exit(EXIT_FAILURE);
+  }
+
+  const int windowX = (videoMode->width - (LCD_WIDTH * WINDOW_SCALE_FACTOR)) / 2;
+  const int windowY = (videoMode->height - (LCD_HEIGHT * WINDOW_SCALE_FACTOR)) / 2;
+
+  glfwSetWindowPos(window, windowX, windowY);
+
+  glfwSetWindowRefreshCallback(window, refreshCallback);
+  glfwSetWindowSizeCallback(window, sizeCallback);
+  glfwSetKeyCallback(window, keyCallback);
+
+  // Prepare user data container that is made available to GLFW callbacks, so we can adjust GB settings
+  struct UserData userData = {.gameBoy = &gameBoy, .frameBuffer = (Pixel*)&frameBuffer};
+  glfwSetWindowUserPointer(window, &userData);
+
+  glfwSwapInterval(1);
+
+  setViewportAndProjection(window, windowWidth, windowHeight);
 
   lcdGLInit();
   lcdGLInitPixelVerticesArray();
 
-  glutMainLoop();
+  // GB display updates at ~59.7 frames per second, however as we're scheduling the emulator with the display of the
+  // device it's running on we may have to run greater or fewer cycles per video frame than the value of
+  // GBCyclesPerSec/GBFramesPerSec.
+  // We obtain the nominal refresh rate directly from Core Video instead of using GLFW's GLFWvidmode as the refreshRate
+  // value in the struct is an int while it could be a decimal value (represented accurately by CVTime) and is therefore
+  // incorrectly truncated inside GLFW.
+  const double refreshPeriod = cvDisplayLinkGetNominalOutputVideoRefreshPeriod();
+  const int cyclesPerVideoFrame = (int)round(CLOCK_CYCLE_FREQUENCY_NORMAL_SPEED / refreshPeriod);
+
+  debug("CVDisplayLink refresh period: %f\n", refreshPeriod);
+  debug("GB cycles/video frame: %d\n", cyclesPerVideoFrame);
+
+  int cyclesToRun = cyclesPerVideoFrame;
+  while (!glfwWindowShouldClose(window)) {
+    int cyclesRun = gbRunAtLeastNCycles(&gameBoy, &audioSampleBuffer, cyclesToRun);
+    int extraCycles = cyclesRun - cyclesToRun;
+    cyclesToRun = cyclesPerVideoFrame - extraCycles;
+
+    lcdGLDrawScreen(frameBuffer);
+
+    glfwSwapBuffers(window);
+    glfwPollEvents();
+  }
+
+  glfwDestroyWindow(window);
+  glfwTerminate();
 
   gbFinalise(&gameBoy);
 
